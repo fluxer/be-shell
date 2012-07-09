@@ -118,6 +118,7 @@ BE::Meter::setPollInterval(int ms)
     myPollInterval = ms;
     if (myTimer)
         killTimer(myTimer);
+    myTimer = 0;
     if (ms > 0)
         myTimer = startTimer(ms);
     if (!myFullScreenCheckTimer)
@@ -343,6 +344,7 @@ BE::HddMeter::HddMeter( QWidget *parent ) : BE::Meter(parent)
 void
 BE::HddMeter::configure( KConfigGroup *grp )
 {
+    myFile.close();
     myFile.setFileName("/sys/block/" + grp->readEntry("Device", "sda") + "/stat");
     Meter::configure(grp);
     setRanges(0, grp->readEntry("MaxRead", 0), 0, grp->readEntry("MaxWrite", 0));
