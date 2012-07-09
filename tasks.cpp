@@ -238,17 +238,17 @@ void
 BE::Task::mouseReleaseEvent(QMouseEvent *me)
 {
     int delay = mouseDownTime.elapsed();
-    qDebug() << iAmImportant;
+//     qDebug() << iAmImportant;
     if (me->button() == Qt::LeftButton) {
         setDown(false);
         if ( iStick && (isEmpty() || delay > 200) ) {
             if ( rect().contains(me->pos()) )
                 emit clicked();
         } else if (iAmImportant) {
-            qDebug() << "check for urgent window";
+//             qDebug() << "check for urgent window";
             foreach (WId id, myWindows) {
                 if (KWindowInfo(id, NET::WMState).hasState(NET::DemandsAttention)) {
-                    qDebug() << "found" << id;
+//                     qDebug() << "found" << id;
                     toggleState(id);
                     return;
                 }
@@ -548,8 +548,8 @@ BE::Task::update(const unsigned long *properties)
                 myGroup = info.windowClassClass();
         }
 
-        if (props[0] & NET::WMVisibleIconName)
-            setText(squeezedText(count() > 1 ? myGroup : info.visibleIconName()));
+        if (props[0] & NET::WMVisibleIconName) // NOTICE info.visibleIconName() is an empty bytearray!
+            setText(squeezedText(count() > 1 ? myGroup : KWindowInfo(id, NET::WMVisibleIconName).visibleIconName()));
 
         if (props[0] & (NET::WMState|NET::XAWMState)) {
             const bool wasImportant = iAmImportant;
@@ -651,11 +651,13 @@ BE::Tasks::addWindow( WId id )
                 continue;
             // found one, add and outa here
             t->add(id);
+            t->setToolButtonStyle(myButtonMode);
             return 0;
         }
     }
 
     Task *newTask = new Task(this, id);
+    newTask->setToolButtonStyle(myButtonMode);
     layout()->addWidget(newTask);
     myTasks << newTask;
     return newTask;
@@ -690,7 +692,7 @@ BE::Tasks::configure( KConfigGroup *grp )
                 Task *task = new Task(this, 0, true);
                 task->configure(&config);
                 task->setObjectName("NoTask");
-//                 btn->setToolButtonStyle(myButtonMode);
+                task->setToolButtonStyle(Qt::ToolButtonIconOnly);
                 myTasks << task;
                 static_cast<QBoxLayout*>(layout())->insertWidget(n++, task, 1);
             }
@@ -723,10 +725,15 @@ BE::Tasks::removeWindow( WId id )
     {
         if ((*it)->remove(id))
         {
-            if ((*it)->isEmpty() && !(*it)->isSticky())
+            if ((*it)->isEmpty())
             {
-                delete *it;
-                myTasks.erase(it);
+                if ((*it)->isSticky())
+                    (*it)->setToolButtonStyle(Qt::ToolButtonIconOnly);
+                else
+                {
+                    delete *it;
+                    myTasks.erase(it);
+                }
             }
             return;
         }
