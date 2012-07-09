@@ -1,0 +1,10 @@
+These are example configurations.
+
+They are meant as a starting base so you don't have to rely on the documentation, because people don't like reading docus (me neither)
+
+Copy the desired example MINUS THE SUFFIX to the local kde config dir, eg.
+cp be.shell.win2000 ~/.kde/share/config/be.shell
+Then rightclick the desktop and reload the config.
+Now you can edit it and start adjusting to your preferences.
+
+The themes belong into the local datapath, eg ~/.kde/share/apps/be.shell/Themes, you can just copy them all at once and it's NOT necessary to use a theme with a "matching" config - you can cross them or alter them completely.
