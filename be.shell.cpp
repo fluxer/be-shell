@@ -610,6 +610,10 @@ BE::Shell::configure()
     {
         BE::Panel *panel = dynamic_cast<BE::Panel*>(*it);
         if (!panel) {
+            if (BE::Run *beRun = dynamic_cast<BE::Run*>(*it)) {
+                KConfigGroup grp = KSharedConfig::openConfig("be.shell")->group(beRun->name());
+                beRun->configure(&grp);
+            }
             ++it;
             continue;
         }

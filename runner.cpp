@@ -294,6 +294,8 @@ BE::Run::configure( KConfigGroup *grp )
         setWindowOpacity(0.9);
     }
     myVisibilityTimeout = grp->readEntry("VisibilityTimeout", 2000);
+
+    myAliases.clear();
     QStringList stringList = grp->readEntry("Aliases", QStringList());
     int i;
     foreach (QString string, stringList)
@@ -301,6 +303,7 @@ BE::Run::configure( KConfigGroup *grp )
         i = string.indexOf(':');
         myAliases.insert(string.left(i), string.right(string.size()-(i+1)));
     }
+    // qDebug() << myAliases;
 
     KConfigGroup grp2 = KSharedConfig::openConfig("be.shell.history")->group(name());
     m_history = grp2.readEntry("History", QStringList());
@@ -556,6 +559,7 @@ void BE::Run::execute( const QString &exec/*Line*/ )
         {
             QProcess *proc = new QProcess(this);
             connect (proc, SIGNAL(finished(int, QProcess::ExitStatus)), SLOT(exitIOMode()));
+            connect (proc, SIGNAL(error(QProcess::ProcessError)), SLOT(exitIOMode()));
             if (i == cmds.count() - 1) // last in pipe chain
                 connect (proc, SIGNAL(readyReadStandardOutput()), SLOT(pipeIOProc()));
             if (i > 0)
@@ -565,8 +569,10 @@ void BE::Run::execute( const QString &exec/*Line*/ )
         }
 
 
-        for (int i = 0; i < myIOProcs.count(); ++i)
-            myIOProcs.at(i)->start(cmds.at(i));
+        for (int i = 0; i < myIOProcs.count(); ++i) {
+            qDebug() << myAliases.value(cmds.at(i), cmds.at(i));
+            myIOProcs.at(i)->start(myAliases.value(cmds.at(i), cmds.at(i)));
+        }
         if (bc_abuse)
         {
             myIOProcs.last()->write(QString(exec.mid(1) + '\n').toLocal8Bit());
@@ -672,7 +678,7 @@ def:
 void BE::Run::exitIOMode()
 {
     myIOProcs.removeAll(qobject_cast<QProcess*>(sender()));
-    delete sender();
+    sender()->deleteLater(); // instant deletion can cause segfaults on process errors
 }
 
 void BE::Run::pipeIOProc()
@@ -778,8 +784,10 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
         {
             if (!myIOProcs.isEmpty())
             {
-                for (int i = 0; i < myIOProcs.count(); ++i )
+                for (int i = 0; i < myIOProcs.count(); ++i ) {
                     myIOProcs.at(i)->terminate();
+                }
+                myIOProcs.clear();
             }
             else
             {
