@@ -7,12 +7,6 @@ TrashCan=true
 TrashSize=64
 TrashX=1140
 TrashY=873
-Wallpaper=
-WallpaperAlign=132
-WallpaperAspect=-1
-WallpaperDefaultAlign=132
-WallpaperDefaultMode=7
-WallpaperMode=7
 
 [BE::Shell]
 Panels=StartBar
