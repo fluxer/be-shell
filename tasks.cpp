@@ -165,17 +165,20 @@ BE::Task::enterEvent(QEvent *e)
     if (isSyntheticCrossing())
         return;
 
-    if (count() < 1)
-        ourToolTip->setText(myLabel);
-    else if (count() < 2)
-        ourToolTip->setText(KWindowInfo(myWindows.at(0), NET::WMVisibleIconName).visibleIconName());
-    else
-        ourToolTip->setText(myGroup + " (" + QString::number(count()) + ')');
+    if (true /*TODO add option*/)
+    {
+        if (count() < 1)
+            ourToolTip->setText(myLabel);
+        else if (count() < 2)
+            ourToolTip->setText(KWindowInfo(myWindows.at(0), NET::WMVisibleIconName).visibleIconName());
+        else
+            ourToolTip->setText(myGroup + " (" + QString::number(count()) + ')');
 
-    ourToolTip->adjustSize();
-    ourToolTip->move(popupPosition(ourToolTip->size()));
-    ourToolTip->show();
-    ourToolTip->raise();
+        ourToolTip->adjustSize();
+        ourToolTip->move(popupPosition(ourToolTip->size()));
+        ourToolTip->show();
+        ourToolTip->raise();
+    }
 
     if (isRelevant())
         highlightWindows(window()->winId(), QList<WId>(myWindows) << ourToolTip->winId());
@@ -651,7 +654,7 @@ BE::Tasks::addWindow( WId id )
                 continue;
             // found one, add and outa here
             t->add(id);
-            t->setToolButtonStyle(myButtonMode);
+//             t->setToolButtonStyle(myButtonMode);
             return 0;
         }
     }
@@ -692,7 +695,7 @@ BE::Tasks::configure( KConfigGroup *grp )
                 Task *task = new Task(this, 0, true);
                 task->configure(&config);
                 task->setObjectName("NoTask");
-                task->setToolButtonStyle(Qt::ToolButtonIconOnly);
+//                 task->setToolButtonStyle(Qt::ToolButtonIconOnly);
                 myTasks << task;
                 static_cast<QBoxLayout*>(layout())->insertWidget(n++, task, 1);
             }
@@ -704,6 +707,7 @@ BE::Tasks::configure( KConfigGroup *grp )
     iIgnoreVisible = !hasStickies && grp->readEntry("OnlyMinimized", false);
     iSeparateDesktops = !hasStickies && grp->readEntry("OnlyCurrentDesk", false);
     iSeparateScreens = !hasStickies && grp->readEntry("OnlyCurrentScreen", false);
+    static_cast<QBoxLayout*>(layout())->setSpacing(grp->readEntry("Spacing", 2));
 
     foreach (WId id, KWindowSystem::windows())
         addWindow(id);
@@ -727,9 +731,9 @@ BE::Tasks::removeWindow( WId id )
         {
             if ((*it)->isEmpty())
             {
-                if ((*it)->isSticky())
-                    (*it)->setToolButtonStyle(Qt::ToolButtonIconOnly);
-                else
+//                 if ((*it)->isSticky())
+//                     (*it)->setToolButtonStyle(Qt::ToolButtonIconOnly);
+//                 else
                 {
                     delete *it;
                     myTasks.erase(it);
