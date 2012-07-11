@@ -209,13 +209,13 @@ BE::GMenu::changeEntry(qlonglong key, int idx, const QString &entry, bool add)
         return;
 
     QWidget *bar = i.value();
-    
+
     if (entry.isNull())
     {   // delete
 
         if (idx < 0 || idx >= bar->actions().count())
             return;
-        
+
         delete bar->actions().takeAt(idx);
 
         if (bar->actions().isEmpty())
@@ -234,9 +234,9 @@ BE::GMenu::changeEntry(qlonglong key, int idx, const QString &entry, bool add)
         QAction *before = 0;
         if (bar->actions().isEmpty())
             titleItem = titleItem || idx < 0;
-        else if (idx < bar->actions().count())
+        else if (idx > -1 && idx < bar->actions().count())
             before = bar->actions().at(idx);
-        
+
         QAction *act = new QAction(entry, bar);
         if (entry == "<XBAR_SEPARATOR/>")
             act->setSeparator(true);
