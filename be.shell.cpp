@@ -72,6 +72,10 @@
 
 #include "dbus_shell.h"
 
+#ifdef Q_WS_X11
+static Atom net_wm_cm;
+#endif
+
 static BE::Shell *instance = 0;
 
 BE::Shell::Shell(QObject *parent) : QObject(parent), myStyleWatcher(0L)
@@ -82,6 +86,13 @@ BE::Shell::Shell(QObject *parent) : QObject(parent), myStyleWatcher(0L)
         deleteLater();
         return;
     }
+
+#ifdef Q_WS_X11
+    Display *dpy = QX11Info::display();
+    char string[ 100 ];
+    sprintf(string, "_NET_WM_CM_S%d", DefaultScreen( dpy ));
+    net_wm_cm = XInternAtom(dpy, string, False);
+#endif
 
     instance = this;
     myContextMenu = 0;
@@ -565,10 +576,19 @@ static bool runProcess(KProcess **proc, const char *cmd, const char *arg, QObjec
 
 #define kwin QDBusInterface("org.kde.kwin", "/KWin", "org.kde.KWin", QDBusConnection::sessionBus())
 
+static bool compositingActive()
+{
+#ifdef Q_WS_X11
+    return XGetSelectionOwner( QX11Info::display(), net_wm_cm ) != None;
+#else
+    return true;
+#endif
+}
+
 void
 BE::Shell::lockScreen()
 {
-    usedCompositing = KWindowSystem::compositingActive();
+    usedCompositing = compositingActive();
     if (runProcess(&kscreenlocker, "kscreenlocker", "--forcelock", this, true))
     {
         if (usedCompositing)
@@ -581,7 +601,7 @@ BE::Shell::lockScreen()
 void
 BE::Shell::resetCompositing()
 {
-    if (usedCompositing != KWindowSystem::compositingActive())
+    if (usedCompositing != compositingActive())
         kwin.call("toggleCompositing");
     emit ActiveChanged();
 }
