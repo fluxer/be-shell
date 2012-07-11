@@ -131,6 +131,17 @@ private:
 QMap<int, StrutManager*> struts;
 static QMenu *configSubMenu = 0;
 
+static void findSameWindowKids( QWidget *root, QList<QWidget*> &list )
+{
+    foreach (QObject *kid, root->children())
+        if (QWidget *w = qobject_cast<QWidget*>(kid))
+        if (!w->isWindow())
+        {
+            list << w;
+            findSameWindowKids( w, list );
+        }
+}
+
 }
 
 BE::Panel::Panel( QWidget *parent ) : QFrame( parent, Qt::FramelessWindowHint), BE::Plugged(parent), myPosition(Top),
@@ -472,6 +483,12 @@ void
 BE::Panel::showEvent(QShowEvent *e)
 {
     QWidget::showEvent(e);
+    updateEffectBg();
+    QSize maxSize = (orientation() == Qt::Horizontal) ? QSize(QWIDGETSIZE_MAX, mySize) : QSize(mySize, QWIDGETSIZE_MAX);
+    QList<QWidget*> kids;
+    findSameWindowKids(this, kids);
+    foreach (QWidget *kid, kids)
+        kid->setMaximumSize(maxSize);
     emit orientationChanged(orientation());
     if (BE::Shell::touchMode() && myLayer > 2)
         myShowTime.start();
@@ -790,17 +807,6 @@ BE::Panel::conditionalHide()
         }
         hide();
     }
-}
-
-void findSameWindowKids( QWidget *root, QList<QWidget*> &list )
-{
-    foreach (QObject *kid, root->children())
-        if (QWidget *w = qobject_cast<QWidget*>(kid))
-        if (!w->isWindow())
-        {
-            list << w;
-            findSameWindowKids( w, list );
-        }
 }
 
 void
