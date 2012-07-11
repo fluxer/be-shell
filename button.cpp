@@ -60,11 +60,11 @@ BE::Button::configure( KConfigGroup *grp )
     myMenu = 0;
     bool connected = false;
 
-    setToolButtonStyle((Qt::ToolButtonStyle)grp->readEntry("Mode", (int)Qt::ToolButtonTextOnly));
-    setPopupMode(InstantPopup);
-
     setText(grp->readEntry("Label", QString()));
     myIcon = grp->readEntry("Icon", QString());
+    setToolButtonStyle((Qt::ToolButtonStyle)grp->readEntry("Mode", text().isEmpty() ? (int)Qt::ToolButtonIconOnly : (int)Qt::ToolButtonTextOnly));
+    setPopupMode(InstantPopup);
+
     myCommand = grp->readEntry("Exec", QString());
     if (!myCommand.isEmpty())
     {
@@ -124,6 +124,7 @@ BE::Button::configure( KConfigGroup *grp )
         connect( this, SIGNAL(clicked()), this, SLOT(runCommand()) );
 
     setIcon(themeIcon(myIcon));
+    setShortcut(QKeySequence()); // getrid of mnemonics
 }
 
 void
