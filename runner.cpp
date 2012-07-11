@@ -209,7 +209,7 @@ m_currentHistoryEntry(-1), m_visibleIcons(10000), m_flat(false), iScheduledResor
 
     KAction *action = new KAction(this);
     action->setObjectName("BE::Run::showAsDialog");
-    action->setGlobalShortcut(KShortcut(Qt::Key_F13));
+    action->setGlobalShortcut(KShortcut(Qt::AltModifier + Qt::Key_Space));
     connect ( action, SIGNAL(triggered(Qt::MouseButtons, Qt::KeyboardModifiers)), this, SLOT(showAsDialog()) );
 
     QDBusConnection::sessionBus().registerObject("/Runner", this);
@@ -463,7 +463,7 @@ void BE::Run::togglePopup(int x, int y)
     if (y + h > r.bottom()) y = r.bottom() - h;
     if (y < r.y()) y = r.y();
 
-    if (x > r.width()/2) x -= h;
+    if (x > r.width()/2) x -= w;
     if (x + w > r.right()) x = r.right() - w;
     if (x < r.x()) x = r.x();
 
