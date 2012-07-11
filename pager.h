@@ -32,6 +32,8 @@ class QAbstractButton;
 
 namespace BE {
 
+class FlowLayout;
+
 class Pager : public QFrame, public Plugged
 {
     Q_OBJECT
@@ -46,7 +48,7 @@ private slots:
 
 private:
     QButtonGroup *myDesktops;
-    QHBoxLayout *myLayout;
+    FlowLayout *myLayout;
 };
 
 }

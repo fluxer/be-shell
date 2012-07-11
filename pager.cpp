@@ -21,6 +21,7 @@
 ***************************************************************************/
 
 #include "pager.h"
+#include "flowlayout.h"
 
 #include <KDE/KWindowSystem>
 
@@ -33,7 +34,7 @@ BE::Pager::Pager(QWidget *parent) : QFrame(parent), BE::Plugged(parent)
     setObjectName("Pager");
 
     myDesktops = new QButtonGroup(this);
-    myLayout = new QHBoxLayout(this);
+    myLayout = new FlowLayout(this);
     myLayout->setSpacing(0);
     myLayout->setMargin(0);
 
