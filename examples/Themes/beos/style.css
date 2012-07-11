@@ -1,0 +1,256 @@
+.BE--Desk {
+    background-color:#336698;
+    color:white;
+}
+
+.BE--Run {
+    background-color: #D8D8D8;
+    color: black;
+}
+
+.BE--Run QLineEdit {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE171, stop:1 #FFCD0D);
+    border:1px solid #FFCD0D;
+    color: black;
+    padding:4px;
+}
+
+.BE--Run QTreeView {
+    selection-background-color: #FFD638;
+    selection-color: black;
+    background-color: #D8D8D8;
+    color: black;
+}
+
+.BE--Run QTreeWidget QScrollBar {
+    width:10px;
+    border: 0px;
+    background-color: none;
+    color: none;
+}
+
+QScrollBar::handle
+{
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #E1E1E1, stop:1 #D1D1D1);
+    border:1px solid #BBBBBB;
+}
+
+QScrollBar::handle:hover
+{
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #E8E8E8, stop:1 #D8D8D8);
+}
+
+#RightPanel {
+    background-color:transparent;
+    color:white;
+    padding:0px;
+    margin:0px;
+}
+
+#StatusPanel  {
+    background-color:#C2C2C2;
+    max-height:24px;
+}
+
+#StatusPanel * {
+    color:black;
+}
+
+.BE--Tasks {
+    padding:0px;
+    margin:0px;
+    border:1px solid #BBBBBB;
+}
+
+#RunButton, #sessionbutton, .BE--Task, #Calendar QComboBox {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E1E1E1, stop:1 #D1D1D1);
+    color:black;
+    border-top:1px solid #E8E8E8;
+    border-bottom:1px solid #959595;
+}
+
+#RunButton, #sessionbutton, .BE--Task {
+    height:24px;
+}
+
+#Calendar QComboBox {
+    margin:4px;
+    padding-right:6px;
+}
+
+#Calendar QComboBox::drop-down {
+    border:none;
+    background:transparent;
+}
+
+#RunButton:hover, #sessionbutton:hover, .BE--Task:hover, #Calendar QComboBox:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E8E8E8, stop:1 #D8D8D8);
+}
+
+.BE--Task:checked {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE171, stop:1 #FFCD0D);
+    border:1px solid #FFCD0D;
+}
+
+#RunButton:pressed, #sessionbutton:pressed, .BE--Task:pressed, #Calendar QComboBox:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFCD0D, stop:1 #FFE171);
+}
+
+#TaskTip {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE171, stop:1 #FFCD0D);
+    border:1px solid #FFCD0D;
+    padding:4px;
+}
+
+.BE--Task::menu-indicator, #sessionbutton::menu-indicator {
+    image:none;
+}
+
+#pager {
+    margin:4px;
+}
+
+#pager QToolButton {
+    margin:2px;
+    width:40;
+    height:40;
+    border:1px solid #bbbbbb;
+    background-color:rgba(0,0,0,32);
+}
+
+#pager QToolButton:checked {
+    border:1px solid #333333;
+    background-color:transparent;
+}
+
+QMenu {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E1E1E1, stop:1 #D1D1D1);
+    color: black;
+    border:1px solid #BBBBBB;
+    border-top:1px solid #E8E8E8;
+    border-bottom:1px solid #959595;
+    padding:0px;
+}
+
+QMenu::item {
+    border:none;
+    padding:3px;
+    padding-right:24px; /*for checkbox, submenu indicator etc. */
+}
+
+QMenu::item:selected {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE171, stop:1 #FFCD0D);
+    padding:2px;
+    border:1px solid #FFCD0D;
+}
+
+QMenu::indicator {
+    subcontrol-origin: margin;
+    subcontrol-position: top right;
+    margin:3px;
+}
+
+QMenu::indicator:non-exclusive:unchecked {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E1E1E1, stop:1 #D1D1D1);
+    border:1px solid #BBBBBB;
+}
+
+QMenu::indicator:non-exclusive:checked {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE171, stop:1 #FFCD0D);
+    border:1px solid #FFCD0D;
+}
+
+#Calendar QComboBox::down-arrow, QMenu::right-arrow, QMenu::left-arrow {
+    position:absolute;
+    subcontrol-origin: margin;
+    subcontrol-position: top right;
+    margin:3px;
+    margin-top:6px;
+    margin-bottom:6px;
+    width:13px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #BBBBBB, stop:1 #D1D1D1);
+    border:1px solid #AAAAAA;
+}
+
+QMenu::separator {
+    height:1px;
+    margin:2px;
+    margin-left:8px;
+    margin-right:8px;
+    border:none;
+    background-color:#BBBBBB;
+}
+
+#mtray, #mtray * {
+    border:none;
+    padding:0px;
+    margin:0px;
+}
+
+#mtray QToolButton {
+    padding:1px;
+}
+
+#mtray QToolButton:hover {
+    padding:0px;
+}
+
+#mtray QToolButton:pressed {
+    padding:0px;
+}
+
+#mtray QToolButton::menu-indicator {
+    image:none;
+}
+
+#infocenter {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #27639F, stop:1 #084582);
+    border:1px solid #084582;
+    border-radius: 8px;
+    margin:1px;
+    padding:-1px;
+    color:white;
+}
+
+#infocenter {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #89C4FF, stop:1 #75A7DA);
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:0px;
+    margin:2px;
+}
+
+#InfoDialog, #Calendar {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E1E1E1, stop:1 #D1D1D1);
+    color:black;
+}
+
+
+#Calendar .KDatePicker {
+    margin:8px;
+}
+
+#Calendar, #Calendar * {
+    color: black;
+    selection-background-color: #FFD638;
+    selection-color: black;
+}
+
+#InfoDialog QTextEdit, #InfoDialog QLabel {
+    background-color: white;
+    color:black;
+    border:2px solid #BBBBBB;
+    border-bottom:2px solid #E8E8E8;
+    border-top:2px solid #959595;
+}
+
+#InfoDialog QToolBox::tab {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFE171, stop:1 #FFCD0D);
+    border: 1px solid #FFCD0D;
+    color:black;
+}
+
+#InfoDialog QToolBox::tab:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FFCD0D, stop:1 #FFE171);
+}
