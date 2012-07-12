@@ -153,6 +153,10 @@ public:
         wmPix = KWindowSystem::icon(id, 128, 128, false );
         updateIcon();
     }
+//     ~SysTrayIcon() {
+//         if (mouseGrabber() == this)
+//             releaseMouse();
+//     }
     inline WId cId() { return bed->clientWinId(); }
     inline bool isOutdated() { return !bed->clientWinId(); }
     const QString &name() { return iName; }
@@ -166,11 +170,9 @@ public:
     {
         QIcon icn = BE::Plugged::themeIcon(iName, false);
 #if LABEL
-        if (icn.isNull()) setPixmap(wmPix);
-        else setPixmap(icn.pixmap(128));
+        setPixmap(icn.isNull() ? wmPix : icn.pixmap(128));
 #else
-        if (icn.isNull()) setIcon(wmPix);
-        else setIcon(icn);
+        setIcon(icn.isNull() ? wmPix : icn);
 #endif
     }
     bool nasty, fallback;
@@ -200,6 +202,11 @@ protected:
     }
     void mousePressEvent( QMouseEvent *me)
     {
+        // NOTICE: this does not work because oc. the popup still needs the mouse.
+//         if (mouseGrabber() == this)
+//             releaseMouse();
+//         else if (me->button() == Qt::RightButton) // let's assume this toggles a popup
+//             grabMouse();
         me->accept();
 #if ! LABEL
         ICON_BASE::mousePressEvent( me );
@@ -308,6 +315,7 @@ protected:
     QString iName;
     X11EmbedContainer *bed;
     QPixmap wmPix;
+    bool iGrabTheMouse;
 };
 
 }
@@ -472,41 +480,36 @@ BE::SysTray::configureIcons()
     tree->header()->setResizeMode(2, QHeaderView::ResizeToContents);
     tree->setHeaderHidden(true);
 
-    QStringList extraList = nastyOnes;
+    QMap<QString,int> icons;
+    QList< QPointer<SysTrayIcon> >::iterator it = myIcons.begin();
+    while (it != myIcons.end())
+    {
+        BE::SysTrayIcon *icon = *it;
+        if (!icon)
+            { it = myIcons.erase(it); continue; }
+        icons[icon->name()] = 0;
+        ++it;
+    }
+
     foreach (QString s, fallbackOnes)
-        if (!extraList.contains(s))
-            extraList << s;
+        icons[s] |= 1;
 
-    QList< QPointer<SysTrayIcon> >::iterator i = myIcons.begin();
-    while (i != myIcons.end())
-    {
-        BE::SysTrayIcon *icon = *i;
-        if (!icon) { i = myIcons.erase(i); continue; }
+    foreach (QString s, nastyOnes)
+        icons[s] |= 2;
 
-        QTreeWidgetItem *item = new QTreeWidgetItem( QStringList() << QStringList() << icon->name() << "Hidden" << "Fallback");
-        item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-#if LABEL
-        item->setIcon(0, *icon->pixmap());
-#else
-        item->setIcon(0, icon->icon());
-#endif
-        extraList.removeOne(icon->name());
-        item->setCheckState(1, icon->nasty ? Qt::Checked : Qt::Unchecked );
-        item->setCheckState(2, icon->fallback ? Qt::Checked : Qt::Unchecked );
-        tree->addTopLevelItem ( item );
-        ++i;
-    }
-    foreach (QString s, extraList)
+    for (QMap<QString, int>::const_iterator it = icons.constBegin(), end = icons.constEnd(); it != end; ++it)
     {
-        QTreeWidgetItem *item = new QTreeWidgetItem( QStringList() << QStringList() << "Icon" << "Hidden" << "Fallback");
+        QTreeWidgetItem *item = new QTreeWidgetItem( QStringList() << it.key() << "Hidden" << "Fallback");
+        item->setCheckState(2, it.value() & 1 ? Qt::Checked : Qt::Unchecked );
+        item->setCheckState(1, it.value() & 2 ? Qt::Checked : Qt::Unchecked );
         item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-        item->setCheckState(1, nastyOnes.contains(s) ? Qt::Checked : Qt::Unchecked );
-        item->setCheckState(2, fallbackOnes.contains(s) ? Qt::Checked : Qt::Unchecked );
-        tree->addTopLevelItem ( item );
+        item->setIcon(0, BE::Plugged::themeIcon(it.key(), true));
+        tree->addTopLevelItem(item);
     }
+
     tree->sortItems( 0, Qt::AscendingOrder );
-
     d->layout()->addWidget(tree);
+
     QDialogButtonBox *dbb = new QDialogButtonBox( QDialogButtonBox::Ok|QDialogButtonBox::Cancel, Qt::Horizontal, d );
     d->layout()->addWidget(dbb);
     connect (dbb, SIGNAL(accepted()), d, SLOT(accept()));
@@ -514,6 +517,7 @@ BE::SysTray::configureIcons()
     connect (tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(toggleItem(QTreeWidgetItem*,int)));
     d->exec();
     d->hide();
+
     if (d->result() == QDialog::Accepted)
     {
         nastyOnes.clear();
