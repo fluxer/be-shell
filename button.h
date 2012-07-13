@@ -46,10 +46,11 @@ private slots:
     void pulse();
     void runCommand();
     void startService();
+    void updateMenu();
 private:
     QString myIcon, myCommand, myExe, myWheel[2];
     QMenu *myMenu;
-    int myPulseIteration, myPulseLimit;
+    int myPulseIteration, myPulseLimit, myUpdaterTimeout;
     ButtonAdaptor *myDBus;
     bool imNotReallyCrossed;
 };

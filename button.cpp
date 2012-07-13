@@ -116,6 +116,11 @@ BE::Button::configure( KConfigGroup *grp )
             BE::Shell::buildMenu(myCommand, myMenu, "menu");
             setMenu(myMenu);
             setPopupMode( QToolButton::InstantPopup );
+            myExe = grp->readEntry("MenuUpdater", QString());
+            if (!myExe.isEmpty()) {
+                myUpdaterTimeout = grp->readEntry("MenuUpdaterTimeout", 2000);
+                connect (myMenu, SIGNAL(aboutToShow()), SLOT(updateMenu()));
+            }
         }
         else
             connect( this, SIGNAL(clicked()), this, SLOT(dbusCall()) );
@@ -227,6 +232,16 @@ void
 BE::Button::themeChanged()
 {
     setIcon(themeIcon(myIcon));
+}
+
+void
+BE::Button::updateMenu()
+{
+    QProcess proc(this);
+    proc.start(myExe);
+    proc.waitForFinished(myUpdaterTimeout);
+    myMenu->clear();
+    BE::Shell::buildMenu(myCommand, myMenu, "menu");
 }
 
 void
