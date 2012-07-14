@@ -738,6 +738,7 @@ BE::Tasks::removeWindow( WId id )
 //                 if ((*it)->isSticky())
 //                     (*it)->setToolButtonStyle(Qt::ToolButtonIconOnly);
 //                 else
+                if (!(*it)->isSticky())
                 {
                     delete *it;
                     myTasks.erase(it);
