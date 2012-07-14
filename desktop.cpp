@@ -1125,21 +1125,24 @@ BE::Desk::updateOnWallpaperChange()
     {
         QRect sr = geometry();
         sr.moveTo(-wp.offset);
+        Pixmap xPix = XCreatePixmap(QX11Info::display(), QX11Info::appRootWindow(),
+                                    width(), height(),
+                                    DefaultDepth(QX11Info::display(), DefaultScreen(QX11Info::display())));
+        QPixmap qPix = QPixmap::fromX11Pixmap(xPix, QPixmap::ExplicitlyShared);
         if (myRootBlurRadius)
         {
             QImage *img = new QImage(size(), QImage::Format_RGB32);
             render(img, QPoint(), rect(), DrawWindowBackground);
             BE::Shell::blur( *img, myRootBlurRadius );
-            XSetWindowBackgroundPixmap(QX11Info::display(), QX11Info::appRootWindow(), QPixmap::fromImage(*img).handle());
+            QPainter p(&qPix);
+            p.drawImage(0,0,*img);
+            p.end();
             delete img;
         }
         else
-        {
-            QPixmap *pix = new QPixmap(size());
-            render(pix, QPoint(), rect(), DrawWindowBackground);
-            XSetWindowBackgroundPixmap(QX11Info::display(), QX11Info::appRootWindow(), pix->handle());
-            delete pix;
-        }
+            render(&qPix, QPoint(), rect(), DrawWindowBackground);
+        XSetWindowBackgroundPixmap(QX11Info::display(), QX11Info::appRootWindow(), xPix);
+        XFreePixmap(QX11Info::display(), xPix);
         XClearWindow(QX11Info::display(), QX11Info::appRootWindow());
     }
     // update menus
