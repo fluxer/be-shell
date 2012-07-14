@@ -152,6 +152,7 @@ BE::GMenu::~GMenu()
         byeMenus();
         instance = NULL;
     }
+    QDBusConnection::sessionBus().unregisterService("org.kde.XBar");
 }
 
 void
