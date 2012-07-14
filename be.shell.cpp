@@ -576,7 +576,8 @@ static bool runProcess(KProcess **proc, const char *cmd, const char *arg, QObjec
 
 #define kwin QDBusInterface("org.kde.kwin", "/KWin", "org.kde.KWin", QDBusConnection::sessionBus())
 
-static bool compositingActive()
+bool
+BE::Shell::compositingActive()
 {
 #ifdef Q_WS_X11
     return XGetSelectionOwner( QX11Info::display(), net_wm_cm ) != None;

@@ -371,7 +371,7 @@ BE::Run::paintEvent(QPaintEvent *pe)
         else
             c = Qt::white;
         QLinearGradient lg(0,0,0,height());
-        if (KWindowSystem::compositingActive())
+        if (BE::Shell::compositingActive())
         {
             c.setAlpha(qAbs(c.red()-85));
             lg.setColorAt(0.1, c);

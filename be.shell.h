@@ -53,6 +53,7 @@ public:
     static void buildMenu(const QString &name, QWidget *widget, const QString &type);
     static void call(const QString &instruction);
     static bool callThemeChangeEventFor(BE::Plugged*);
+    static bool compositingActive();
     static QRect desktopGeometry(int screen = -1);
     static QString executable(WId id);
     static bool hasFullscreenAction();
