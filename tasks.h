@@ -44,6 +44,7 @@ public:
     inline const QString &group() { return myGroup; }
     inline bool isActive() { return isChecked(); }
     inline bool isEmpty() { return myWindows.isEmpty(); }
+    inline bool isMinimized() { return iAmMinimized; }
     bool isOnCurrentDesktop() const;
     inline bool isRelevant() const { return bool(firstRelevant()); }
     inline bool isRunning() { return !myWindows.isEmpty(); }
@@ -102,13 +103,14 @@ private slots:
     void windowActivated( WId id );
 
     void setStyle();
+    void updateVisibility(Task *t);
 
 private:
     typedef QList<Task*> TaskList;
     TaskList myTasks;
     QList<WId> myWindows;
     Qt::Orientation myOrientation;
-    bool iStack, iStackNow, iSeparateDesktops, iSeparateScreens, iIgnoreVisible;
+    bool iStack, iStackNow, iSeparateDesktops, iSeparateScreens, iIgnoreVisible, hasStickies;
     Qt::ToolButtonStyle myButtonMode;
 };
 }

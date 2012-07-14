@@ -642,18 +642,21 @@ BE::Tasks::addWindow( WId id )
 
     if (!myWindows.contains(id))
         myWindows << id;
-    if (iStackNow)
+    if (iStackNow || hasStickies)
     {
         QString newClass = info.windowClassName();
         if (newClass.isEmpty())
             newClass = info.windowClassClass();
         const QString newExe = BE::Shell::executable(id);
         foreach (Task *t, myTasks) {
+            if (!(iStackNow || t->isSticky()))
+                continue;
             if (newClass.compare(t->group(), Qt::CaseInsensitive) && newExe.compare(t->exe(), Qt::CaseInsensitive) &&
                 newClass.compare(t->exe(), Qt::CaseInsensitive) && newExe.compare(t->group(), Qt::CaseInsensitive))
                 continue;
             // found one, add and outa here
             t->add(id);
+            updateVisibility(t);
 //             t->setToolButtonStyle(myButtonMode);
             return 0;
         }
@@ -663,6 +666,7 @@ BE::Tasks::addWindow( WId id )
     newTask->setToolButtonStyle(myButtonMode);
     layout()->addWidget(newTask);
     myTasks << newTask;
+    updateVisibility(newTask);
     return newTask;
 }
 
@@ -679,7 +683,7 @@ BE::Tasks::configure( KConfigGroup *grp )
     myButtonMode = (Qt::ToolButtonStyle)grp->readEntry("ButtonMode", (int)Qt::ToolButtonTextOnly);
 
     KConfigGroup siblings = grp->parent();
-    bool hasStickies = false;
+    hasStickies = false;
     if (siblings.isValid())
     {
         QStringList sticks = grp->readEntry("Buttons", QStringList());
@@ -703,9 +707,9 @@ BE::Tasks::configure( KConfigGroup *grp )
         hasStickies = n;
     }
 
-    iStackNow = iStack = (hasStickies || grp->readEntry("AlwaysGroup", false));
-    iIgnoreVisible = !hasStickies && grp->readEntry("OnlyMinimized", false);
-    iSeparateDesktops = !hasStickies && grp->readEntry("OnlyCurrentDesk", false);
+    iStackNow = iStack = grp->readEntry("AlwaysGroup", false);
+    iIgnoreVisible = grp->readEntry("OnlyMinimized", false);
+    iSeparateDesktops = grp->readEntry("OnlyCurrentDesk", false);
     iSeparateScreens = !hasStickies && grp->readEntry("OnlyCurrentScreen", false);
     static_cast<QBoxLayout*>(layout())->setSpacing(grp->readEntry("Spacing", 2));
 
@@ -739,6 +743,8 @@ BE::Tasks::removeWindow( WId id )
                     myTasks.erase(it);
                 }
             }
+            else
+                updateVisibility(*it);
             return;
         }
         ++it;
@@ -747,12 +753,12 @@ BE::Tasks::removeWindow( WId id )
 
 
 void
-BE::Tasks::setCurrentDesktop(int desktop)
+BE::Tasks::setCurrentDesktop(int /*desktop*/)
 {
     if (iSeparateDesktops)
     {
         foreach (Task *t, myTasks)
-            t->setVisible(t->isOnCurrentDesktop());
+            updateVisibility(t);
     }
 }
 
@@ -777,12 +783,13 @@ BE::Tasks::updateWindowProperties(WId id, const unsigned long *properties)
             const unsigned long props[2] = { properties[0] & (NET::WMVisibleIconName|NET::WMState),
                                              properties[1] & 0};
             t->update(props);
+            updateVisibility(t);
             break;
         }
 }
 
 void
-BE::Tasks::leaveEvent(QEvent *e)
+BE::Tasks::leaveEvent(QEvent */*e*/)
 {
     highlightWindows(window()->winId(), QList<WId>());
 }
@@ -839,6 +846,20 @@ BE::Tasks::wheelEvent( QWheelEvent *we )
         KWindowSystem::forceActiveWindow(activeId);
         highlightWindows(window()->winId(), QList<WId>() << activeId);
     }
+}
+
+void
+BE::Tasks::updateVisibility(Task *t)
+{
+    if (t->isSticky())
+        return; // stickies are always visible
+
+    bool vis = true;
+    if (iSeparateDesktops)
+        vis = t->isOnCurrentDesktop();
+    if (vis && iIgnoreVisible)
+        vis = t->isMinimized();
+    t->setVisible(vis);
 }
 
 void
