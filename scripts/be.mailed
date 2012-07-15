@@ -1,0 +1,10 @@
+#!/bin/sh
+echo "$1" "$2"
+if (($1 > 1)); then
+    MAIL=mails
+else
+    MAIL=mail
+fi
+qdbus org.kde.be.shell /trojita requestAttention
+qdbus org.kde.be.shell /trojita setToolTip "$1 new $MAIL @ $2"
+qdbus org.freedesktop.Notifications /org/freedesktop/Notifications Notify "Mail watcher" 0 "kmail" "$1 new $MAIL @ $2" "<h1>$1 new $MAIL @ $2</h1>"
