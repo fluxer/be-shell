@@ -52,10 +52,14 @@ void
 BE::Button::configure( KConfigGroup *grp )
 {
     disconnect( SIGNAL(clicked()) );
-    QString opath("/" % name());
-    opath.replace( QRegExp("[^A-Za-z0-9_/]"), "_" );
-    opath.replace( QRegExp("/+"), "/" );
-    QDBusConnection::sessionBus().registerObject(opath, this);
+    if (!name().isEmpty()) {
+        QString opath("/" % name());
+        opath.replace( QRegExp("[^A-Za-z0-9_/]"), "_" );
+        opath.replace( QRegExp("/+"), "/" );
+        QDBusConnection::sessionBus().registerObject(opath, this);
+    }
+    else
+        qDebug() << "BUG: some button ain't no name" << this << QToolButton::parent();
     delete myMenu;
     myMenu = 0;
     bool connected = false;

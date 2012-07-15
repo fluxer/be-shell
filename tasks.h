@@ -34,7 +34,7 @@ class Task : public Button
 {
     Q_OBJECT
 public:
-    Task(QWidget *parent, WId id, bool sticky = false);
+    Task(QWidget *parent, WId id, bool sticky = false, const QString &name = QString());
     void add(WId id);
     inline void clear()  { myWindows.clear(); }
     void configure( KConfigGroup *grp );

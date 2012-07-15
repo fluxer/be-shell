@@ -96,7 +96,7 @@ static bool isOccluded(WId id)
 }
 
 
-BE::Task::Task(QWidget *parent, WId id, bool sticky) : BE::Button(parent)
+BE::Task::Task(QWidget *parent, WId id, bool sticky, const QString &name) : BE::Button(parent, name)
 {
     if (!kdeWindowHighlight)
         kdeWindowHighlight = XInternAtom(QX11Info::display(), "_KDE_WINDOW_HIGHLIGHT", False);
@@ -696,7 +696,7 @@ BE::Tasks::configure( KConfigGroup *grp )
                 type = config.readEntry("Type", QString());
             if (!type.compare("Button", Qt::CaseInsensitive))
             {
-                Task *task = new Task(this, 0, true);
+                Task *task = new Task(this, 0, true, sticky);
                 task->configure(&config);
                 task->setObjectName("NoTask");
 //                 task->setToolButtonStyle(Qt::ToolButtonIconOnly);
