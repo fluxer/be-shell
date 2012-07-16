@@ -241,7 +241,8 @@ BE::Panel::configure( KConfigGroup *grp )
         {
             if (BE::Shell::touchMode())
                 setWindowFlags( Qt::Popup );
-            myProxy = new QWidget(this, Qt::Window|Qt::X11BypassWindowManagerHint);
+            if (!myProxy)
+                myProxy = new QWidget(this, Qt::Window|Qt::X11BypassWindowManagerHint);
             myProxy->setAttribute(Qt::WA_TranslucentBackground, true);
             myProxy->setAttribute(Qt::WA_X11NetWmWindowTypeDock, true);
             myProxy->installEventFilter(this);
