@@ -111,7 +111,7 @@ void
 IdleManager::gotMail()
 {
     if (const Idler *idler = qobject_cast<Idler*>(sender()))
-        QProcess::startDetached(m_exec.arg(idler->account()).arg(idler->recentMails()));
+        QProcess::startDetached(m_exec.arg('"' + idler->account() + '"').arg('"' + idler->recentMails() + '"'));
 }
 
 
@@ -196,6 +196,8 @@ void Idler::listen()
         }
 
         if (m_idling && tokens.at(0) == "*") {
+            if (compare(tokens.at(tokens.count()-1), "EXPUNGE")) // this is not spontaneous, user interacts
+                break; // ... with some other client and has updated mails and we get notified -> skip
             if (compare(tokens.at(tokens.count()-1), "RECENT"))
                 updateMails(tokens.at(1).toInt());
             else if (compare(tokens.at(tokens.count()-1), "EXISTS")) // google can't recent mails
@@ -213,12 +215,19 @@ void Idler::checkCaps()
 void
 Idler::reIdle()
 {
-    if (m_idling)
+    m_idling = !m_idling;
+    int timeout = 0;
+    if (m_idling) {
+        request("t_idle IDLE");
+        // servers don't like permanent idling, so we re-idle every 15 minutes
+        timeout = 15*60*1000;
+    }
+    else {
         request("done");
-    m_idling = true;
-    request("t_idle IDLE");
-    // servers don't like permanent idling, so we re-idle every 15 minutes
-    QTimer::singleShot(15*60*1000, this, SLOT(reIdle()));
+        // we wait a second to not confuse the server
+        timeout = 1000;
+    }
+    QTimer::singleShot(timeout, this, SLOT(reIdle()));
 }
 
 void
