@@ -55,6 +55,7 @@ public:
     inline void setGroup(const QString &group) { myGroup = group; }
     void setSticky(bool stick);
     void setToolButtonStyle(Qt::ToolButtonStyle);
+    void showWindowList();
     void update(const unsigned long *properties);
 protected:
     void enterEvent(QEvent *e);
@@ -72,7 +73,6 @@ private:
 private slots:
     void highlightAllOrNone();
     void highlightWindow(QAction *a);
-    void populateMenu();
     void _repolish();
     void toggleSticky();
 private:

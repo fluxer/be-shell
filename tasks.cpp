@@ -142,7 +142,6 @@ BE::Task::add(WId id) {
         setMenu(new QMenu(this));
         connect( menu(), SIGNAL(hovered(QAction*)), SLOT(highlightWindow(QAction*)) );
         connect( menu(), SIGNAL(aboutToHide()), SLOT(highlightAllOrNone()) );
-        connect( menu(), SIGNAL(aboutToShow()), SLOT(populateMenu()) );
     }
     setObjectName( count() > 1 ? "ManyTasks" : "OneTask" );
     const unsigned long props[2] = {NET::WMState|NET::XAWMState, 0};
@@ -211,7 +210,6 @@ BE::Task::leaveEvent(QEvent *e)
 }
 
 static QTime mouseDownTime;
-
 void
 BE::Task::mousePressEvent(QMouseEvent *me)
 {
@@ -225,10 +223,7 @@ BE::Task::mousePressEvent(QMouseEvent *me)
             break;
         case Qt::RightButton:
             if (count() > 1)
-            {
-                if (menu())
-                    showMenu();
-            }
+                showWindowList();
             else if (count())
                 BE::Shell::showWindowContextMenu(myWindows.last(), me->globalPos());
             break;
@@ -258,7 +253,7 @@ BE::Task::mouseReleaseEvent(QMouseEvent *me)
             }
         }
         else if (menu())
-            showMenu();
+            showWindowList();
         else if (count())
             toggleState(myWindows.at(0));
     }
@@ -273,13 +268,6 @@ BE::Task::moveEvent(QMoveEvent *me)
     publishGeometry(QRect(mapToGlobal(QPoint(0,0)), size()));
 }
 
-void
-BE::Task::populateMenu()
-{
-    if (!menu())
-        return;
-    BE::Shell::populateWindowList( myWindows,  menu(), false );
-}
 
 void
 BE::Task::publishGeometry(const QRect &r)
@@ -442,6 +430,16 @@ BE::Task::setToolButtonStyle(Qt::ToolButtonStyle tbs)
     else
         s = style()->pixelMetric( QStyle::PM_ToolBarIconSize, 0L, this);
     setIconSize(QSize(s,s));
+}
+
+void
+BE::Task::showWindowList()
+{
+    if (!menu())
+        return;
+    BE::Shell::populateWindowList( myWindows,  menu(), false );
+    menu()->adjustSize();
+    menu()->exec(popupPosition(menu()->size()));
 }
 
 // trimming adapted from my bespin kwin client
