@@ -120,7 +120,7 @@ private:
 
 #define ksmserver QDBusInterface("org.kde.ksmserver", "/KSMServer", "org.kde.KSMServerInterface", QDBusConnection::sessionBus())
 
-BE::Session::Session( QWidget *parent ) : QToolButton(parent), BE::Plugged(parent)
+BE::Session::Session( QWidget *parent ) : Button(parent)
 {
     setObjectName("SessionButton");
     window()->setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -209,7 +209,7 @@ BE::Session::mousePressEvent(QMouseEvent *ev)
         ev->accept();
     }
     else
-        QToolButton::mousePressEvent(ev);
+        Button::mousePressEvent(ev);
 }
 
 void BE::Session::login()

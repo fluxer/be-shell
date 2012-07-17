@@ -25,12 +25,11 @@ class QAction;
 class KConfigGroup;
 class QMenu;
 
-#include <QToolButton>
-#include "be.plugged.h"
+#include "button.h"
 
 namespace BE {
 
-class Session : public QToolButton, public Plugged
+class Session : public Button
 {
     Q_OBJECT
 public:
