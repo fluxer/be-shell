@@ -56,7 +56,11 @@ BE::Button::configure( KConfigGroup *grp )
         QString opath("/" % name());
         opath.replace( QRegExp("[^A-Za-z0-9_/]"), "_" );
         opath.replace( QRegExp("/+"), "/" );
-        QDBusConnection::sessionBus().registerObject(opath, this);
+        QObject *clash = QDBusConnection::sessionBus().objectRegisteredAt(opath);
+        if (clash && clash != this)
+            qDebug() << "WARNING: dbus object \"" << opath << "\" is already taken by " << clash << " and cannot be registered by " << this;
+        else
+            QDBusConnection::sessionBus().registerObject(opath, this);
     }
     else
         qDebug() << "BUG: some button ain't no name" << this << QToolButton::parent();
