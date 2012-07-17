@@ -36,7 +36,10 @@ public:
     inline const QString &exe() const { return myExe; }
     void requestAttention(int count = 12);
 protected:
+    bool eventFilter(QObject *o, QEvent *e);
     inline bool isSyntheticCrossing() const { return imNotReallyCrossed; }
+    void mousePressEvent(QMouseEvent *me);
+    void mouseReleaseEvent(QMouseEvent *me);
     void resizeEvent(QResizeEvent *re);
     void setCommand( QString cmd );
     void themeChanged();

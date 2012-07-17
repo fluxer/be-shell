@@ -248,6 +248,30 @@ BE::Button::updateMenu()
     BE::Shell::buildMenu(myCommand, myMenu, "menu");
 }
 
+
+void
+BE::Button::mousePressEvent(QMouseEvent *me)
+{
+    if (menu())
+        menu()->installEventFilter(this);
+    QToolButton::mousePressEvent(me);
+}
+void
+BE::Button::mouseReleaseEvent(QMouseEvent *me)
+{
+    if (menu())
+        menu()->removeEventFilter(this);
+    QToolButton::mouseReleaseEvent(me);
+}
+
+bool
+BE::Button::eventFilter(QObject *o, QEvent *e)
+{
+    if (e->type() == QEvent::Show && o == menu())
+        menu()->move(popupPosition(menu()->size()));
+    return false;
+}
+
 void
 BE::Button::wheelEvent(QWheelEvent *ev)
 {
