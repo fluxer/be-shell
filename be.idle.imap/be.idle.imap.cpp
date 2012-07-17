@@ -111,7 +111,7 @@ void
 IdleManager::gotMail()
 {
     if (const Idler *idler = qobject_cast<Idler*>(sender()))
-        QProcess::startDetached(m_exec.arg('"' + idler->account() + '"').arg('"' + idler->recentMails() + '"'));
+        QProcess::startDetached(m_exec.arg('"' + idler->account() + '"').arg('"' + QString::number(idler->recentMails()) + '"'));
 }
 
 
@@ -156,6 +156,7 @@ void Idler::listen()
 {
     QStringList msg(QString(readAll()).split("\r\n"));
     foreach (const QString &reply, msg) {
+//         qDebug() << m_account.id << reply;
         QStringList tokens(reply.split(" "));
         if (tokens.isEmpty())
             continue;
@@ -219,8 +220,8 @@ Idler::reIdle()
     int timeout = 0;
     if (m_idling) {
         request("t_idle IDLE");
-        // servers don't like permanent idling, so we re-idle every 15 minutes
-        timeout = 15*60*1000;
+        // servers don't like permanent idling, so we re-idle every 9 minutes to prevent a timeout
+        timeout = 9*60*1000;
     }
     else {
         request("done");
