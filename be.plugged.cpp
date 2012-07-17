@@ -95,7 +95,7 @@ BE::Plugged::popupPosition(const QSize &popupSize) const
     const QPoint center = QApplication::desktop()->screenGeometry().center();
     QPoint pt = that->mapToGlobal(that->rect().center());
     if (orientation() == Qt::Horizontal)
-        pt -= QPoint(popupSize.width()/2, (pt.y() > center.y()) ? that->height()/2 + popupSize.height() + 8 : -(that->height() + 8));
+        pt -= QPoint(popupSize.width()/2, (pt.y() > center.y()) ? that->height()/2 + popupSize.height() + 8 : -(that->height()/2 + 8));
     else
         pt -= QPoint((pt.x() > center.x()) ? that->width()/2 + popupSize.width() + 8 : -(that->width()/2 + 8), popupSize.height()/2 );
     return pt;
