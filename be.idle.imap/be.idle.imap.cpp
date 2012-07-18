@@ -220,8 +220,8 @@ Idler::reIdle()
     int timeout = 0;
     if (m_idling) {
         request("t_idle IDLE");
-        // servers don't like permanent idling, so we re-idle every 9 minutes to prevent a timeout
-        timeout = 9*60*1000;
+        // servers don't like permanent idling, so we re-idle every 4:30 minutes to prevent a timeout or spontaneous notifications (gmail does that)
+        timeout = (4*60 + 30)*1000;
     }
     else {
         request("done");
