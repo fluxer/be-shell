@@ -648,8 +648,8 @@ BE::Shell::configure()
         ++it;
     }
 
-    // add new panels
-    foreach (QString panelName, panels)
+    // add new panels & fix stacking order
+    foreach (const QString &panelName, panels)
     {
         if (!myPanels.contains(panelName))
         {
@@ -658,6 +658,21 @@ BE::Shell::configure()
             myPlugs.append(panel);
             myDesk->registrate(panel);
             panel->Plugged::configure();
+            panel->raise();
+        }
+        else
+        {
+            it = myPlugs.begin(), end = myPlugs.end();
+            while (it != end)
+            {
+                if (BE::Panel *panel = dynamic_cast<BE::Panel*>(*it))
+                if (panel->name() == panelName)
+                {
+                    panel->raise();
+                    break;
+                }
+                ++it;
+            }
         }
     }
 
