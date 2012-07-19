@@ -1,0 +1,297 @@
+#!/bin/bash
+
+# KDE-fied GUI version of stock wifi-select, (c) 2012 by Thomas Lübking
+#
+# ----------------------------------
+#
+# wifi-select, a tool for easy wireless network connection using netcfg
+#
+# Project home: https://github.com/sphynx/wifi-select/
+#
+# Licensed under GPL v2
+# (C) Ivan N. Veselov <veselov@gmail.com> aka sphynx, 2009-2012
+#
+
+#
+# do not use printhl (if not available) for better compatibility with `systemd`,
+# see the issue #3: https://github.com/sphynx/wifi-select/issues/3
+#
+if [ -f /etc/rc.d/functions ]; then
+    . /etc/rc.d/functions
+    err() {
+        printhl "$*"
+    }
+else
+    err() {
+        echo -e "$*"
+    }
+fi
+
+. /etc/conf.d/netcfg
+. /usr/lib/network/network
+
+#
+# list network essids along with its encryption type (none/wep/wpa)
+# e.g.: platinum=wpa
+#       home_network=none
+# returns a path to the generated file with networks
+#
+get_network_list()
+{
+    [[ -z "$1" ]] && return 1
+
+    local ESSIDS=$(mktemp /tmp/essids.XXXXX)
+
+    iwlist $1 scan 2>/dev/null | awk -f $SUBR_DIR/parse-iwlist.awk | sort -t$'\t' -nrk3 > $ESSIDS
+
+    # no networks found
+    if [[ ! -s $ESSIDS ]]; then
+        return 1
+    fi
+
+    echo $ESSIDS
+    return 0
+}
+
+#
+# create new generated profile based on parameters passed
+# usage: create_profile $essid $interface $security $key(if needed)
+# returns path to the created profile
+#
+create_profile()
+{
+    local ESSID="$1" INTERFACE="$2" SECURITY="$3" KEY="$4" USE_DHCLIENT="$5"
+    PROFILE="$PROFILE_DIR/$ESSID"
+
+    cat >"$PROFILE" <<END_OF_PROFILE
+CONNECTION="wireless"
+ESSID="$ESSID"
+INTERFACE="$INTERFACE"
+DESCRIPTION="Automatically generated profile"
+SCAN="yes"
+IP="dhcp"
+TIMEOUT="10"
+SECURITY="$SECURITY"
+END_OF_PROFILE
+
+    [[ -n "$KEY" ]] && echo "KEY=\"$KEY\"" >> "$PROFILE"
+    [[ "$USE_DHCLIENT" = y ]] && echo 'DHCLIENT="yes"' >> "$PROFILE"
+
+    chmod 600 "$PROFILE"
+    echo "$PROFILE"
+
+    return 0
+}
+
+#
+# find a file from profile directory with specified ESSID
+#
+get_profile_by_essid()
+{
+    local ESSID="$1"
+    [[ -z "$ESSID" ]] && return 1
+
+    # find using grep all the files in $PROFILE_DIR which
+    # contains ESSID=$ESSID and take the first filename
+    # (also skip vi backup files)
+    local PROFILE=$(grep -REl "ESSID=[\"']?$ESSID[\"']?" "$PROFILE_DIR" | grep -v '~$' | head -1)
+
+    echo "$PROFILE"
+    return 0
+}
+
+usage()
+{
+    cat <<EOF
+Usage: wifi-select [-p | --show-pass] [-x | --pass-in-hex] [--use-dhclient] [-h | --help] [interface]
+
+Shows a list of available wireless networks and interactively connects to
+the network you select, asking for a password if needed.
+
+Arguments:
+ -p, --show-pass    show password characters instead of '*' while typing a password,
+                    (by default it shows '*')
+ -x, --pass-in-hex  store the entered WPA password as a hexadecimal string
+                    (using wpa_passphrase)
+     --use-dhclient use "dhclient" instead of "dhcpcd" in generated profiles
+ -h, --help         show this help
+
+ interface          a wireless interface to use
+                    (if omitted, uses WIRELESS_INTERFACE from /etc/conf.d/netcfg)
+EOF
+}
+
+# defaults for options
+SHOW_PASS=n
+PASS_IN_HEX=n
+USE_DHCLIENT=n
+
+# handle options
+while [[ $1 == -* ]]; do
+    case "$1" in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -p|--show-pass*)
+            SHOW_PASS=y
+            shift
+            ;;
+        -x|--pass-in-hex)
+            PASS_IN_HEX=y
+            shift
+            ;;
+        --use-dhclient)
+            USE_DHCLIENT=y
+            shift
+            ;;
+        -*)
+            err "invalid option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# check for root
+if [ $(id -u) != 0 ]; then
+    kdesu $0 "$@"
+    exit
+fi
+
+# set interface parameter (if not passed, use $WIRELESS_INTERFACE from
+# /etc/conf.d/netcfg)
+if [ -n "$1" ]; then
+    INTERFACE="$1"
+elif [ -n "$WIRELESS_INTERFACE" ]; then
+    INTERFACE="$WIRELESS_INTERFACE"
+else
+    exit_fail 'No interface parameter specified and no $WIRELESS_INTERFACE in /etc/conf.d/netcfg'
+fi
+
+SPLASH=$(kdialog --title WiFi-Select --progressbar "<h1>Scanning for Access Points</h1>" 0)
+
+# bring interface up explicitly
+# ip link set $INTERFACE up
+is_interface "$INTERFACE" || exit_fail "No such interface: $INTERFACE"
+if [[ -z "$(ip link show up dev $INTERFACE)" ]]; then
+    [[ -f "$IFACE_DIR/$INTERFACE" ]] && . "$IFACE_DIR/$INTERFACE"
+    bring_interface up "$INTERFACE" || exit_fail "Interface unavailable"
+    SPAWNED_INTERFACE=1
+fi
+
+# scan for networks and get the file with networks and security types
+NETWORKS=$(get_network_list $INTERFACE)
+
+# add profile availability flags
+FLAGGED_NETS=$(mktemp /tmp/networks.XXXXX)
+while IFS=$'\t' read -r net security quality; do
+    NET_FILE=$(get_profile_by_essid "$net")
+    if [ ! -e "$NET_FILE" ]; then
+        flag="absent     " # profile is not present
+    elif grep -q 'Automatically generated' "$NET_FILE"; then
+        flag="wifi-select"
+    else
+        flag="handmade   "
+    fi
+    echo -e "$net\tQuality: $(printf %03s $quality)%  |  Security: $(printf %04s $security)  |  Profile: $flag  |  $net"
+done < "$NETWORKS" > "$FLAGGED_NETS"
+
+qdbus ${SPLASH} close
+
+# set IFS variable for dialog to handle spaces in ESSID correctly
+# it will be unset later on
+IFS=$'\t\n'
+MENU_ROWS=$(cat $FLAGGED_NETS)
+rm $FLAGGED_NETS
+ESSID=$(kdialog --title "WiFi-Select select Access Point" --menu "<h1>Select the network you wish to use</h1>" $MENU_ROWS)
+RESULT=$?
+unset IFS
+
+echo $RESULT
+
+# if any network was selected
+if [[ $RESULT = 0 ]]; then
+    # find profile or use plain ESSID if profile can't be found
+    PROFILE_FILE=$(get_profile_by_essid "$ESSID")
+    if [ -z "$PROFILE_FILE" ]; then
+        PROFILE="$ESSID"
+    else
+        PROFILE=$(basename "$PROFILE_FILE")
+    fi
+
+    # check whether we have a valid profile for given ESSID
+    if [[ $(load_profile "$PROFILE") ]]; then
+        # we do NOT have a profile, so create it right now
+
+        # at first, retrieve its security type
+        SECURITY=$(sed -n "s/^$ESSID\t\(.*\)\t.*/\1/p;T;q" $NETWORKS)
+
+        # then ask for the security key if needed
+        if [[ ! $SECURITY = "none" ]]; then
+            if [[ $SHOW_PASS = y ]]; then
+                WIDGET='--inputbox'
+                DUMMY=""
+            else
+                WIDGET='--password'
+            fi
+            KEY=$(kdialog $WIDGET \
+                "<h2>Enter $SECURITY security key for</h2><h1>\"$ESSID\"</h1>" $DUMMY)
+
+            if [[ $? != 0 ]]; then
+                # user has cancelled while typing the key
+                kdialog --msgbox "No security key entered, aborting"
+            fi
+
+            # convert the key to hexadecimal string, if needed
+            if [[ $SECURITY = "wpa" && $PASS_IN_HEX = "y" ]]; then
+                if PHRASE=$(wpa_passphrase "$ESSID" "$KEY"); then
+                    # convert only if wpa_passphrase has succeeded
+                    # (the key is longer than 7 chars, etc.)
+                    KEY=$(echo "$PHRASE" | awk -F= '/^\s+psk=/ { print $2 }')
+                fi
+            fi
+        fi
+
+        # create a new profile
+        GEN_PROFILE=$(create_profile "$ESSID" "$INTERFACE" "$SECURITY" "$KEY" "$USE_DHCLIENT")
+    else
+        kdialog --msgbox "Profile for $ESSID already exists, continue using it"
+    fi
+
+    rm $NETWORKS # it's not needed anymore
+
+    # let's try to connect
+    SPLASH=$(kdialog --title WiFi-Select --progressbar "<h1>Connecting $ESSID</h1>" 0)
+    netcfg "$PROFILE"
+    qdbus ${SPLASH} close
+
+    # if profile was created but connection did not succeed
+    if [[ $? != 0 && -n "$GEN_PROFILE" ]]; then
+
+        # show generated profile
+        cat "$GEN_PROFILE"
+        kdialog --title "Generated profile" --textbox "$GEN_PROFILE" &
+
+        # ask if we need to keep generated profile
+        kdialog --title WiFi-Select --yesno "<h1>Connection failed</h1>Do you want to keep the generated profile ('$ESSID')?"
+        KEEP=$?
+
+        [[ "$KEEP" = y ]] || KEEP="n"  # default is 'no'
+        if [[ "$KEEP" = n ]]; then
+            kdialog --msgbox "Removing generated profile for $ESSID" && rm "$GEN_PROFILE"
+        else
+            kdialog --msgbox "Keeping generated profile for $ESSID"
+        fi
+
+        # bring down interface if we have spawned it before
+        [[ "$SPAWNED_INTERFACE" ]] && bring_interface down "$INTERFACE"
+
+        exit 1
+    fi
+else
+    rm $NETWORKS
+    kdialog --msgbox "No networks selected"
+fi
+
+exit 0

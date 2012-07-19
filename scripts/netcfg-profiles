@@ -1,0 +1,23 @@
+#!/bin/sh
+file="`kde4-config --path data`"
+BE_NETCFG="${file%%:*}be.shell/scripts/be.netcfg"
+BE_WIFI_SELECT="${file%%:*}be.shell/scripts/wifi-select"
+file="${file%%:*}be.shell/netcfg.xml"
+CURRENT="`/usr/bin/netcfg current 2>/dev/null`"
+
+echo '<menu>' > "$file"
+    echo "<action label=\""Best"\" exec=\""$BE_NETCFG __best"\"/>" >> "$file"
+for network in `netcfg -l`; do
+    if [ "$network" != "$CURRENT" ]; then
+        echo "<action label=\""$network"\" exec=\""$BE_NETCFG $network"\"/>" >> "$file"
+    fi
+done
+echo '<separator/>' >> "$file"
+echo "<action label=\"Scan Access Points\" exec=\"$BE_WIFI_SELECT\"/>" >> "$file"
+if [ ! -z "$CURRENT" ]; then
+    echo '<separator/>' >> "$file"
+    echo "<action label=\"Disconnect\" exec=\"sudo netcfg -a\"/>" >> "$file"
+fi
+echo '<separator/>' >> "$file"
+echo "<action label=\"Restart network\" exec=\"sudo /etc/rc.d/network restart\"/>" >> "$file"
+echo '</menu>' >> "$file"

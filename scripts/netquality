@@ -1,0 +1,17 @@
+#!/bin/sh
+
+export DISPLAY=:0
+QUALITY=`iwlist scan 2>/dev/null | sed -e '/Quality/!d; s/.*Quality=\([0-9]*\).*/\1/'`
+if ((QUALITY > 61)); then
+    ICON=network-wireless-connected-100
+elif ((QUALITY > 44)); then
+    ICON=network-wireless-connected-75
+elif ((QUALITY > 26)); then
+    ICON=network-wireless-connected-50
+elif ((QUALITY > 9)); then
+    ICON=network-wireless-connected-25
+else
+    ICON=network-wireless-connected-00
+fi
+
+qdbus org.kde.be.shell /netcfg setIcon "$ICON"

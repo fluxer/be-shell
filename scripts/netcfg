@@ -1,0 +1,34 @@
+#!/bin/bash
+export DISPLAY=:0
+[ -z "$1" ] && exit
+CURRENT="`/usr/bin/netcfg current 2>/dev/null`"
+BEST_QUALITY=0
+if [ "$1" == "__down" ]; then
+    sudo netcfg -a
+    qdbus org.kde.be.shell /netcfg setToolTip "Netzwerk: None"
+    qdbus org.kde.be.shell /netcfg setIcon "network-disconnect"
+elif [ "$1" == "__best" ]; then
+    AVAIL="`sudo /usr/sbin/iwlist wlan0 scan | grep -E '(Quality|ESSID)'`"
+    while read LINE; do
+        VALUE="${LINE#Quality=}"
+        VALUE="${VALUE%%/*}"
+        if (( $VALUE > BEST_QUALITY )); then
+            BEST_QUALITY=$VALUE
+            read LINE
+            VALUE="${LINE#ESSID:\"}"
+            WANTED="${VALUE%\"}"
+        else
+            read LINE
+        fi
+    done < <(echo "$AVAIL")
+else
+    WANTED="$1"
+fi
+
+if [ "$WANTED" != "$CURRENT" ]; then
+	DLG=`kdialog --progressbar "<h1>Connecting $WANTED ($BEST_QUALITY)</h1>" 0`
+	sudo /usr/bin/netcfg -a && sudo /usr/bin/netcfg -u "$WANTED" && qdbus org.kde.be.shell /netcfg setToolTip "Netzwerk: $WANTED"; qdbus org.kde.be.shell /netcfg setIcon "network-connect";  qdbus $DLG  close
+	
+else
+	kdialog --sorry "<h1>You seem already connected to $WANTED</h1>"
+fi
