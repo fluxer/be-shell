@@ -38,11 +38,15 @@ public:
 protected:
     bool eventFilter(QObject *o, QEvent *e);
     inline bool isSyntheticCrossing() const { return imNotReallyCrossed; }
+    void enterEvent(QEvent *e);
+    void leaveEvent(QEvent *e);
     void mousePressEvent(QMouseEvent *me);
     void mouseReleaseEvent(QMouseEvent *me);
+    void paintEvent(QPaintEvent *pe);
     void resizeEvent(QResizeEvent *re);
     void setCommand( QString cmd );
     void themeChanged();
+    void timerEvent(QTimerEvent *te);
     void wheelEvent(QWheelEvent *ev);
 private slots:
     void dbusCall();
@@ -51,11 +55,14 @@ private slots:
     void startService();
     void updateMenu();
 private:
+    void createBuffer();
+private:
     QString myIcon, myCommand, myExe, myWheel[2];
     QMenu *myMenu;
-    int myPulseIteration, myPulseLimit, myUpdaterTimeout;
+    int myPulseIteration, myPulseLimit, myUpdaterTimeout, myAnimationTimer, myAnimationStep;
     ButtonAdaptor *myDBus;
     bool imNotReallyCrossed;
+    QPixmap *myBuffer[2], *myRenderTarget;
 };
 
 }

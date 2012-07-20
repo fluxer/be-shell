@@ -33,7 +33,10 @@
 #include <QDBusConnection>
 #include <QDesktopWidget>
 #include <QMenu>
+#include <QPainter>
+#include <QPixmap>
 #include <QtDBus>
+#include <QTimerEvent>
 #include <QWheelEvent>
 
 
@@ -41,9 +44,15 @@ BE::Button::Button( QWidget *parent, const QString &plugName ) : QToolButton(par
 , BE::Plugged(parent, plugName)
 , myMenu(0)
 , myPulseIteration(0)
+, myPulseLimit(0)
+, myUpdaterTimeout(0)
+, myAnimationTimer(0)
+, myAnimationStep(0)
 , myDBus(0)
 , imNotReallyCrossed(false)
+, myRenderTarget(0)
 {
+    myBuffer[0] = myBuffer[1] = 0;
     new BE::ButtonAdaptor(this);
     setShortcut(QKeySequence());
 }
@@ -177,6 +186,46 @@ BE::Button::dbusCall()
     BE::Shell::call(list.join(";"));
 }
 
+static void merge(QPixmap *pix, QWidget *w, float opacity)
+{
+    // just assigning is broken on the raster engine, looses alpha
+    QPixmap tmp(pix->size());
+    tmp.fill(Qt::transparent);
+    QPainter p(&tmp);
+    p.drawPixmap(0,0, *pix);
+    p.end();
+
+    p.begin(&tmp);
+    p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+    p.fillRect(tmp.rect(), QColor(0,0,0, opacity*255.0));
+    p.end();
+
+    QPainter p2;
+    p2.begin(w);
+//     p2.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    p2.drawPixmap(0, 0, tmp);
+    p2.end();
+}
+
+void
+BE::Button::paintEvent(QPaintEvent *pe)
+{
+    if (myRenderTarget)
+    {   // QStyleSheet redirects itself, so to render our own buffer, we got to do that here
+        QPainter::setRedirected( this, myRenderTarget );
+        QToolButton::paintEvent(pe);
+        QPainter::restoreRedirected( this );
+    }
+    else if (myAnimationTimer)
+    {
+        const int step = qAbs(myAnimationStep);
+        merge(myBuffer[0], this, (6-step)/6.0);
+        merge(myBuffer[1], this, step/6.0);
+    }
+    else
+        QToolButton::paintEvent(pe);
+}
+
 void
 BE::Button::pulse()
 {
@@ -243,6 +292,27 @@ BE::Button::themeChanged()
 }
 
 void
+BE::Button::timerEvent(QTimerEvent *te)
+{
+    if (te->timerId() == myAnimationTimer)
+    {
+        ++myAnimationStep;
+        if (!myAnimationStep || myAnimationStep > 5)
+        {
+            killTimer(myAnimationTimer);
+            myAnimationTimer = 0;
+            myAnimationStep = 0;
+            delete myBuffer[0];
+            delete myBuffer[1];
+            myBuffer[0] = myBuffer[1] = 0;
+        }
+        repaint();
+    }
+    else
+        QToolButton::timerEvent(te);
+}
+
+void
 BE::Button::updateMenu()
 {
     QProcess proc(this);
@@ -266,6 +336,56 @@ BE::Button::mouseReleaseEvent(QMouseEvent *me)
     if (menu())
         menu()->removeEventFilter(this);
     QToolButton::mouseReleaseEvent(me);
+}
+
+void
+BE::Button::createBuffer()
+{
+    // could happen when leaving present animation
+    if (myBuffer[0] && myBuffer[1])
+        return;
+
+    delete myBuffer[0];
+    delete myBuffer[1];
+    myBuffer[0] = new QPixmap(size());
+    myBuffer[1] = new QPixmap(size());
+    myBuffer[0]->fill(Qt::transparent);
+    myBuffer[1]->fill(Qt::transparent);
+
+    const bool wasUnderMouse = underMouse();
+
+    setAttribute(Qt::WA_UnderMouse, false);
+    myRenderTarget = myBuffer[0];
+    repaint();
+
+    setAttribute(Qt::WA_UnderMouse, true);
+    myRenderTarget = myBuffer[1];
+    repaint();
+
+    myRenderTarget = 0;
+    setAttribute(Qt::WA_UnderMouse, wasUnderMouse);
+}
+
+void
+BE::Button::enterEvent(QEvent *e)
+{
+    createBuffer();
+    myAnimationStep = qAbs(myAnimationStep);
+    ++myAnimationStep; // instant reaction
+    if (!myAnimationTimer)
+        myAnimationTimer = startTimer(40);
+    QToolButton::enterEvent(e);
+}
+
+void
+BE::Button::leaveEvent(QEvent *e)
+{
+    createBuffer();
+    myAnimationStep = myAnimationStep ? -qAbs(myAnimationStep) : -6;
+    ++myAnimationStep; // instant reaction
+    if (!myAnimationTimer)
+        myAnimationTimer = startTimer(40);
+    QToolButton::leaveEvent(e);
 }
 
 bool
