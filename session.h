@@ -39,6 +39,7 @@ public:
     void saveSettings( KConfigGroup *grp );
 protected:
     void mousePressEvent(QMouseEvent *ev);
+    void themeChanged() { /*Do nothing - esp. not what BE::Button does ;-) */ }
 private slots:
     void activateSession();
     void rescueDialogFinished(int);
@@ -50,9 +51,9 @@ private slots:
     void suspend();
     void shutdown();
     void updateSessions();
-    void updateSettings();
+    void updateSettings(QAction *);
 private:
-    QAction *showIcon, *useFullName, *mySessionAction;
+    QAction *useFullName, *mySessionAction;
     QMenu *myConfigMenu, *mySessionMenu;
 };
 }

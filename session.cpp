@@ -146,11 +146,22 @@ BE::Session::Session( QWidget *parent ) : Button(parent)
     connect (menu, SIGNAL(aboutToShow()), SLOT(updateSessions()));
 
     myConfigMenu = new QMenu(this);
+    connect (myConfigMenu, SIGNAL(triggered(QAction*)), SLOT(updateSettings(QAction*)));
     myConfigMenu->setSeparatorsCollapsible(false);
     myConfigMenu->addSeparator()->setText("Session Manager");
-    showIcon = myConfigMenu->addAction("Show Icon", this, SLOT(updateSettings()));
-    showIcon->setCheckable(true);
-    useFullName = myConfigMenu->addAction("Show full name", this, SLOT(updateSettings()));
+    QActionGroup *group = new QActionGroup(myConfigMenu);
+    group->addAction(i18n("Icon only"))->setData(Qt::ToolButtonIconOnly);
+    group->addAction(i18n("Text only"))->setData(Qt::ToolButtonTextOnly);
+    group->addAction(i18n("Text next to icon"))->setData(Qt::ToolButtonTextBesideIcon);
+    group->addAction(i18n("Text under icon"))->setData(Qt::ToolButtonTextUnderIcon);
+    foreach (QAction *act, group->actions())
+    {
+        act->setCheckable(true);
+        myConfigMenu->addAction(act);
+    }
+    myConfigMenu->addSeparator();
+    useFullName = myConfigMenu->addAction("Show full name");
+    useFullName->setData(-1);
     useFullName->setCheckable(true);
     setShortcut(QKeySequence());
 }
@@ -158,17 +169,20 @@ BE::Session::Session( QWidget *parent ) : Button(parent)
 void
 BE::Session::configure( KConfigGroup *grp )
 {
-    bool b = grp->readEntry("UserIcon", false);
-    showIcon->setChecked(b);
-    if (b)
-        setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    else
-        setToolButtonStyle(Qt::ToolButtonTextOnly);
+    int mode = grp->readEntry("Mode", (int)Qt::ToolButtonTextOnly);
+    setToolButtonStyle((Qt::ToolButtonStyle)mode);
+    foreach (QAction *act, myConfigMenu->actions())
+    {
+        if (act->data().toInt() == mode)
+        {
+            act->setChecked(true);
+            break;
+        }
+    }
 
     KUser user;
-    b = grp->readEntry("FullName", false);
-    useFullName->setChecked(b);
-    if (b)
+    useFullName->setChecked(grp->readEntry("FullName", false));
+    if (useFullName->isChecked())
         setText(user.property(KUser::FullName).toString());
     else
         setText(user.loginName());
@@ -254,8 +268,13 @@ void BE::Session::reboot()
 void
 BE::Session::saveSettings( KConfigGroup *grp )
 {
-    grp->writeEntry( "UserIcon", showIcon->isChecked());
-    grp->writeEntry( "FullName", useFullName->isChecked());
+    foreach (QAction *act, myConfigMenu->actions())
+    {
+        if (act == useFullName)
+            grp->writeEntry( "FullName", useFullName->isChecked());
+        else if (act->isChecked())
+            grp->writeEntry( "Mode", act->data().toInt());
+    }
 }
 
 void BE::Session::suspend()
@@ -343,14 +362,14 @@ void BE::Session::updateSessions()
 }
 
 void
-BE::Session::updateSettings()
+BE::Session::updateSettings(QAction *act)
 {
-    if (showIcon->isChecked())
-        setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    if (act == useFullName)
+    {
+        KUser user;
+        setText(useFullName->isChecked() ? user.property(KUser::FullName).toString() : user.loginName());
+    }
     else
-        setToolButtonStyle(Qt::ToolButtonTextOnly);
-
-    KUser user;
-    setText(useFullName->isChecked() ? user.property(KUser::FullName).toString() : user.loginName());
+        setToolButtonStyle((Qt::ToolButtonStyle)act->data().toInt());
     Plugged::saveSettings();
 }
