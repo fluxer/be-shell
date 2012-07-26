@@ -34,6 +34,7 @@
 #include <QPainter>
 #include <QPalette>
 #include <QPointer>
+#include <QStyle>
 #include <QTimer>
 #include <QX11Info>
 
@@ -213,14 +214,14 @@ BE::Panel::childEvent( QChildEvent *ce )
     QWidget::childEvent(ce);
 }
 
-const char *names[4] = { "Top", "Bottom", "Left", "Right" };
-
 void
 BE::Panel::configure( KConfigGroup *grp )
 {
     myConfigMenuEntry->setTitle(name());
 
     bool updateGeometry = false;
+    const QString oldId = myForcedId;
+    myForcedId = grp->readEntry("Id", QString());
     if (!iAmNested)
     {
         int layer = grp->readEntry("Layer", 0);
@@ -308,6 +309,11 @@ BE::Panel::configure( KConfigGroup *grp )
     setVisible(grp->readEntry("Visible", QVariant(true) ).toBool());
     if ((wasVis || updateGeometry) && parentWidget())
         parentWidget()->update(); // necessary?
+
+    if (oldId != myForcedId) {
+        style()->unpolish(this);
+        style()->polish(this);
+    }
 
     myVisibility->setChecked(isVisibleTo(parentWidget()));
 
@@ -750,11 +756,17 @@ BE::Panel::unregisterStrut()
     }
 }
 
+const char *names[4] = { "Top", "Bottom", "Left", "Right" };
+
 void
 BE::Panel::updateName()
 {
     if (iAmNested)
         return;
+    if (!myForcedId.isEmpty()) {
+        setObjectName(myForcedId);
+        return;
+    }
     QString name = names[myPosition];
     int n = 2*(orientation() == Qt::Horizontal);
     if (myLength < 100)
@@ -765,7 +777,12 @@ BE::Panel::updateName()
             name.prepend( names[n] );
     }
     name.append("Panel");
+    const QString formerName = objectName();
     setObjectName(name);
+    if (formerName != name) {
+        style()->unpolish(this);
+        style()->polish(this);
+    }
 }
 
 void

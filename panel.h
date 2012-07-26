@@ -81,6 +81,7 @@ private:
     Qt::CursorShape myMoveResizeMode;
     bool iStrut, iAmNested;
     QWidget *myProxy;
+    QString myForcedId;
 private:
     friend class BE::Shell;
     QList<BE::Plugged*> myPlugs;
