@@ -83,6 +83,7 @@ private:
 class NetMeter : public Meter
 {
 public:
+    enum Mode { Dynamic, Up, Down };
     NetMeter( QWidget *parent = 0 );
     void configure( KConfigGroup *grp );
 protected:
@@ -91,6 +92,7 @@ private:
     QString speed(int i);
     QString myDevice;
     uint myLastValues[2];
+    Mode myMode;
 };
 
 class HddMeter : public Meter

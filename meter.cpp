@@ -288,8 +288,23 @@ void
 BE::NetMeter::configure( KConfigGroup *grp )
 {
     myDevice = "/sys/class/net/" + grp->readEntry("Device", "eth0") + "/statistics/";
+    myMode = (Mode)grp->readEntry("Mode", int(Dynamic));
     Meter::configure(grp);
-    setRanges(0, grp->readEntry("MaxDown", 0), 0, grp->readEntry("MaxUp", 0));
+    int maxUp, maxDown;
+    switch (myMode) {
+        default:
+        case Dynamic:
+            maxDown = grp->readEntry("MaxDown", 0);
+            maxUp = grp->readEntry("MaxUp", 0);
+            break;
+        case Up:
+            maxDown = maxUp = grp->readEntry("MaxUp", 0);
+            break;
+        case Down:
+            maxDown = maxUp = grp->readEntry("MaxDown", 0);
+            break;
+    }
+    setRanges(0, maxDown, 0, maxUp);
     poll();
 }
 
@@ -310,16 +325,32 @@ BE::NetMeter::poll()
         f2.close();
     }
 
-    setValues( 8*(read - myLastValues[0])/myPollInterval, 8*(written - myLastValues[1])/myPollInterval );
+    bool up = false;
+    switch (myMode) {
+        default:
+        case Dynamic:
+            up = maximum(1)/(value(1)+1) < maximum(0)/(value(0)+1);
+            setValues( 8*(read - myLastValues[0])/myPollInterval, 8*(written - myLastValues[1])/myPollInterval );
+            break;
+        case Up:
+            up = true;
+            setValues( 8*(written - myLastValues[1])/myPollInterval, 0 );
+            break;
+        case Down:
+            up = false;
+            setValues( 8*(read - myLastValues[0])/myPollInterval, 0 );
+            break;
+    }
+
     if (myLastValues[0] != 0 && myLastValues[1] != 0)
         setRanges(0, qMax(value(0),maximum(0)), 0, qMax(value(1),maximum(1)));
 
-    const bool up = maximum(1)/(value(1)+1) < maximum(0)/(value(0)+1);
+
     QFont fnt = font();
-    fnt.setOverline(up);
+    fnt.setOverline(up && qMax(value(0), value(1)) > 0);
     fnt.setUnderline(!up);
     setFont(fnt);
-    setLabel( speed(up) );
+    setLabel( speed(myMode == Dynamic ? up : 0) );
 
     myLastValues[0] = read;
     myLastValues[1] = written;
