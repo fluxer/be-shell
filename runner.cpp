@@ -24,6 +24,11 @@
 
 #include <cmath>
 
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <QX11Info>
+#include "fixx11h.h"
+
 #include <QAbstractItemDelegate>
 #include <QApplication>
 #include <QCompleter>
@@ -293,6 +298,11 @@ BE::Run::configure( KConfigGroup *grp )
         setAttribute(Qt::WA_TranslucentBackground, false);
         setWindowOpacity(0.9);
     }
+
+    static const uint zero = 0;
+    static Atom BlurAtom = XInternAtom(QX11Info::display(), "_KDE_NET_WM_BLUR_BEHIND_REGION", False);
+    XChangeProperty(QX11Info::display(), winId(), BlurAtom, XA_CARDINAL, 32, PropModeReplace, (uchar*)&zero, 1 );
+
     myVisibilityTimeout = grp->readEntry("VisibilityTimeout", 2000);
 
     myAliases.clear();
