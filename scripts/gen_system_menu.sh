@@ -61,7 +61,7 @@ for FILE in $CANDIDATES; do
         NO_CATEGORY=false
     else
         FIRST_ENTRY="${FIRST_ENTRY:=${NAME}}"
-        GROUP="${GROUP}\n\t\t\t<action label=\"${NAME}\" exec=\"${EXEC}\"/>"
+        GROUP="${GROUP}\n\t\t\t<action label=\"${NAME}\" exec=\"${EXEC}\" icon=\"${ICON}\"/>"
     fi
 
     LAST_CATEGORY="$CATEGORY"
