@@ -29,6 +29,8 @@
 
 #include <QtDebug>
 
+static QList<Idler*> s_idlers;
+
 int main (int argc, char **argv)
 {
     QCoreApplication a(argc, argv);
@@ -45,11 +47,13 @@ IdleThread(IdleManager *parent, const Account &account)
 
 ~IdleThread()
 {
+    s_idlers.removeAll(m_idler);
     m_idler->deleteLater();
 }
 
 void run() {
     m_idler = new Idler(0, m_account);
+    s_idlers << m_idler;
     connect(m_idler, SIGNAL(newMail()), m_manager, SLOT(gotMail()));
     connect(m_idler, SIGNAL(destroyed(QObject*)), SLOT(quit()));
     m_account.id.clear();
@@ -110,8 +114,15 @@ IdleManager::IdleManager(QObject *parent) : QObject(parent)
 void
 IdleManager::gotMail()
 {
-    if (const Idler *idler = qobject_cast<Idler*>(sender()))
-        QProcess::startDetached(m_exec.arg('"' + idler->account() + '"').arg('"' + QString::number(idler->recentMails()) + '"'));
+    const Idler *idler = qobject_cast<Idler*>(sender());
+    if (!idler)
+        return;
+    int recent = 0;
+    foreach (const Idler *i, s_idlers)
+        recent += i->recentMails();
+    QProcess::startDetached(m_exec.arg('"' + idler->account() + '"')
+                                   .arg('"' + QString::number(idler->recentMails()) + '"')
+                                   .arg('"' + QString::number(recent) + '"'));
 }
 
 
@@ -185,24 +196,40 @@ void Idler::listen()
             if ((m_loggedIn = compare(tokens.at(1), "OK"))) {  // we're in!
                 request(QString("t_exa EXAMINE %1").arg(m_account.dir));
                 return; // not interested in anything else atm.
-            }
+            } else
+                qDebug() << "WARNING could not log into" << m_account.server << "\n" << reply;
         }
 
         if (m_canIdle && tokens.at(0) == "t_exa") {
             Q_ASSERT(tokens.count() > 1);
             if ((m_loggedIn = compare(tokens.at(1), "OK"))) {  // we're in!
-                reIdle();
+                // check what we have, that will also trigger IDLE
+                request(QString("t_uns STATUS %1 (UNSEEN)").arg(m_account.dir));
                 return; // not interested in anything else atm.
+            }
+        }
+
+        if (!m_idling && tokens.at(0) == "*" && tokens.count() > 4) {
+            if (compare(tokens.at(tokens.count()-2), "(UNSEEN")) {
+                QString s = tokens.at(tokens.count()-1);
+                s = s.left(s.count()-1); // " n)"
+                if (int unseen = s.toInt())
+                    updateMails(unseen);
+                reIdle();
+                break; // it's all we wanted to know
             }
         }
 
         if (m_idling && tokens.at(0) == "*") {
             if (compare(tokens.at(tokens.count()-1), "EXPUNGE")) // this is not spontaneous, user interacts
                 break; // ... with some other client and has updated mails and we get notified -> skip
-            if (compare(tokens.at(tokens.count()-1), "RECENT"))
-                updateMails(tokens.at(1).toInt());
-            else if (compare(tokens.at(tokens.count()-1), "EXISTS")) // google can't recent mails
-                updateMails(0);
+            if (compare(tokens.at(tokens.count()-1), "RECENT") ||
+                compare(tokens.at(tokens.count()-1), "EXISTS")) { // google can't recent mails :-(
+                request("done");
+                m_idling = false;
+                request(QString("t_uns STATUS %1 (UNSEEN)").arg(m_account.dir));
+                break;
+            }
             continue;
         }
     }
@@ -240,7 +267,7 @@ Idler::request(const QString &s)
 
 void
 Idler::updateMails(int recent) {
-    m_recent = qMax(1, recent);
+    m_recent = recent;
     m_signalTimer->start(150);
 }
 
