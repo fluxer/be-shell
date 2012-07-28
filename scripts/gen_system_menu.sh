@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# bash script to generate an systemsettings menu for xbar/be::shell global menu
+# (c) 2012 by Thomas Lübking
+#
+# Licensed under GPL v2
+#
+
+if [ -z $1 ]; then
+    echo "==================================================================="
+    echo "i18n is supported but you must pass the 2 char languange code"
+    echo "eg. \"$0 de\" will create the German version, \"$0 es\" the spanish etc."
+    echo "==================================================================="
+fi
+
 APPDATA="`kde4-config --path data`"
 APPDATA="${APPDATA%%:*}"
 MENUFILE="$APPDATA/be.shell/MainMenu/settings.xml"
@@ -22,14 +35,17 @@ for FILE in $CANDIDATES; do
     ICON=""
     NAME=""
     TYPE=""
-    DATA=`grep -E '(X-KDE-System-Settings-Category=|X-KDE-System-Settings-Parent-Category=|X-KDE-ServiceTypes=|Exec=|Icon=|Name=)' "$FILE"`
+    DATA=`grep -E "(X-KDE-System-Settings-Category=|X-KDE-System-Settings-Parent-Category=|X-KDE-ServiceTypes=|Exec=|Icon=|Name\[$1\]=|Name=)" "$FILE"`
     while read LINE; do
         case "${LINE%%=*}" in
         "Exec")
             EXEC="${LINE#*=}"
             ;;
-        "Name")
+        "Name[$1]")
             NAME="${LINE#*=}"
+            ;;
+        "Name")
+            NAME="${NAME:=${LINE#*=}}"
             ;;
         "Icon")
             ICON="${LINE#*=}"
