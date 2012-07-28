@@ -15,6 +15,7 @@ fi
 
 APPDATA="`kde4-config --path data`"
 APPDATA="${APPDATA%%:*}"
+mkdir -p "$APPDATA/be.shell/MainMenu"
 MENUFILE="$APPDATA/be.shell/MainMenu/settings.xml"
 DIR="`kde4-config --path services`"
 DIR="${DIR##*:}"
