@@ -46,6 +46,7 @@ class RescueDialog : public KDialog {
 public:
     RescueDialog(const QString &rescueFrom, uint timeout, QWidget *parent = 0) : KDialog(parent)
     {
+        setObjectName("RescueDialog");
         setWindowFlags(windowFlags()|Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
         countDown = timeout;
         setModal(countDown);
