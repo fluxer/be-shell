@@ -508,7 +508,8 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
     myWallpaper.align = (Qt::Alignment)-1;
     myWallpaper.aspect = -1.0;
     myWallpaper.mode = (WallpaperMode)-1;
-    myShadow.opacity = -1;
+    myShadowOpacity = -1;
+    myShadowCache.setMaxCost(8); // TODO depend this on the (shell private) amount of panels
     myIcons.areShown = false;
     ignoreSaveRequest = false;
     iRootTheWallpaper = false;
@@ -735,52 +736,11 @@ BE::Desk::configure( KConfigGroup *grp )
             setWallpaper( wp->file, 0, d );
     }
 
-    i = myShadow.opacity;
-    myShadow.opacity = grp->readEntry("ShadowOpacity", 25 );
-    if (i != myShadow.opacity)
+    i = myShadowOpacity;
+    myShadowOpacity = grp->readEntry("ShadowOpacity", 25 );
+    if (i != myShadowOpacity)
     {
-        const int alpha = myShadow.opacity*255/100;
-        if (alpha)
-        {
-            QPainter p;
-
-            int size = 19;
-            QPixmap shadowBlob(size,size);
-            shadowBlob.fill(Qt::transparent);
-            float d = size/2.0;
-            QRadialGradient rg(d, d, d);
-            rg.setFocalPoint(d, 7);
-            rg.setColorAt( 0, QColor(0,0,0,alpha) );
-            rg.setColorAt( 1, QColor(0,0,0,0) );
-
-            p.begin(&shadowBlob);
-            p.fillRect(shadowBlob.rect(), rg);
-            p.end();
-
-            myShadow.topLeft = shadowBlob.copy(0,0,9,6);
-            myShadow.topRight = shadowBlob.copy(10,0,9,6);
-            myShadow.bottomLeft = shadowBlob.copy(0,7,9,12);
-            myShadow.bottomRight = shadowBlob.copy(10,7,9,12);
-
-#define DUMP_SHADOW(_T_, _W_, _H_)\
-myShadow._T_ = QPixmap(_W_,_H_);\
-myShadow._T_.fill(Qt::transparent);\
-p.begin(&myShadow._T_);\
-p.drawTiledPixmap(myShadow._T_.rect(), buffer);\
-p.end()
-
-            QPixmap buffer = shadowBlob.copy(10,0,1,6);
-            DUMP_SHADOW(top, 32, 6);
-            buffer = shadowBlob.copy(10,7,1,12);
-            DUMP_SHADOW(bottom, 32, 12);
-            buffer = shadowBlob.copy(0,7,9,1);
-            DUMP_SHADOW(left, 9, 32);
-            buffer = shadowBlob.copy(10,7,9,1);
-            DUMP_SHADOW(right, 9, 32);
-            buffer = shadowBlob.copy(9,9,1,1);
-            DUMP_SHADOW(center, 32, 32); // ? usage?
-#undef DUMP_SHADOW
-        }
+        // wipe cache
         needUpdate = true;
     }
 
@@ -871,7 +831,7 @@ BE::Desk::saveSettings( KConfigGroup *grp )
     grp->writeEntry( "Corners", myCorners );
     if (myScreen != QApplication::desktop()->primaryScreen())
         grp->writeEntry( "Screen", myScreen );
-    grp->writeEntry( "ShadowOpacity", myShadow.opacity );
+    grp->writeEntry( "ShadowOpacity", myShadowOpacity );
     grp->writeEntry( "ShowIcons", myIcons.areShown );
     grp->writeEntry( "Wallpaper", myWallpaper.file );
     grp->writeEntry( "WallpaperDefaultAlign", (int)myWallpaperDefaultAlign );
@@ -1073,6 +1033,68 @@ BE::Desk::setWallpaper( const QString &file, int mode, int desktop )
     if (changed)
         emit wallpaperChanged();
     Plugged::saveSettings();
+}
+
+BE::Desk::Shadow *
+BE::Desk::shadow(int r)
+{
+    Shadow *s = myShadowCache.object(r);
+    if (s)
+        return s;
+
+    s = new Shadow;
+
+    const int alpha = myShadowOpacity*255/100;
+    Q_ASSERT(alpha>0);
+
+    QPainter p;
+
+    int size = 2*r+19;
+    QPixmap shadowBlob(size,size);
+    shadowBlob.fill(Qt::transparent);
+    float d = size/2.0f;
+    QRadialGradient rg(d, d, d);
+    rg.setFocalPoint(d, r+7);
+    rg.setColorAt( float(r)/(r+9.0f), QColor(0,0,0,alpha) );
+    rg.setColorAt( 1, QColor(0,0,0,0) );
+
+    p.begin(&shadowBlob);
+    p.setPen(Qt::NoPen);
+    p.setBrush(rg);
+    p.drawRect(shadowBlob.rect());
+    p.setRenderHint(QPainter::Antialiasing);
+    p.setCompositionMode(QPainter::CompositionMode_DestinationOut);
+    p.setBrush(Qt::white);
+    p.drawEllipse(shadowBlob.rect().adjusted(10,7,-10,-13));
+    p.end();
+
+    s->topLeft = shadowBlob.copy(0,0,r+9,r+6);
+    s->topRight = shadowBlob.copy(r+10,0,r+9,r+6);
+    s->bottomLeft = shadowBlob.copy(0,r+7,r+9,r+12);
+    s->bottomRight = shadowBlob.copy(r+10,r+7,r+9,r+12);
+
+#define DUMP_SHADOW(_T_, _W_, _H_)\
+s->_T_ = QPixmap(_W_,_H_);\
+s->_T_.fill(Qt::transparent);\
+p.begin(&s->_T_);\
+p.drawTiledPixmap(s->_T_.rect(), buffer);\
+p.end()
+
+    QPixmap buffer = shadowBlob.copy(r+10,0,1,r+6);
+    DUMP_SHADOW(top, 32, r+6);
+    buffer = shadowBlob.copy(r+10,r+7,1,r+12);
+    DUMP_SHADOW(bottom, 32, r+12);
+    buffer = shadowBlob.copy(0,r+7,r+9,1);
+    DUMP_SHADOW(left, r+9, 32);
+    buffer = shadowBlob.copy(r+10,r+7,r+9,1);
+    DUMP_SHADOW(right, r+9, 32);
+//     buffer = shadowBlob.copy(r+9,r+9,1,1);
+//     DUMP_SHADOW(center, 32, 32); // ? usage?
+
+#undef DUMP_SHADOW
+
+    myShadowCache.insert(r, s, 1/*costs*/);
+    return s;
 }
 
 void
@@ -1342,43 +1364,49 @@ BE::Desk::paintEvent(QPaintEvent *pe)
     {
         if (panel && panel->isVisible())
         {
-            int x,y,w,h; panel->geometry().getRect(&x,&y,&w,&h);
+            int x,y,w,h;
+            QRect prect = panel->geometry();
+            panel->getContentsMargins(&x,&y,&w,&h);
+            const int d = panel->shadowPadding();
+            prect.adjust(x-d,y-d,d-w,d-h);
+            prect.getRect(&x,&y,&w,&h);
             if (panel->effectBgPix() && panel->updatesEnabled())
                 p.drawPixmap(x,y, *panel->effectBgPix());
 
-            if (!myShadow.opacity)
+            if (!myShadowOpacity)
                 continue;
 
+            const int radius = panel->shadowRadius();
+            if (radius < 0)
+                continue;
             int flags = 0;
-            if (panel->orientation() == Qt::Horizontal)
-            {
-                flags = panel->position() == BE::Panel::Top ? Bottom : Top;
-                if (x > 0) flags |= Left;
-                if (x+w < width()) flags |= Right;
-            }
-            else
-            {
-                flags = panel->position() == BE::Panel::Left ? Right : Left;
-                if (y > 0) flags |= Top;
-                if (y+h < height()) flags |= Bottom;
-            }
-//                 p.drawTiledPixmap(panel->geometry(), myShadow.center);
-            if (flags & Top)
-                p.drawTiledPixmap( x, y - myShadow.top.height(), w, myShadow.top.height(), myShadow.top );
-            if (flags & Bottom)
-                p.drawTiledPixmap( x, y+h, w, myShadow.bottom.height(), myShadow.bottom );
-            if (flags & Left)
-                p.drawTiledPixmap( x-myShadow.left.width(), y, myShadow.left.width(), h, myShadow.left );
-            if (flags & Right)
-                p.drawTiledPixmap( x+w, y, myShadow.right.width(), h, myShadow.right );
+            if (y > rect().top()) flags |= Top;
+            if (y < rect().bottom()) flags |= Bottom;
+            if (x > rect().left()) flags |= Left;
+            if (x+w < rect().right()) flags |= Right;
+
+            Shadow *s = shadow(radius);
+            x += radius;
+            y += radius;
+            w = qMax(w-2*radius, 0);
+            h = qMax(h-2*radius, 0);
+// //                 p.drawTiledPixmap(panel->geometry(), s->center);
+            if (w && (flags & Top))
+                p.drawTiledPixmap( x, y - s->top.height(), w, s->top.height(), s->top );
+            if (w && (flags & Bottom))
+                p.drawTiledPixmap( x, y+h, w, s->bottom.height(), s->bottom );
+            if (h && (flags & Left))
+                p.drawTiledPixmap( x-s->left.width(), y, s->left.width(), h, s->left );
+            if (h && (flags & Right))
+                p.drawTiledPixmap( x+w, y, s->right.width(), h, s->right );
             if (flags & (Top | Left))
-                p.drawPixmap( x-myShadow.topLeft.width(), y-myShadow.topLeft.height(), myShadow.topLeft );
+                p.drawPixmap( x-s->topLeft.width(), y-s->topLeft.height(), s->topLeft );
             if (flags & (Top | Right))
-                p.drawPixmap( x+w, y-myShadow.topRight.height(), myShadow.topRight );
+                p.drawPixmap( x+w, y-s->topRight.height(), s->topRight );
             if (flags & (Bottom | Left))
-                p.drawPixmap( x-myShadow.bottomLeft.width(), y+h, myShadow.bottomLeft );
+                p.drawPixmap( x-s->bottomLeft.width(), y+h, s->bottomLeft );
             if (flags & (Bottom | Right))
-                p.drawPixmap( x+w, y+h, myShadow.bottomRight );
+                p.drawPixmap( x+w, y+h, s->bottomRight );
         }
     }
     p.end();

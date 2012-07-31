@@ -21,6 +21,7 @@
 #ifndef BE_SHELL_H
 #define BE_SHELL_H
 
+#include <QMap>
 #include <QObject>
 #include <QPoint>
 #include <QPointer>
@@ -61,6 +62,8 @@ public:
     static void run(const QString &command);
     static int screen();
     static QMenu *screenMenu();
+    static int shadowPadding(const QString &string);
+    static int shadowRadius(const QString &string);
     static void showBeMenu();
     static void showWindowContextMenu(WId window, const QPoint &pos);
     static bool touchMode();
@@ -117,6 +120,7 @@ private:
     typedef QList<QString> QStringList;
     QStringList myPanels;
     bool iAmTouchy;
+    QMap<QString, int> myShadowRadius, myShadowPadding;
 };
 }
 

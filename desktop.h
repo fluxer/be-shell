@@ -21,12 +21,13 @@
 #ifndef DESKTOPWIDGET_H
 #define DESKTOPWIDGET_H
 
-#include <QToolButton>
+#include <QCache>
+#include <QDateTime>
 #include <QHash>
 #include <QPixmap>
 #include <QPoint>
 #include <QPointer>
-#include <QDateTime>
+#include <QToolButton>
 
 #include "be.plugged.h"
 
@@ -126,6 +127,11 @@ protected:
 private:
     Wallpaper &currentWallpaper(bool *common = 0L);
     void populate( const QString &path );
+    typedef struct {
+        QPixmap topLeft, top, topRight, left, center, right, bottomLeft, bottom, bottomRight;
+    } Shadow;
+
+    Shadow *shadow(int r);
 
 private:
     friend class DeskAdaptor;
@@ -165,10 +171,8 @@ private:
 
     int myScreen;
 
-    struct Shadow {
-        QPixmap topLeft, top, topRight, left, center, right, bottomLeft, bottom, bottomRight;
-        int opacity;
-    } myShadow;
+    QCache<int, Shadow> myShadowCache;
+    int myShadowOpacity;
 
     struct WpSettings {
         QMenu *mode, *align, *aspect;

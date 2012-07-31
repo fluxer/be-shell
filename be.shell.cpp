@@ -440,6 +440,28 @@ BE::Shell::runFromAction()
         run(action->data().toString());
 }
 
+int
+BE::Shell::shadowPadding(const QString &string)
+{
+    if (!instance)
+        return 0;
+    int ret = instance->myShadowPadding.value(string, -1);
+    if (ret < 0)
+        ret = instance->myShadowPadding.value("BE--Panel", 0);
+    return ret;
+}
+
+int
+BE::Shell::shadowRadius(const QString &string)
+{
+    if (!instance)
+        return 0;
+    int ret = instance->myShadowRadius.value(string, -1);
+    if (ret < 0)
+        ret = instance->myShadowRadius.value("BE--Panel", 0);
+    return ret;
+}
+
 void
 BE::Shell::showBeMenu()
 {
@@ -1125,6 +1147,40 @@ BE::Shell::setTheme(const QString &t)
     saveSettings();
 }
 
+void parse(QString property, QString *sheet, QMap<QString,int> *map) {
+    static QRegExp nonDig("[^0123456789\\s]");
+    int pi = 0;
+    map->clear();
+    while ((pi = sheet->indexOf(property, pi)) > -1) {
+        int open = sheet->lastIndexOf('{', pi);
+        pi += property.length();
+        if (open < 0) {
+            qWarning("%s cannot be used outside a definition!", property.toLocal8Bit().data());
+            continue;
+        }
+        int close = sheet->lastIndexOf('}', open) + 1;
+        QStringList elements = sheet->mid(close, open-close).simplified().split(',');
+        open = sheet->indexOf(':', pi) + 1;
+        close = sheet->indexOf(nonDig, open);
+        bool ok;
+        int value = sheet->mid(open, close-open).toInt(&ok);
+        close = sheet->indexOf(';', close);
+        if (!ok)
+            continue;
+        foreach (const QString element, elements) {
+            const QString e = element.trimmed();
+            if (e.contains(' '))
+                continue; // no nested selectors
+            if (e.contains("BE--Panel"))
+                map->insert("BE--Panel", value);
+            else if (e.startsWith("#")) // only #id's supported beyond "BE--Panel"
+                map->insert(e, value);
+        }
+        // remove entry no not confuse the css parser
+        sheet->replace(pi-property.length(), close-(pi-property.length()), ' ');
+    }
+}
+
 void
 BE::Shell::updateStyleSheet(const QString &filename)
 {
@@ -1132,7 +1188,10 @@ BE::Shell::updateStyleSheet(const QString &filename)
     if ( file.open(QIODevice::ReadOnly) )
     {
         qApp->setStyleSheet( QString() );
-        qApp->setStyleSheet( file.readAll().replace("${base}", filename.left(filename.length() - 10).toLocal8Bit()) );
+        QString sheet = file.readAll().replace("${base}", filename.left(filename.length() - 10).toLocal8Bit());
+        parse("shadow-radius", &sheet, &myShadowRadius);
+        parse("shadow-padding", &sheet, &myShadowPadding);
+        qApp->setStyleSheet( sheet );
         emit styleSheetChanged();
     }
 }

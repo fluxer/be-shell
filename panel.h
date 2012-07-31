@@ -45,6 +45,8 @@ public:
     Qt::Orientation orientation() const;
     inline Position position() { return myPosition; }
     void saveSettings( KConfigGroup *grp );
+    inline int shadowPadding() { return myShadowPadding; }
+    inline int shadowRadius() { return myShadowRadius; }
 signals:
     void orientationChanged( Qt::Orientation o );
 protected:
@@ -71,6 +73,7 @@ private slots:
     void startMoveResize();
     void setAndSaveVisible( bool on );
     void setOnScreen(QAction*);
+    void themeUpdated();
     void updateEffectBg();
 private:
     Position myPosition;
@@ -82,6 +85,7 @@ private:
     bool iStrut, iAmNested;
     QWidget *myProxy;
     QString myForcedId;
+    int myShadowRadius, myShadowPadding;
 private:
     friend class BE::Shell;
     QList<BE::Plugged*> myPlugs;

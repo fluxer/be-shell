@@ -145,9 +145,21 @@ static void findSameWindowKids( QWidget *root, QList<QWidget*> &list )
 
 }
 
-BE::Panel::Panel( QWidget *parent ) : QFrame( parent, Qt::FramelessWindowHint), BE::Plugged(parent), myPosition(Top),
-                                      mySize(26), myLength(100), myOffset(0), myBlurRadius(0), myLayer(0), myScreen(-1),
-                                      myBgPix(0), myMoveResizeMode(Qt::BlankCursor), iStrut(false), myProxy(0)
+BE::Panel::Panel( QWidget *parent ) : QFrame( parent, Qt::FramelessWindowHint)
+, BE::Plugged(parent)
+, myPosition(Top)
+, mySize(26)
+, myLength(100)
+, myOffset(0)
+, myBlurRadius(0)
+, myLayer(0)
+, myScreen(-1)
+, myBgPix(0)
+, myMoveResizeMode(Qt::BlankCursor)
+, iStrut(false)
+, myProxy(0)
+, myShadowRadius(0)
+, myShadowPadding(0)
 {
     QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
     layout->setSpacing(0);
@@ -173,6 +185,7 @@ BE::Panel::Panel( QWidget *parent ) : QFrame( parent, Qt::FramelessWindowHint), 
     }
     setFocusPolicy(Qt::NoFocus);
     connect( shell(), SIGNAL(desktopResized()), SLOT(desktopResized()) );
+    connect( shell(), SIGNAL(styleSheetChanged()), SLOT(themeUpdated()) );
     connect( QApplication::desktop(), SIGNAL(screenCountChanged(int)), SLOT(desktopResized()) );
 }
 
@@ -350,7 +363,6 @@ BE::Panel::configure( KConfigGroup *grp )
 }
 
 static QPoint startPos;
-
 void
 BE::Panel::mousePressEvent(QMouseEvent *me)
 {
@@ -730,6 +742,16 @@ void BE::Panel::themeChanged()
         BE::Shell::callThemeChangeEventFor(p);
 }
 
+
+void BE::Panel::themeUpdated()
+{
+    int oldShadowPadding = myShadowPadding;
+    myShadowPadding = BE::Shell::shadowPadding(objectName());
+    myShadowRadius = BE::Shell::shadowRadius(objectName());
+    if (oldShadowPadding != myShadowPadding)
+        updateEffectBg();
+}
+
 void
 BE::Panel::registerStrut()
 {
@@ -765,6 +787,8 @@ BE::Panel::updateName()
         return;
     if (!myForcedId.isEmpty()) {
         setObjectName(myForcedId);
+        myShadowPadding = BE::Shell::shadowPadding(myForcedId);
+        myShadowRadius = BE::Shell::shadowRadius(myForcedId);
         return;
     }
     QString name = names[myPosition];
@@ -779,6 +803,8 @@ BE::Panel::updateName()
     name.append("Panel");
     const QString formerName = objectName();
     setObjectName(name);
+    myShadowPadding = BE::Shell::shadowPadding(name);
+    myShadowRadius = BE::Shell::shadowRadius(name);
     if (formerName != name) {
         style()->unpolish(this);
         style()->polish(this);
@@ -882,16 +908,38 @@ BE::Panel::desktopResized()
 void
 BE::Panel::updateEffectBg()
 {
+    int x,y,w,h;
+    QRect prect = geometry();
+    getContentsMargins(&x,&y,&w,&h);
+    const int d = shadowPadding();
+    prect.adjust(x-d,y-d,d-w,d-h);
+    prect.getRect(&x,&y,&w,&h);
     if (myBlurRadius && parentWidget())
     {
-        QImage *img = new QImage(QWidget::size(), QImage::Format_RGB32);
-        delete myBgPix; myBgPix = 0;
-        parentWidget()->render(img, QPoint(), geometry(), DrawWindowBackground);
-        BE::Shell::blur( *img, myBlurRadius );
-        myBgPix = new QPixmap(QPixmap::fromImage(*img));
+        QImage *img = new QImage(prect.size(), QImage::Format_ARGB32);
+        delete myBgPix; myBgPix = 0; // ensure the desktop will not paint our effect background
+        int sr = myShadowRadius;
+        myShadowRadius = -1; // ensure the desktop will not paint our shadow now
+        parentWidget()->render(img, QPoint(), prect, DrawWindowBackground);
+        myShadowRadius = sr;
+        QImage *blurCp = new QImage(*img);
+        BE::Shell::blur( *blurCp, myBlurRadius );
+        QPainter p(img);
+        p.setPen( Qt::NoPen );
+        p.setBrush( Qt::white );
+        p.setRenderHint( QPainter::Antialiasing );
+        p.setCompositionMode(QPainter::CompositionMode_DestinationOut);
+        p.drawRoundedRect(blurCp->rect(), myShadowRadius, myShadowRadius);
+        p.end();
+        p.begin(blurCp);
+        p.drawImage(0,0,*img);
+        p.end();
         delete img;
-        parentWidget()->update(geometry());
+        blurCp->convertToFormat(QImage::Format_RGB32);
+        myBgPix = new QPixmap(QPixmap::fromImage(*blurCp));
+        delete blurCp;
+        parentWidget()->update(prect);
     }
     else
-        { delete myBgPix; myBgPix = 0L; }
+        { delete myBgPix; myBgPix = 0L; if (parentWidget()) parentWidget()->update(prect); }
 }
