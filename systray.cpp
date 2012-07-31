@@ -56,6 +56,7 @@
 
 #include <X11/Xlib.h>
 // #include <X11/extensions/XTest.h>
+#include <X11/extensions/Xrender.h>
 #define SYSTEM_TRAY_REQUEST_DOCK    0
 #define SYSTEM_TRAY_BEGIN_MESSAGE   1
 #define SYSTEM_TRAY_CANCEL_MESSAGE  2
@@ -64,12 +65,13 @@ Atom net_opcode_atom;
 Atom net_selection_atom;
 Atom net_manager_atom;
 Atom net_message_data_atom;
+Atom net_tray_visual_atom;
 
 namespace BE {
 
 class X11EmbedContainer : public QX11EmbedContainer {
 public:
-    X11EmbedContainer(QWidget *parent) : QX11EmbedContainer(parent) {}
+    X11EmbedContainer(QWidget *parent) : QX11EmbedContainer(parent), m_paintingBlocked(false) {}
     void embed(WId clientId)
     {
         Display *display = QX11Info::display();
@@ -114,6 +116,51 @@ public:
 
         embedClient(clientId);
     }
+    void updateBackground() {
+        if (m_paintingBlocked || !isVisible() || size().isEmpty())
+            return;
+
+        m_paintingBlocked = true;
+
+        QList<QWidget*> stack;
+        QWidget *win = parentWidget()->parentWidget();
+        while (win->parentWidget()) {
+            win = win->parentWidget();
+            stack << win;
+        }
+
+        XWindowAttributes attr;
+        if (XGetWindowAttributes(QX11Info::display(), clientWinId(), &attr)) {
+            Pixmap xPix = XCreatePixmap(QX11Info::display(), QX11Info::appRootWindow(), width(), height(), attr.depth);
+            QPixmap qPix = QPixmap::fromX11Pixmap(xPix, QPixmap::ExplicitlyShared);
+            for (int i = stack.count()-1; i > -1; --i)
+                stack.at(i)->render(&qPix, QPoint(), rect().translated(mapTo(stack.at(i), QPoint(0,0))), i == stack.count()-1 ? DrawWindowBackground : RenderFlag(0));
+            XSetWindowBackgroundPixmap(QX11Info::display(), clientWinId(), xPix);
+            XClearArea(QX11Info::display(), clientWinId(), 0, 0, 0, 0, True);
+            XFreePixmap(QX11Info::display(), xPix);
+        }
+
+        m_paintingBlocked = false;
+    }
+protected:
+    void moveEvent(QMoveEvent *me) {
+        QX11EmbedContainer::moveEvent(me);
+        updateBackground();
+    }
+    void paintEvent(QPaintEvent *pe) {
+        if (!m_paintingBlocked)
+            QX11EmbedContainer::paintEvent(pe);
+    }
+    void resizeEvent(QResizeEvent *re) {
+        QX11EmbedContainer::resizeEvent(re);
+        updateBackground();
+    }
+    void showEvent(QShowEvent *se) {
+        QX11EmbedContainer::showEvent(se);
+        updateBackground();
+    }
+private:
+    bool m_paintingBlocked;
 };
 
 class SysTrayIcon : public ICON_BASE
@@ -141,10 +188,8 @@ public:
         connect(bed, SIGNAL(clientClosed()), this, SLOT(deleteLater())); // this? leeds to problems with e.g. KMail
         bed->embed(id);
         bed->setParent(this);
-//         bed->show();
         bed->setFixedSize(0,0);
 //         bed->setUpdatesEnabled(false);
-//         bed->installEventFilter(this);
         setFocusProxy(bed);
 
 //         XResizeWindow(QX11Info::display(), cId(), width(), height() );
@@ -162,8 +207,14 @@ public:
     const QString &name() { return iName; }
     void setFallBack( bool on )
     {
+        if (fallback == on)
+            return;
         fallback = on;
-        fallback ? bed->setFixedSize(size()) : bed->setFixedSize(0,0);
+        if (fallback) {
+            bed->setFixedSize(size());
+        } else {
+            bed->setFixedSize(0,0);
+        }
     }
     inline static void setSize(int s) { ourSize = s; };
     void updateIcon()
@@ -344,32 +395,61 @@ BE::SysTray::~SysTray() {
 void
 BE::SysTray::init()
 {
+    Display *dpy = QX11Info::display();
+    const WId desktop = QApplication::desktop()->winId();
      // Freedesktop.org system tray support
     char name[20] = {0};
-    qsnprintf(name, 20, "_NET_SYSTEM_TRAY_S%d", DefaultScreen(QX11Info::display()));
-    net_selection_atom = XInternAtom(QX11Info::display(), name, FALSE);
-    net_opcode_atom = XInternAtom(QX11Info::display(), "_NET_SYSTEM_TRAY_OPCODE", FALSE);
-    net_manager_atom = XInternAtom(QX11Info::display(), "MANAGER", FALSE);
-    net_message_data_atom = XInternAtom(QX11Info::display(), "_NET_SYSTEM_TRAY_MESSAGE_DATA", FALSE);
+    qsnprintf(name, 20, "_NET_SYSTEM_TRAY_S%d", DefaultScreen(dpy));
+    net_selection_atom = XInternAtom(dpy, name, False);
+    net_opcode_atom = XInternAtom(dpy, "_NET_SYSTEM_TRAY_OPCODE", False);
+    net_manager_atom = XInternAtom(dpy, "MANAGER", False);
+    net_message_data_atom = XInternAtom(dpy, "_NET_SYSTEM_TRAY_MESSAGE_DATA", False);
+    net_tray_visual_atom = XInternAtom(dpy, "_NET_SYSTEM_TRAY_VISUAL", False);
 
-    XSetSelectionOwner(QX11Info::display(), net_selection_atom, winId(), CurrentTime);
+    XSetSelectionOwner(dpy, net_selection_atom, winId(), CurrentTime);
 
-    if (XGetSelectionOwner(QX11Info::display(), net_selection_atom) == winId())
-    {
-        XClientMessageEvent xev;
-
-        xev.type = ClientMessage;
-        xev.window = QApplication::desktop()->winId();
-        xev.message_type = net_manager_atom;
-        xev.format = 32;
-        xev.data.l[0] = CurrentTime;
-        xev.data.l[1] = net_selection_atom;
-        xev.data.l[2] = winId();
-        xev.data.l[3] = 0;        /* manager specific data */
-        xev.data.l[4] = 0;        /* manager specific data */
-
-        XSendEvent(QX11Info::display(), QApplication::desktop()->winId(), False, StructureNotifyMask, (XEvent *)&xev);
+    if (XGetSelectionOwner(dpy, net_selection_atom) != winId()) {
+        qWarning("There's already some systray - bye'");
+        hide();
+        return;
     }
+
+    // Prefer the ARGB32 visual if available
+    int nVi;
+    VisualID visual = XVisualIDFromVisual((Visual*)QX11Info::appVisual());
+    XVisualInfo templ;
+    templ.visualid = visual;
+    XVisualInfo *xvi = XGetVisualInfo(dpy, VisualIDMask, &templ, &nVi);
+    if (xvi && xvi[0].depth > 16) {
+        templ.screen  = xvi[0].screen;
+        templ.depth   = 32;
+        templ.c_class = TrueColor;
+        XFree(xvi);
+        xvi = XGetVisualInfo(dpy, VisualScreenMask|VisualDepthMask|VisualClassMask, &templ, &nVi);
+        for (int i = 0; i < nVi; ++i) {
+            XRenderPictFormat *format = XRenderFindVisualFormat(dpy, xvi[i].visual);
+            if (format && format->type == PictTypeDirect && format->direct.alphaMask) {
+                visual = xvi[i].visualid;
+                break;
+            }
+        }
+        XFree(xvi);
+    }
+    XChangeProperty(dpy, desktop, net_tray_visual_atom, XA_VISUALID, 32, PropModeReplace, (const uchar*)&visual, 1);
+    
+    XClientMessageEvent xev;
+
+    xev.type = ClientMessage;
+    xev.window = desktop;
+    xev.message_type = net_manager_atom;
+    xev.format = 32;
+    xev.data.l[0] = CurrentTime;
+    xev.data.l[1] = net_selection_atom;
+    xev.data.l[2] = winId();
+    xev.data.l[3] = 0;        /* manager specific data */
+    xev.data.l[4] = 0;        /* manager specific data */
+
+    XSendEvent(dpy, desktop, False, StructureNotifyMask, (XEvent *)&xev);
 //     healthTimer->start(40000);
 }
 
@@ -393,17 +473,23 @@ BE::SysTray::configure( KConfigGroup *grp )
 void
 BE::SysTray::requestShowIcon()
 {
-    BE::SysTrayIcon *icon = dynamic_cast<BE::SysTrayIcon*>(sender());
+    if (!sender())
+        return;
+
+    BE::SysTrayIcon *icon = dynamic_cast<BE::SysTrayIcon*>(sender()->parent());
     if (!icon)
         return;
+
     if (icon->isOutdated())
     {
         icon->deleteLater();
         return;
     }
     icon->nasty = nastyOnes.contains(icon->name());
-    if (nastyOnesAreVisible || !icon->nasty)
+    if (nastyOnesAreVisible || !icon->nasty) {
         icon->show();
+    }
+    icon->setFallBack(fallbackOnes.contains(icon->name()));
 }
 
 void
@@ -612,8 +698,7 @@ bool BE::SysTray::x11Event(XEvent *event)
             SysTrayIcon *icon = new SysTrayIcon( winId, this );
             myIcons.append( icon );
             layout()->addWidget( icon );
-            icon->setVisible(!(icon->nasty = nastyOnes.contains(icon->name())) || nastyOnesAreVisible);
-            icon->setFallBack(fallbackOnes.contains(icon->name()));
+            icon->hide();
             QTimer::singleShot( 2000, this, SLOT(selfCheck()) );
         }
         else if(event->xclient.message_type == net_opcode_atom && event->xclient.data.l[1] == SYSTEM_TRAY_BEGIN_MESSAGE)
