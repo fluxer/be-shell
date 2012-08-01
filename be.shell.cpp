@@ -1174,7 +1174,7 @@ void parse(QString property, QString *sheet, QMap<QString,int> *map) {
             if (e.contains("BE--Panel"))
                 map->insert("BE--Panel", value);
             else if (e.startsWith("#")) // only #id's supported beyond "BE--Panel"
-                map->insert(e, value);
+                map->insert(e.mid(1), value);
         }
         // remove entry no not confuse the css parser
         sheet->replace(pi-property.length(), close-(pi-property.length()), ' ');
