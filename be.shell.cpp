@@ -1189,6 +1189,14 @@ BE::Shell::updateStyleSheet(const QString &filename)
     {
         qApp->setStyleSheet( QString() );
         QString sheet = file.readAll().replace("${base}", filename.left(filename.length() - 10).toLocal8Bit());
+        int cs = 0, ce;
+        // get rid of comments, just override them
+        while ((cs = sheet.indexOf("/*", cs)) > -1) {
+            if ((ce = sheet.indexOf("*/", cs)) > cs)
+                sheet.replace(cs, ce+2-cs, ' ');
+            else
+                qWarning("INVALID CSS - comment not closed!");
+        }
         parse("shadow-radius", &sheet, &myShadowRadius);
         parse("shadow-padding", &sheet, &myShadowPadding);
         qApp->setStyleSheet( sheet );
