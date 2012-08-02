@@ -97,10 +97,11 @@ BE::Meter::paintEvent(QPaintEvent *pe)
 float
 BE::Meter::percent(int v) const
 {
-    if (myMaximum[v] > myMinimum[v])
-        return (myValue[v] - myMinimum[v]) / float(myMaximum[v] - myMinimum[v]);
-    qWarning("Meter: invalid range!");
-    return 0.0;
+    if (myMaximum[v] < myMinimum[v]) {
+        qWarning("%s: invalid range!", objectName().toLocal8Bit().data());
+        return 0.0;
+    }
+    return (myValue[v] - myMinimum[v]) / float(myMaximum[v] - myMinimum[v]);
 }
 
 void
