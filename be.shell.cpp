@@ -336,6 +336,9 @@ BE::Shell::rBuildMenu(const QDomElement &node, QWidget *widget)
                 else
                 {
                     QMenu *newMenu = MENU_FUNC(addMenu(e.attribute("label", LABEL_ERROR)));
+                    QString icn = e.attribute("icon");
+                    if (!icn.isEmpty())
+                        newMenu->setIcon(BE::Plugged::themeIcon(icn));
                     rBuildMenu(e, newMenu);
                 }
             }
