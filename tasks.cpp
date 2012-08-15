@@ -24,6 +24,7 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QStyle>
+#include <QStyleOptionToolButton>
 #include <QTime>
 #include <QTimer>
 #include <KConfigGroup>
@@ -98,6 +99,7 @@ static bool isOccluded(WId id)
 
 BE::Task::Task(QWidget *parent, WId id, bool sticky, const QString &name) : BE::Button(parent, name)
 {
+    mySizeHintIsDirty = true;
     if (!kdeWindowHighlight)
         kdeWindowHighlight = XInternAtom(QX11Info::display(), "_KDE_WINDOW_HIGHLIGHT", False);
     if (!netIconGeometry)
@@ -143,18 +145,21 @@ BE::Task::add(WId id) {
         connect( menu(), SIGNAL(hovered(QAction*)), SLOT(highlightWindow(QAction*)) );
         connect( menu(), SIGNAL(aboutToHide()), SLOT(highlightAllOrNone()) );
     }
+    myText = myGroup;
     setObjectName( count() > 1 ? "ManyTasks" : "OneTask" );
     const unsigned long props[2] = {NET::WMState|NET::XAWMState, 0};
     update(props);
-    if (wereFew)
+    if (wereFew) {
+        mySizeHintIsDirty = true;
         repolish();
+    }
 }
 
 void
 BE::Task::configure( KConfigGroup *grp )
 {
     BE::Button::configure(grp);
-    myLabel = text();
+    myText = myLabel = text();
 }
 
 void
@@ -169,9 +174,9 @@ BE::Task::enterEvent(QEvent *e)
         if (count() < 1)
             ourToolTip->setText(myLabel);
         else if (count() < 2)
-            ourToolTip->setText(KWindowInfo(myWindows.at(0), NET::WMVisibleIconName).visibleIconName());
+            ourToolTip->setText(myText);
         else
-            ourToolTip->setText(myGroup + " (" + QString::number(count()) + ')');
+            ourToolTip->setText(QString(myLabel.isEmpty() ? myGroup : myLabel) + " (" + QString::number(count()) + ')');
 
         ourToolTip->adjustSize();
         ourToolTip->move(popupPosition(ourToolTip->size()));
@@ -332,6 +337,8 @@ BE::Task::remove(WId id)
         if (count() == 1)
         {
             setObjectName( "OneTask" );
+            myText = KWindowInfo(id, NET::WMVisibleIconName).visibleIconName();
+            mySizeHintIsDirty = true;
             repolish();
         }
         const unsigned long props[2] = {NET::WMState|NET::XAWMState, 0};
@@ -339,6 +346,8 @@ BE::Task::remove(WId id)
     }
     else
     {
+        myText = myLabel;
+        mySizeHintIsDirty = true;
         setObjectName( "NoTask" );
         setActive(false);
         setProperty("windowMinimized", false);
@@ -368,10 +377,16 @@ void
 BE::Task::resizeEvent(QResizeEvent *re)
 {
     BE::Button::resizeEvent(re);
-    if (toolButtonStyle() == Qt::ToolButtonIconOnly)
-    {
-        const int s = qMin(width(), height());
+    if (toolButtonStyle() == Qt::ToolButtonIconOnly || toolButtonStyle() == Qt::ToolButtonTextUnderIcon) {
+        int s = qMin(width(), height());
+        if (toolButtonStyle() == Qt::ToolButtonTextUnderIcon)
+            s -= fontMetrics().height() + 4;
         setIconSize(QSize(s,s));
+        mySizeHintIsDirty = true;
+    } else {
+//         int w = fontMetrics().width(text());
+//         if (w > width() || w + 16 < width())
+            setText(squeezedText(myText));
     }
     publishGeometry(QRect(mapToGlobal(QPoint(0,0)), size()));
 }
@@ -430,6 +445,35 @@ BE::Task::setToolButtonStyle(Qt::ToolButtonStyle tbs)
     else
         s = style()->pixelMetric( QStyle::PM_ToolBarIconSize, 0L, this);
     setIconSize(QSize(s,s));
+    mySizeHintIsDirty = true;
+}
+
+
+QSize
+BE::Task::sizeHint() const
+{
+    Task *that = const_cast<BE::Task*>(this);
+    if (mySizeHintIsDirty) {
+        if (toolButtonStyle() == Qt::ToolButtonIconOnly)
+            that->mySizeHint = iconSize();
+        else {
+            that->mySizeHint = fontMetrics().size(Qt::TextSingleLine|Qt::TextShowMnemonic, myText);
+            if (toolButtonStyle() == Qt::ToolButtonTextUnderIcon) {
+                that->mySizeHint.setWidth(qMax(mySizeHint.width(), iconSize().width()) + 4);
+                that->mySizeHint.setHeight(mySizeHint.height() + iconSize().height() + 4);
+            }
+            else if (toolButtonStyle() == Qt::ToolButtonTextBesideIcon) {
+                that->mySizeHint.setWidth(mySizeHint.width() + iconSize().width() + 12);
+                that->mySizeHint.setHeight(qMax(mySizeHint.height(), iconSize().height()) + 4);
+            }
+        }
+        QStyleOptionToolButton opt;
+        initStyleOption(&opt);
+        opt.text = myText;
+        that->mySizeHint = style()->sizeFromContents(QStyle::CT_ToolButton, &opt, mySizeHint, this);
+        that->mySizeHintIsDirty = false;
+    }
+    return mySizeHint;
 }
 
 void
@@ -493,13 +537,14 @@ BE::Task::squeezedText( const QString &text )
                 squeezedText = text.trimmed(); // ...
     }
 
-    const int padding = 8;
-    const int iconSz = icon().isNull() ? 0 : iconSize().width();
-    const int buttonWidth = width() - ( iconSz + padding);
+    int buttonWidth = contentsRect().width();
+    if (toolButtonStyle() == Qt::ToolButtonTextBesideIcon) {
+        buttonWidth -= 4 + iconSize().width(); // TODO: "4+2" is a guess
+    }
 
     QFontMetrics fm(fontMetrics());
-    if ( fm.width(text) > buttonWidth)
-        squeezedText = fm.elidedText(squeezedText, Qt::ElideMiddle, buttonWidth );
+    if (fm.width(text) > buttonWidth)
+        squeezedText = fm.elidedText(squeezedText, Qt::ElideMiddle, buttonWidth - 2 );
 
     return squeezedText;
 }
@@ -525,6 +570,12 @@ BE::Task::toggleSticky()
     setSticky(!iStick);
 }
 
+//NOTICE that we actually only get WMName state changes what seems a BUG that we WORKAROUND
+static const unsigned long s_nameProps = NET::WMVisibleIconName|NET::WMVisibleName|
+                                           NET::WMIconName|NET::WMName;
+static const unsigned long s_relT1Props = s_nameProps|NET::WMIcon|NET::XAWMState|
+                                            NET::WMState|NET::DemandsAttention;
+
 void
 BE::Task::update(const unsigned long *properties)
 {
@@ -535,7 +586,7 @@ BE::Task::update(const unsigned long *properties)
     //     WM2AllowedActions
     //     WMDesktop
 
-    const unsigned long props[2] = { properties[0] & (NET::WMVisibleIconName|NET::WMIcon|NET::XAWMState|NET::WMState|NET::DemandsAttention), properties[1] & NET::WM2WindowClass };
+    const unsigned long props[2] = { properties[0] & s_relT1Props, properties[1] & NET::WM2WindowClass };
     if (!(props[0] || props[1]))
         return;
 
@@ -549,8 +600,11 @@ BE::Task::update(const unsigned long *properties)
                 myGroup = info.windowClassClass();
         }
 
-        if (props[0] & NET::WMVisibleIconName) // NOTICE info.visibleIconName() is an empty bytearray!
-            setText(squeezedText(count() > 1 ? myGroup : KWindowInfo(id, NET::WMVisibleIconName).visibleIconName()));
+        if (props[0] & s_nameProps) { // NOTICE info.visibleIconName() is an empty bytearray!
+            myText = count() > 1 ? myGroup : KWindowInfo(id, NET::WMVisibleIconName).visibleIconName();
+            mySizeHintIsDirty = true;
+            setText(myText);
+        }
 
         if (props[0] & (NET::WMState|NET::XAWMState)) {
             const bool wasImportant = iAmImportant;
@@ -606,7 +660,7 @@ BE::Tasks::Tasks(QWidget *parent) : QFrame(parent), BE::Plugged(parent)
 
     myOrientation = Plugged::orientation();
 
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     connect( parent, SIGNAL(orientationChanged(Qt::Orientation)), SLOT(orientationChanged(Qt::Orientation)) );
     connect( KWindowSystem::self(), SIGNAL(windowAdded(WId)), SLOT( addWindow(WId)) );
@@ -779,10 +833,10 @@ BE::Tasks::updateWindowProperties(WId id, const unsigned long *properties)
 
     foreach (Task *t, myTasks)
         if (t->contains(id)) {
-            const unsigned long props[2] = { properties[0] & (NET::WMVisibleIconName|NET::WMState),
-                                             properties[1] & 0};
+            const unsigned long props[2] = { properties[0] & s_relT1Props, properties[1] & 0 };
             t->update(props);
-            updateVisibility(t);
+            if (properties[0] & (NET::WMDesktop|NET::WMState|NET::XAWMState))
+                updateVisibility(t);
             break;
         }
 }

@@ -55,6 +55,8 @@ public:
     inline void setGroup(const QString &group) { myGroup = group; }
     void setSticky(bool stick);
     void setToolButtonStyle(Qt::ToolButtonStyle);
+    QSize sizeHint() const;
+
     void showWindowList();
     void update(const unsigned long *properties);
 protected:
@@ -77,10 +79,12 @@ private slots:
     void toggleSticky();
 private:
     bool iStick, iAmImportant, iAmMinimized, iAmDirty;
-    QString myGroup, myLabel;
+    QString myGroup, myLabel, myText;
     Qt::ToolButtonStyle myStyle;
     QList<WId> myWindows;
     static QLabel *ourToolTip;
+    QSize mySizeHint;
+    bool mySizeHintIsDirty;
 };
 
 class Tasks : public QFrame, public Plugged
