@@ -327,6 +327,8 @@ BE::Task::remove(WId id)
         return false;
 
     bool change = myWindows.removeAll(id);
+    if (!change)
+        return change;
     if (count() < 2 && menu() )
     {
         delete menu();
@@ -337,7 +339,7 @@ BE::Task::remove(WId id)
         if (count() == 1)
         {
             setObjectName( "OneTask" );
-            myText = KWindowInfo(id, NET::WMVisibleIconName).visibleIconName();
+            myText = KWindowInfo(myWindows.at(0), NET::WMVisibleIconName).visibleIconName();
             mySizeHintIsDirty = true;
             repolish();
         }
