@@ -70,7 +70,8 @@ protected:
 private:
     void publishGeometry(const QRect &r);
     void repolish();
-    QString squeezedText( const QString &text );
+    QString resortedText(const QString &text);
+    QString squeezedText(const QString &text);
     void toggleState(WId id);
 private slots:
     void highlightAllOrNone();

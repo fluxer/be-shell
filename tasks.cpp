@@ -114,14 +114,11 @@ BE::Task::Task(QWidget *parent, WId id, bool sticky, const QString &name) : BE::
     setFont( KGlobalSettings::taskbarFont() );
     setPopupMode(QToolButton::DelayedPopup);
 
-    if (id)
-    {
+    if (id) {
         myWindows << id;
         setObjectName( "OneTask" );
         iAmMinimized = KWindowInfo(id, NET::XAWMState|NET::WMState).isMinimized();
-    }
-    else
-    {
+    } else {
         setObjectName( "NoTask" );
         iAmMinimized = false;
     }
@@ -329,25 +326,20 @@ BE::Task::remove(WId id)
     bool change = myWindows.removeAll(id);
     if (!change)
         return change;
-    if (count() < 2 && menu() )
-    {
+    if (count() < 2 && menu() ) {
         delete menu();
         setMenu(0);
     }
-    if (count())
-    {
-        if (count() == 1)
-        {
+    if (count()) {
+        if (count() == 1) {
             setObjectName( "OneTask" );
-            myText = KWindowInfo(myWindows.at(0), NET::WMVisibleIconName).visibleIconName();
+            myText = resortedText(KWindowInfo(myWindows.at(0), NET::WMVisibleIconName).visibleIconName());
             mySizeHintIsDirty = true;
             repolish();
         }
         const unsigned long props[2] = {NET::WMState|NET::XAWMState, 0};
         update(props);
-    }
-    else
-    {
+    } else {
         myText = myLabel;
         mySizeHintIsDirty = true;
         setObjectName( "NoTask" );
@@ -473,6 +465,7 @@ BE::Task::sizeHint() const
         initStyleOption(&opt);
         opt.text = myText;
         that->mySizeHint = style()->sizeFromContents(QStyle::CT_ToolButton, &opt, mySizeHint, this);
+        that->mySizeHint.setWidth(qMin(qMax(100,mySizeHint.width()),250));
         that->mySizeHintIsDirty = false;
     }
     return mySizeHint;
@@ -496,49 +489,67 @@ isBrowser(const QString &s)
     return
     s.contains("konqueror", Qt::CaseInsensitive) ||
     s.contains("opera", Qt::CaseInsensitive) ||
+    s.contains("rekonq", Qt::CaseInsensitive) ||
+    s.contains("qupzilla", Qt::CaseInsensitive) ||
     s.contains("arora", Qt::CaseInsensitive) ||
     s.contains("firefox", Qt::CaseInsensitive) ||
-    s.contains("rekonq", Qt::CaseInsensitive) ||
     s.contains("leechcraft", Qt::CaseInsensitive) ||
     s.contains("mozilla", Qt::CaseInsensitive) ||
-    s.contains("chrome", Qt::CaseInsensitive) ||
+    s.contains("chromium", Qt::CaseInsensitive) ||
     s.contains("safari", Qt::CaseInsensitive); // just in case ;)
 }
 
+
+
 QString
-BE::Task::squeezedText( const QString &text )
+BE::Task::resortedText(const QString &text)
 {
-    QString squeezedText = text;
+    QString resortedText = text;
 
-    if ( myWindows.count() == 1 )
-    {
-        const QString kwin_sep = QString(" %1 ").arg(QChar(0x2013));
-        /*
-         *       if (squeezedText.contains(kwin_sep)) // newer kwin versions use this uf8 dash (stupid idea?)
-         *           squeezedText = ret.section(kwin_sep, 0, -2, QString::SectionSkipEmpty );
-         *       else if (squeezedText.contains(" - "))
-         *           squeezedText = squeezedText.section(" - ", 0, -2, QString::SectionSkipEmpty );*/
+    if ( myWindows.count() == 1) {
+        static QStringList kwin_seps;
+        if (kwin_seps.isEmpty())
+            kwin_seps << " - " << QString(" %1 ").arg(QChar(0x2013)) << // recently used utf-8 dash
+                                   QString(" %1 ").arg(QChar(0x2014)); // trojitá uses an em dash ...
 
-        if (isBrowser(squeezedText))
-        {
-            int n = qMin(3, squeezedText.count(" - "));
-            if (n--) // select last three if 4 or more sects, prelast two otherwise
-                squeezedText = squeezedText.section(" - ", -3, n-3, QString::SectionSkipEmpty);
+        QString appName;
+        foreach (const QString &s, kwin_seps) {
+            if (resortedText.contains(s)) {
+                QStringList tokens = resortedText.split(s, QString::SkipEmptyParts);
+                appName = tokens.last() + s;
+                tokens.removeLast();
+                resortedText = tokens.join(s);
+                break;
+            }
         }
 
-        if (squeezedText.contains(": "))
-            squeezedText = squeezedText.section(": ", 1, -1, QString::SectionSkipEmpty );
+        if (isBrowser(resortedText)) {
+            int n = qMin(3, resortedText.count(" - "));
+            if (n--) // select last three if 4 or more sects, prelast two otherwise
+                resortedText = resortedText.section(" - ", -3, n-3, QString::SectionSkipEmpty);
+        }
 
-        if (squeezedText.contains("http://"))
-            squeezedText = squeezedText.remove("http://", Qt::CaseInsensitive)/*.section()*/;
+        if (resortedText.contains(": "))
+            resortedText = resortedText.section(": ", 1, -1, QString::SectionSkipEmpty );
+
+        if (resortedText.contains("http://"))
+            resortedText = resortedText.remove("http://", Qt::CaseInsensitive)/*.section()*/;
+
+        resortedText = appName + resortedText;
 
         // in general, remove leading and ending blanks...
-            squeezedText = squeezedText.trimmed();
+        resortedText = resortedText.trimmed();
 
-            if (squeezedText.isEmpty())
-                squeezedText = text.trimmed(); // ...
+        if (resortedText.isEmpty()) // were too aggressive ...
+            resortedText = text.trimmed();
     }
 
+    return resortedText;
+}
+
+QString
+BE::Task::squeezedText(const QString &text)
+{
     int buttonWidth = contentsRect().width();
     if (toolButtonStyle() == Qt::ToolButtonTextBesideIcon) {
         buttonWidth -= 4 + iconSize().width(); // TODO: "4+2" is a guess
@@ -546,9 +557,8 @@ BE::Task::squeezedText( const QString &text )
 
     QFontMetrics fm(fontMetrics());
     if (fm.width(text) > buttonWidth)
-        squeezedText = fm.elidedText(squeezedText, Qt::ElideMiddle, buttonWidth - 2 );
-
-    return squeezedText;
+        return fm.elidedText(text, Qt::ElideRight, buttonWidth - 2 );
+    return text;
 }
 
 
@@ -603,9 +613,13 @@ BE::Task::update(const unsigned long *properties)
         }
 
         if (props[0] & s_nameProps) { // NOTICE info.visibleIconName() is an empty bytearray!
-            myText = count() > 1 ? myGroup : KWindowInfo(id, NET::WMVisibleIconName).visibleIconName();
+            myText = count() > 1 ? myGroup :
+                            resortedText(KWindowInfo(id, NET::WMVisibleIconName).visibleIconName());
             mySizeHintIsDirty = true;
+            const int oldWidth = width();
             setText(myText);
+            if (width() == oldWidth && oldWidth == 250) // didn't trigger resize cause we're capped
+                setText(squeezedText(myText));
         }
 
         if (props[0] & (NET::WMState|NET::XAWMState)) {
