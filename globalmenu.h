@@ -39,6 +39,7 @@ class GMenu : public QWidget, public Plugged
 public:
     GMenu(QWidget *parent);
     ~GMenu();
+    void configure( KConfigGroup *grp );
     void registerMenu(const QString &service, qlonglong key, const QString &title, const QStringList &entries);
     void unregisterMenu(qlonglong key);
     void reparent(qlonglong oldKey, qlonglong newKey);
@@ -86,13 +87,14 @@ private:
     typedef QList<WId> GGMList;
     GGMList ggmMenus;
     WId ggmLastId;
-    
+
     QPointer<QWidget> myCurrentBar;
     Qt::Orientation myOrientation;
     QWidget *myMainMenu;
     QFileSystemWatcher *myMainMenuDefWatcher;
     static QTimer ourBodyCleaner;
-    
+
+    bool iAmGnome2;
 };
 }
 #endif // GMENU_H

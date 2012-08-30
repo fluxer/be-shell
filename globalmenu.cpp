@@ -40,8 +40,9 @@
 #include <QTimer>
 #include <QX11Info>
 
-#include <KDE/KStandardDirs>
+#include <KDE/KConfigGroup>
 #include <KDE/KIcon>
+#include <KDE/KStandardDirs>
 #include <kwindowsystem.h>
 #include <kwindowinfo.h>
 
@@ -100,7 +101,7 @@ BE::GMenu::GMenu(QWidget *parent) : QWidget(parent), BE::Plugged(parent)
     myMainMenu = 0;
     myMainMenuDefWatcher = 0;
     myCurrentBar = 0; // important!
-    
+    iAmGnome2 = true; // "fixed" with ::configure
     ggmLastId = 0;
     ggmContext = XInternAtom( QX11Info::display(), "_NET_GLOBALMENU_MENU_CONTEXT", false );
     ggmEvent = XInternAtom( QX11Info::display(), "_NET_GLOBALMENU_MENU_EVENT", false );
@@ -120,29 +121,9 @@ BE::GMenu::GMenu(QWidget *parent) : QWidget(parent), BE::Plugged(parent)
 
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     new GMenuAdaptor(this);
-    QDBusConnection::sessionBus().registerService("org.kde.XBar");
-    QDBusConnection::sessionBus().registerObject("/XBar", this);
 
     connect (parent, SIGNAL(orientationChanged( Qt::Orientation )),
              this, SLOT(orientationChanged(Qt::Orientation)));
-    
-    connect (this, SIGNAL(destroyed()), this, SLOT(byeMenus()));
-    connect (qApp, SIGNAL(aboutToQuit()), this, SLOT(byeMenus()));
-    
-    connect( KWindowSystem::self(), SIGNAL( activeWindowChanged(WId) ), this, SLOT( ggmWindowActivated(WId) ) );
-    connect( KWindowSystem::self(), SIGNAL( windowAdded(WId) ), this, SLOT( ggmWindowAdded(WId) ) );
-    connect( KWindowSystem::self(), SIGNAL( windowRemoved(WId) ), this, SLOT( ggmWindowRemoved(WId) ) );
-    
-    connect( qApp, SIGNAL( aboutToQuit() ), this, SLOT( byeMenus() ) );
-
-    connect (&ourBodyCleaner, SIGNAL(timeout()), this, SLOT(cleanBodies()));
-    ourBodyCleaner.start(30000); // every 5 minutes - it's just to clean menus from crashed windows, so users won't constantly scroll them
-
-    callMenus();
-    ggmSetLocalMenus(false);
-    // and read them
-    foreach ( WId id, KWindowSystem::windows() )
-        ggmWindowAdded( id );
 }
 
 BE::GMenu::~GMenu()
@@ -153,6 +134,46 @@ BE::GMenu::~GMenu()
         instance = NULL;
     }
     QDBusConnection::sessionBus().unregisterService("org.kde.XBar");
+}
+
+void BE::GMenu::configure( KConfigGroup *grp )
+{
+    bool wasGnome2 = iAmGnome2;
+    iAmGnome2 = !grp->readEntry("WindowMenus", true);
+    if (wasGnome2 == iAmGnome2)
+        return;
+    if (iAmGnome2) {
+        disconnect (this, SIGNAL(destroyed()), this, SLOT(byeMenus()));
+        disconnect (qApp, SIGNAL(aboutToQuit()), this, SLOT(byeMenus()));
+        disconnect( KWindowSystem::self(), SIGNAL( activeWindowChanged(WId) ), this, SLOT( ggmWindowActivated(WId) ) );
+        disconnect( KWindowSystem::self(), SIGNAL( windowAdded(WId) ), this, SLOT( ggmWindowAdded(WId) ) );
+        disconnect( KWindowSystem::self(), SIGNAL( windowRemoved(WId) ), this, SLOT( ggmWindowRemoved(WId) ) );
+        disconnect (&ourBodyCleaner, SIGNAL(timeout()), this, SLOT(cleanBodies()));
+        ggmSetLocalMenus(true);
+        show(myMainMenu);
+        foreach ( WId id, ggmMenus )
+            ggmWindowRemoved( id );
+        byeMenus();
+        for (MenuMap::iterator i = myMenus.begin(), end = myMenus.end(); i != end; ++i)
+            delete i.value();
+        myMenus.clear();
+        QDBusConnection::sessionBus().unregisterService("org.kde.XBar");
+    } else {
+        QDBusConnection::sessionBus().registerService("org.kde.XBar");
+        QDBusConnection::sessionBus().registerObject("/XBar", this);
+        connect (this, SIGNAL(destroyed()), SLOT(byeMenus()));
+        connect (qApp, SIGNAL(aboutToQuit()), SLOT(byeMenus()));
+        connect( KWindowSystem::self(), SIGNAL( activeWindowChanged(WId) ), SLOT( ggmWindowActivated(WId) ) );
+        connect( KWindowSystem::self(), SIGNAL( windowAdded(WId) ), SLOT( ggmWindowAdded(WId) ) );
+        connect( KWindowSystem::self(), SIGNAL( windowRemoved(WId) ), SLOT( ggmWindowRemoved(WId) ) );
+        connect (&ourBodyCleaner, SIGNAL(timeout()), SLOT(cleanBodies()));
+        ourBodyCleaner.start(30000); // every 5 minutes - it's just to clean menus from crashed windows, so users won't constantly scroll them
+        callMenus();
+        ggmSetLocalMenus(false);
+        // and read them
+        foreach ( WId id, KWindowSystem::windows() )
+            ggmWindowAdded( id );
+    }
 }
 
 void
