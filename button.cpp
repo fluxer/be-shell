@@ -21,6 +21,7 @@
 #include "button.h"
 #include "dbus_button.h"
 #include "be.shell.h"
+#include "touchwheel.h"
 
 #include <KDE/KConfigGroup>
 #include <KDE/KGlobal>
@@ -50,6 +51,7 @@ BE::Button::Button( QWidget *parent, const QString &plugName ) : QToolButton(par
 , myAnimationStep(0)
 , myDBus(0)
 , imNotReallyCrossed(false)
+, iClickedForTouchInterface(false)
 , myRenderTarget(0)
 {
     myBuffer[0] = myBuffer[1] = 0;
@@ -152,6 +154,8 @@ BE::Button::configure( KConfigGroup *grp )
 void
 BE::Button::dbusCall()
 {
+    if (iClickedForTouchInterface)
+        return;
     QStringList list = myCommand.split(';');
     // geometry substitution
     if (list.count() > 5)
@@ -266,7 +270,8 @@ BE::Button::resizeEvent(QResizeEvent */*re*/)
 void
 BE::Button::runCommand()
 {
-    BE::Shell::run(myCommand);
+    if (!iClickedForTouchInterface)
+        BE::Shell::run(myCommand);
 }
 
 void
@@ -282,7 +287,8 @@ BE::Button::setCommand( QString cmd )
 void
 BE::Button::startService()
 {
-    KToolInvocation::startServiceByDesktopName(myCommand);
+    if (!iClickedForTouchInterface)
+        KToolInvocation::startServiceByDesktopName(myCommand);
 }
 
 void
@@ -330,12 +336,23 @@ BE::Button::mousePressEvent(QMouseEvent *me)
         menu()->installEventFilter(this);
     QToolButton::mousePressEvent(me);
 }
+
 void
 BE::Button::mouseReleaseEvent(QMouseEvent *me)
 {
     if (menu())
         menu()->removeEventFilter(this);
+    if (BE::Shell::touchMode() &&
+        !(menu() && menu()->isVisible()) &&
+        !(myWheel[0].isEmpty() && myWheel[1].isEmpty()) &&
+        TouchWheel::claimFor(this, SIGNAL(clicked()), true))
+    {
+        iClickedForTouchInterface = true;
+        TouchWheel::setIcons("media-seek-backward", myIcon, "media-seek-forward");
+        TouchWheel::show(popupPosition(TouchWheel::size()));
+    }
     QToolButton::mouseReleaseEvent(me);
+    iClickedForTouchInterface = false;
 }
 
 void

@@ -62,7 +62,6 @@ private:
     void updateValue();
     void set(int v, QChar dir = QChar());
     QString myChannel, myMixerCommand;
-    QFrame *myButtons;
     bool iAmMuted;
     int myStep, myValue, myUnmutedValue, myPollInterval;
     OSD *myOSD;

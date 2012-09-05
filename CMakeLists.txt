@@ -35,6 +35,7 @@ set(be.shell_SRCS
     meter.cpp
     label.cpp
     battery.cpp
+    touchwheel.cpp
  )
 
 set(be.shell_MOC_HDRS be.shell.h dbus_shell.h dbus_desktop.h dbus_runner.h dbus_gmenu.h dbus_info.h dbus_claws.h dbus_button.h)

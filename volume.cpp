@@ -20,6 +20,7 @@
 
 #include "volume.h"
 #include "be.shell.h"
+#include "touchwheel.h"
 
 #include <KDE/KConfigGroup>
 #include <KDE/KAction>
@@ -49,6 +50,7 @@ BE::Volume::OSD::OSD( QWidget *parent ) : QWidget(parent, Qt::Window|Qt::X11Bypa
 , myTarget(-1)
 {
     setAttribute(Qt::WA_OpaquePaintEvent);
+    setAttribute(Qt::WA_NoChildEventsForParent);
     setWindowOpacity( 0.8 );
     hideTimer = new QTimer(this);
     hideTimer->setSingleShot(true);
@@ -81,6 +83,7 @@ BE::Volume::OSD::show(int total, int done)
     if (BE::Shell::hasFullscreenAction())
         return;
 
+    TouchWheel::blockClose(true);
     if (myTarget != total)
     {
         myTarget = total;
@@ -108,10 +111,10 @@ BE::Volume::OSD::show(int total, int done)
         update();
     }
     hideTimer->start(750);
+    TouchWheel::blockClose(false);
 }
 
 BE::Volume::Volume( QWidget *parent ) : QLabel(parent), BE::Plugged( parent )
-, myButtons(0)
 , myValue(-1)
 , myUnmutedValue(-1)
 {
@@ -143,28 +146,6 @@ BE::Volume::Volume( QWidget *parent ) : QLabel(parent), BE::Plugged( parent )
 void
 BE::Volume::configure( KConfigGroup *grp )
 {
-    if (BE::Shell::touchMode())
-    {
-        myButtons = new QFrame(this, Qt::Window|Qt::X11BypassWindowManagerHint);
-        myButtons->setLayout(new QHBoxLayout(myButtons));
-        QToolButton *btn;
-        myButtons->layout()->addWidget(btn = new QToolButton(myButtons));
-        btn->setIcon(themeIcon("zoom-out"));
-        connect (btn, SIGNAL(clicked()), SLOT(down()));
-
-        myButtons->layout()->addWidget(btn = new QToolButton(myButtons));
-        btn->setIcon(themeIcon("audio-volume-muted"));
-        connect (btn, SIGNAL(clicked()), SLOT(toggleMute()));
-
-        myButtons->layout()->addWidget(btn = new QToolButton(myButtons));
-        btn->setIcon(themeIcon("zoom-in"));
-        connect (btn, SIGNAL(clicked()), SLOT(up()));
-    }
-    else
-    {
-        delete myButtons;
-        myButtons = 0;
-    }
     myChannel = grp->readEntry("Channel", "Master");
     myMixerCommand = grp->readEntry("MixerCommand", "kmix");
     if ((myStep = grp->readEntry("Step", 5)) < 1)
@@ -179,27 +160,11 @@ BE::Volume::mousePressEvent(QMouseEvent *ev)
 {
     if (BE::Shell::touchMode())
     {
-        if (myButtons->isVisible())
-            myButtons->hide();
-        else
-        {
-            myButtons->adjustSize();
-            QRect br = myButtons->geometry();
-            const QRect sr = QApplication::desktop()->screenGeometry();
-            const QRect mr = rect().translated(mapToGlobal(QPoint(0,0)));
-
-            if (mr.top() - sr.top() < sr.bottom() - mr.bottom())
-                br.moveTop(mr.bottom());
-            else
-                br.moveBottom(mr.top());
-            if (mr.left() - sr.left() < sr.right() - mr.right())
-                br.moveLeft(mr.right());
-            else
-                br.moveRight(mr.left());
-            myButtons->setGeometry(br);
-            myButtons->show();
+        if (TouchWheel::claimFor(this, SLOT(toggleMute()), true)) {
+            TouchWheel::setIcons("audio-volume-low", "audio-volume-muted", "audio-volume-high");
+            TouchWheel::show(popupPosition(TouchWheel::size()));
+            return;
         }
-        return;
     }
     if ( ev->button() == Qt::LeftButton )
         toggleMute();
@@ -234,7 +199,7 @@ void BE::Volume::read(QProcess &amixer)
     int oldValue = myValue;
 
     const QStringList reply = QString(amixer.readAll()).split('[', QString::KeepEmptyParts);
-    
+
     if ( reply.count() < 2 )
         return;
 

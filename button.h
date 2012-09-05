@@ -61,7 +61,7 @@ private:
     QMenu *myMenu;
     int myPulseIteration, myPulseLimit, myUpdaterTimeout, myAnimationTimer, myAnimationStep;
     ButtonAdaptor *myDBus;
-    bool imNotReallyCrossed;
+    bool imNotReallyCrossed, iClickedForTouchInterface;
     QPixmap *myBuffer[2], *myRenderTarget;
 };
 
