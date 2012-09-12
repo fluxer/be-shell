@@ -70,6 +70,7 @@ private slots:
     void bindScreenMenu();
     void conditionalHide();
     void desktopResized();
+    void enable() { setEnabled(true); }
     void startMoveResize();
     void setAndSaveVisible( bool on );
     void setOnScreen(QAction*);

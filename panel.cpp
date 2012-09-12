@@ -59,7 +59,8 @@ class StrutManager : public QWidget
 public:
     StrutManager() : QWidget( 0, Qt::Window | Qt::FramelessWindowHint )
     {
-        KWindowSystem::setType( winId(), NET::Dock );
+//         KWindowSystem::setType( winId(), NET::Dock );
+        setAttribute(Qt::WA_X11NetWmWindowTypeDock, true);
         KWindowSystem::setOnAllDesktops( winId(), true );
         setMask( QRegion(-1,-1,1,1) );
         show();
@@ -445,7 +446,13 @@ BE::Panel::eventFilter(QObject *o, QEvent *e)
     if (o == myProxy && e->type() == QEvent::Enter)
     {
         myProxy->hide();
-        show();
+        if (BE::Shell::touchMode()) {
+            setEnabled(false);
+            show();
+            QTimer::singleShot(250, this, SLOT(enable()));
+        }
+        else
+            show();
     }
     return false;
 }
