@@ -64,6 +64,10 @@ BE::Label::configure( KConfigGroup *grp )
     myPollInterval = grp->readEntry("PollInterval", 1000);
     myLines = grp->readEntry("Lines", -1);
     myCommand = grp->readEntry("Exec", QString());
+    setWordWrap(grp->readEntry("Wrap", false));
+    bool isActive = grp->readEntry("Active", false);
+    setOpenExternalLinks(isActive);
+    setTextInteractionFlags(isActive ? Qt::TextSelectableByKeyboard|Qt::LinksAccessibleByMouse : Qt::LinksAccessibleByMouse);
     if (!myCommand.isEmpty())
     {
         myProcess = new QProcess(this);
