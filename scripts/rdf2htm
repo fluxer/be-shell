@@ -1,4 +1,0 @@
-#!/bin/sh
-wget -qO /dev/stdout "$1" | sed -e 's/<?xml[^>]*>//g; s%</*rdf[^>]*>%%g; 0,/title>/{s/title>/h1 align="center";>/g}; s/title>/h2>/g;
-                                    s/<link>/<p><a style="text-decoration:none; color:palette(link);" href="/g; s%</link>%">%g; s/<description>//g;
-                                    s%</description>%</a></p>%g; s%</*item[^>]*>%%g; s%</*channel[^>]*>%%g; '

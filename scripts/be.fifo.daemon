@@ -1,0 +1,43 @@
+#!/bin/sh
+
+USER=`whoami`
+FIFO_FILE="/tmp/${USER}/be.shell/${FIFO}"
+LOCK_FILE="${FIFO_FILE}.lock"
+
+# DAEMONIZE ---------------------------------
+
+case "$1" in
+  start)
+    if [ ! -e "$LOCK_FILE" ]; then
+        nohup $0 "daemon" >/dev/null 2>&1  &
+        echo $! > "$LOCK_FILE"
+    fi
+    exit
+    ;;
+  stop)
+    if [ -e "$LOCK_FILE" ]; then
+        pid=$(cat "$LOCK_FILE")
+        kill $pid
+        pkill -P $pid
+    fi
+    exit
+    ;;
+  daemon)
+    ;;
+  *)
+    echo -e "\nUsage:\n------\n   $0 start|stop\n"
+    exit
+esac
+
+trap 'rm "$LOCK_FILE"; exit' INT TERM EXIT
+
+if [ ! -p "$FIFO_FILE" ]; then
+    mkdir -p "/tmp/${USER}/be.shell/"
+    rm "$FIFO_FILE"
+    mkfifo "$FIFO_FILE"
+fi
+
+daemon_func
+
+rm "$LOCK_FILE"
+trap - INT TERM EXIT
