@@ -1,0 +1,5 @@
+#!/bin/sh
+sudo /usr/bin/apt-get update # needs visudo entry or polkit rule and pkexec instead of sudo
+UPDATES=$(aptitude search "~U") # query updates
+qdbus org.kde.be.shell /Apt setText "$(echo "$UPDATES" | wc -l)"
+qdbus org.kde.be.shell /Apt setToolTip "$UPDATES"

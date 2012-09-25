@@ -1,0 +1,24 @@
+#!/bin/sh
+sudo /usr/bin/pacman -Sy # needs visudo entry or polkit rule and pkexec instead of sudo
+UPDATES=$(pacman -Qu) # query updates
+
+export DISPLAY=:0 # dbus needs a display ...
+qdbus org.kde.be.shell /Pacman setText "$(echo "$UPDATES" | wc -l)"
+qdbus org.kde.be.shell /Pacman setToolTip "$UPDATES"
+
+file="`kde4-config --path data`"
+file="${file%%:*}be.shell/pacman.xml"
+
+# comment the exit call to write a menu for the button to update single packages
+# could need a fancy dialog driven script (kdesu)
+# exit
+
+echo '<menu>' > "$file"
+IFS=$'\n'
+for package in $UPDATES; do
+   echo "<action label=\""$package"\" exec=\"kdesu /usr/bin/pacman -Sy ${package%% *}\"/>" >> "$file"
+done
+unset IFS
+echo '<separator/>' >> "$file"
+echo "<action label=\"Update all\" exec=\"sudo /usr/bin/pacman -Syu\"/>" >> "$file"
+echo '</menu>' >> "$file"
