@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LINK_CSS="text-decoration:none"
+LINK_CSS="\"text-decoration:none\""
 
 # ------- no user edits below this line ---------------
 
