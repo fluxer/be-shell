@@ -21,6 +21,8 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
+class QFileSystemWatcher;
+
 #include "be.plugged.h"
 
 #include <QToolButton>
@@ -63,6 +65,7 @@ private:
     ButtonAdaptor *myDBus;
     bool imNotReallyCrossed, iClickedForTouchInterface;
     QPixmap *myBuffer[2], *myRenderTarget;
+    QFileSystemWatcher *myMenuWatcher;
 };
 
 }

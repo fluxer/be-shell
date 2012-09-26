@@ -33,6 +33,7 @@
 #include <QApplication>
 #include <QDBusConnection>
 #include <QDesktopWidget>
+#include <QFileSystemWatcher>
 #include <QMenu>
 #include <QPainter>
 #include <QPixmap>
@@ -53,6 +54,7 @@ BE::Button::Button( QWidget *parent, const QString &plugName ) : QToolButton(par
 , imNotReallyCrossed(false)
 , iClickedForTouchInterface(false)
 , myRenderTarget(0)
+, myMenuWatcher(0)
 {
     myBuffer[0] = myBuffer[1] = 0;
     new BE::ButtonAdaptor(this);
@@ -132,7 +134,7 @@ BE::Button::configure( KConfigGroup *grp )
             if (myCommand.isEmpty())
                 return;
             myMenu = new QMenu(this);
-            BE::Shell::buildMenu(myCommand, myMenu, "menu");
+            updateMenu();
             setMenu(myMenu);
             setPopupMode( QToolButton::InstantPopup );
             myExe = grp->readEntry("MenuUpdater", QString());
@@ -321,9 +323,17 @@ BE::Button::timerEvent(QTimerEvent *te)
 void
 BE::Button::updateMenu()
 {
-    QProcess proc(this);
-    proc.start(myExe);
-    proc.waitForFinished(myUpdaterTimeout);
+    if (!myExe.isEmpty()) {
+        QProcess proc(this);
+        proc.start(myExe);
+        proc.waitForFinished(myUpdaterTimeout);
+    }
+    else {
+        delete myMenuWatcher;
+        myMenuWatcher = new QFileSystemWatcher(this);
+        myMenuWatcher->addPath(KGlobal::dirs()->locate("data", "be.shell/" + myCommand + ".xml"));
+        connect (myMenuWatcher, SIGNAL(fileChanged(const QString &)), SLOT(updateMenu()));
+    }
     myMenu->clear();
     BE::Shell::buildMenu(myCommand, myMenu, "menu");
 }
