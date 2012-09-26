@@ -1,5 +1,12 @@
 #!/bin/sh
-sudo /usr/bin/apt-get update # needs visudo entry or polkit rule and pkexec instead of sudo
+export DISPLAY=:0 # qdbus needs a the X server
 UPDATES=$(aptitude search "~U") # query updates
-qdbus org.kde.be.shell /Apt setText "$(echo "$UPDATES" | wc -l)"
+
+if [ -z "$UPDATES" ]; then
+    COUNT=0
+else
+    COUNT=`echo "$UPDATES" | wc -l`
+fi
+
+qdbus org.kde.be.shell /Apt setText "$COUNT"
 qdbus org.kde.be.shell /Apt setToolTip "$UPDATES"
