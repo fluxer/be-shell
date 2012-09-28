@@ -208,6 +208,8 @@ BE::CpuMeter::poll()
                     else
                         myCpuTime[1] += list[i].toInt();
                 }
+                if (myCpuTime[0] == myCpuTime[1])
+                    break; // there's sth. severely! wrong here
                 const int v = 1000-1000*(myIdleTime[1]-myIdleTime[0])/(myCpuTime[1]-myCpuTime[0]);
                 setValues( (value(1)+2*v)/3, (v+3*value(1))/4 );
                 setLabel(QString::number( 100.0*percent(1), 'f', 1 ));
