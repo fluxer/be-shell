@@ -277,7 +277,7 @@ BE::Task::publishGeometry(const QRect &r)
     if (!myWindows.count())
         return;
 #ifdef Q_WS_X11
-    const int rect[4] = { r.x(), r.y(), r.width(), r.height() };
+    const int32_t rect[4] = { r.x(), r.y(), r.width(), r.height() };
     foreach (WId id, myWindows)
         XChangeProperty(QX11Info::display(), id, netIconGeometry, XA_CARDINAL, 32, PropModeReplace, (uchar*)rect, 4);
 #endif
