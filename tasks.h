@@ -84,7 +84,7 @@ private:
     Qt::ToolButtonStyle myStyle;
     QList<WId> myWindows;
     static QLabel *ourToolTip;
-    QSize mySizeHint;
+    QSize mySizeHint, myRequiredSize;
     bool mySizeHintIsDirty;
 };
 

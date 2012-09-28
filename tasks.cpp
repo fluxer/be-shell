@@ -465,6 +465,7 @@ BE::Task::sizeHint() const
         initStyleOption(&opt);
         opt.text = myText;
         that->mySizeHint = style()->sizeFromContents(QStyle::CT_ToolButton, &opt, mySizeHint, this);
+        that->myRequiredSize = that->mySizeHint;
         that->mySizeHint.setWidth(qMin(qMax(100,mySizeHint.width()),250));
         that->mySizeHintIsDirty = false;
     }
@@ -618,8 +619,10 @@ BE::Task::update(const unsigned long *properties)
             mySizeHintIsDirty = true;
             const int oldWidth = width();
             setText(myText);
-            if (width() == oldWidth && oldWidth == 250) // didn't trigger resize cause we're capped
+            if (oldWidth == width() && width() < myRequiredSize.width()) {
+                // didn't trigger resize cause we're capped
                 setText(squeezedText(myText));
+            }
         }
 
         if (props[0] & (NET::WMState|NET::XAWMState)) {
