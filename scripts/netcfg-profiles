@@ -1,6 +1,6 @@
 #!/bin/sh
 file="`kde4-config --path data`"
-BE_NETCFG="${file%%:*}be.shell/scripts/be.netcfg"
+BE_NETCFG="${file%%:*}be.shell/scripts/netcfg"
 BE_WIFI_SELECT="${file%%:*}be.shell/scripts/wifi-select"
 file="${file%%:*}be.shell/netcfg.xml"
 CURRENT="`/usr/bin/netcfg current 2>/dev/null`"
