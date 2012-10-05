@@ -36,7 +36,7 @@
 #include <QPointer>
 #include <QStyle>
 #include <QTimer>
-#include <QX11Info>
+#include <QVarLengthArray>
 
 #include <KDE/KSharedConfig>
 #include <KDE/KConfigGroup>
@@ -44,6 +44,10 @@
 #include <KDE/KWindowSystem>
 
 #include <QtDebug>
+
+#include <X11/Xlib.h>
+#include <QX11Info>
+#include "fixx11h.h"
 
 namespace BE {
 class Stretch : public QWidget, public BE::Plugged {
@@ -361,6 +365,31 @@ BE::Panel::configure( KConfigGroup *grp )
     updatePlugOrder();
     if (myLayer > 2)
         hide();
+    updateSlideHint();
+}
+
+void
+BE::Panel::updateSlideHint() {
+    static Atom atom = 0;
+    if (!atom)
+        atom = XInternAtom(QX11Info::display(), "_KDE_SLIDE", false);
+
+    if (myLayer > 2) {
+        QVarLengthArray<long, 4> data(4);
+        data[0] = 0;
+        data[2] = 300;
+        data[3] = 300;
+        switch (myPosition) {
+            case Left: data[1] = 0; break;
+            default:
+            case Top: data[1] = 1; break;
+            case Bottom: data[1] = 3; break;
+            case Right: data[1] = 2; break;
+        }
+        XChangeProperty(QX11Info::display(), winId(), atom, atom, 32, PropModeReplace,
+                        reinterpret_cast<unsigned char *>(data.data()), data.size());
+    } else if (testAttribute(Qt::WA_WState_Created) && internalWinId())
+        XDeleteProperty(QX11Info::display(), winId(), atom);
 }
 
 static QPoint startPos;
@@ -648,8 +677,10 @@ BE::Panel::mouseMoveEvent(QMouseEvent *me)
             {
                 qobject_cast<QBoxLayout*>(layout())->setDirection(dir);
                 desktopResized();
-                if (o != orientation())
+                if (o != orientation()) {
+                    updateSlideHint();
                     emit orientationChanged(orientation());
+                }
                 if (parentWidget())
                     parentWidget()->update();
             }

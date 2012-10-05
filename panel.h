@@ -76,6 +76,7 @@ private slots:
     void setOnScreen(QAction*);
     void themeUpdated();
     void updateEffectBg();
+    void updateSlideHint();
 private:
     Position myPosition;
     int mySize, myLength, myOffset, myBlurRadius, myLayer, myAutoHideDelay, myProxyThickness, myScreen;
