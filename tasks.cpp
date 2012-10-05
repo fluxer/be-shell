@@ -843,6 +843,14 @@ BE::Tasks::setStyle()
 void
 BE::Tasks::updateWindowProperties(WId id, const unsigned long *properties)
 {
+    if (properties[0] & NET::WMState) {
+        KWindowInfo info( id, NET::WMState );
+        if (info.state() & NET::SkipTaskbar)
+            removeWindow( id );
+        else if (!myWindows.contains(id))
+            addWindow( id );
+        return;
+    }
     if (properties[1] & NET::WM2WindowClass || properties[0] & NET::WMPid)
     {
         removeWindow( id );
