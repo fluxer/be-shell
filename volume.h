@@ -61,9 +61,9 @@ private:
     void read(QProcess &amixer);
     void updateValue();
     void set(int v, QChar dir = QChar());
-    QString myChannel, myMixerCommand;
+    QString myChannel, myMixerCommand, myDevice;
     bool iAmMuted;
-    int myStep, myValue, myUnmutedValue, myPollInterval;
+    int myStep, myValue, myUnmutedValue, myPollInterval, myMaxVolume;
     OSD *myOSD;
     QTimer *syncTimer;
 };

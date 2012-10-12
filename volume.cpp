@@ -148,6 +148,7 @@ BE::Volume::configure( KConfigGroup *grp )
 {
     myChannel = grp->readEntry("Channel", "Master");
     myMixerCommand = grp->readEntry("MixerCommand", "kmix");
+    myDevice = grp->readEntry("Device", QString());
     if ((myStep = grp->readEntry("Step", 5)) < 1)
         myStep = 5; // no idiotic settings please...
     myPollInterval = grp->readEntry("PollInterval", 5000);
@@ -196,25 +197,28 @@ void BE::Volume::launchMixer()
 
 void BE::Volume::read(QProcess &amixer)
 {
+    bool ok;
+    int items = 0;
     int oldValue = myValue;
-
-    const QStringList reply = QString(amixer.readAll()).split('[', QString::KeepEmptyParts);
-
-    if ( reply.count() < 2 )
-        return;
-
-    int i = -1;
-    QStringList::const_iterator it = reply.constBegin();
-    while (++it != reply.constEnd())
-    {
-        if ((i = it->indexOf("%]")) > -1)
-            break;
+    const QStringList lines = QString(amixer.readAll()).split('\n', QString::SkipEmptyParts);
+    foreach (const QString &line, lines) {
+        if (line.contains("Limits:")) {
+            int maxVolume = line.section(" - ",1,1).section(" ",0,0).toInt(&ok);
+            if (ok) {
+                myMaxVolume = maxVolume;
+                items |= 1;
+            }
+        }
+        else if (line.contains('%')) {
+            int volume = line.section("[",1,1).section("%]",0,0).toInt(&ok);
+            if (ok) {
+                myValue = volume;
+                items |= 2;
+            }
+        }
+        if (items == 3)
+            break; // got all we wanted
     }
-
-    if (i<0)
-        return;
-
-    myValue = it->left(i).toInt();
 
     if (myValue > 0)
         iAmMuted = false;
@@ -228,8 +232,13 @@ void BE::Volume::read(QProcess &amixer)
 
 void BE::Volume::set(int value, QChar dir)
 {
+    value = value * myMaxVolume / 100;
     QProcess amixer;
-    amixer.start("amixer", QStringList() << "sset" << myChannel << QString::number(value).append(dir) );
+    QStringList params;
+    if (!myDevice.isEmpty())
+        params << "-D" << myDevice;
+    params << "sset" << myChannel << QString::number(value).append(dir);
+    amixer.start("amixer", params);
     if (amixer.waitForFinished())
         read(amixer);
 }
@@ -237,8 +246,12 @@ void BE::Volume::set(int value, QChar dir)
 void BE::Volume::sync()
 {
     QProcess amixer;
+    QStringList params;
+    if (!myDevice.isEmpty())
+        params << "-D" << myDevice;
+    params << "get" << myChannel;
     int oldValue = myValue;
-    amixer.start("amixer", QStringList() << "get" << myChannel);
+    amixer.start("amixer", params);
     if (amixer.waitForFinished())
         read(amixer);
     if (oldValue != myValue)
