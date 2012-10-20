@@ -63,6 +63,7 @@ protected:
 private:
     void registerStrut();
     StrutManager *strut() const;
+    void slide(bool in);
     virtual void themeChanged();
     void unregisterStrut();
     void updateName();
@@ -76,6 +77,7 @@ private slots:
     void setOnScreen(QAction*);
     void themeUpdated();
     void updateEffectBg();
+    void updateParent();
     void updateSlideHint();
 private:
     Position myPosition;

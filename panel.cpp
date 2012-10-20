@@ -34,6 +34,7 @@
 #include <QPainter>
 #include <QPalette>
 #include <QPointer>
+#include <QPropertyAnimation>
 #include <QStyle>
 #include <QTimer>
 #include <QVarLengthArray>
@@ -243,7 +244,7 @@ BE::Panel::configure( KConfigGroup *grp )
     if (!iAmNested)
     {
         int layer = grp->readEntry("Layer", 0);
-        if (layer > 0)
+        if (layer & 1)
         {
             setWindowFlags( Qt::Window );
             setAttribute(Qt::WA_TranslucentBackground, grp->readEntry("ARGB", true));
@@ -256,14 +257,15 @@ BE::Panel::configure( KConfigGroup *grp )
             setAttribute(Qt::WA_TranslucentBackground, false);
             setAttribute(Qt::WA_X11NetWmWindowTypeDock, false);
         }
-        if (layer > 2)
+        if (layer > 1)
         {
             if (BE::Shell::touchMode())
                 setWindowFlags( Qt::Popup );
             if (!myProxy)
-                myProxy = new QWidget(this, Qt::Window|Qt::X11BypassWindowManagerHint);
-            myProxy->setAttribute(Qt::WA_TranslucentBackground, true);
-            myProxy->setAttribute(Qt::WA_X11NetWmWindowTypeDock, true);
+                myProxy = new QWidget(this, (layer & 1) ? Qt::Window|Qt::X11BypassWindowManagerHint : Qt::Widget);
+            myProxy->setParent(window());
+            myProxy->setAttribute(Qt::WA_TranslucentBackground, (layer & 1));
+            myProxy->setAttribute(Qt::WA_X11NetWmWindowTypeDock, (layer & 1));
             myProxy->installEventFilter(this);
             myProxyThickness = grp->readEntry("AutoHideSensorSize", BE::Shell::touchMode() ? 2 : 1);
             myAutoHideDelay = grp->readEntry("AutoHideDelay", 2000);
@@ -363,7 +365,7 @@ BE::Panel::configure( KConfigGroup *grp )
 
     myPlugs = newPlugs;
     updatePlugOrder();
-    if (myLayer > 2)
+    if (myLayer > 1)
         hide();
     updateSlideHint();
 }
@@ -374,7 +376,7 @@ BE::Panel::updateSlideHint() {
     if (!atom)
         atom = XInternAtom(QX11Info::display(), "_KDE_SLIDE", false);
 
-    if (myLayer > 2) {
+    if (myLayer == 3) { // autohiding real window
         QVarLengthArray<long, 4> data(4);
         data[0] = 0;
         data[2] = 300;
@@ -390,6 +392,13 @@ BE::Panel::updateSlideHint() {
                         reinterpret_cast<unsigned char *>(data.data()), data.size());
     } else if (testAttribute(Qt::WA_WState_Created) && internalWinId())
         XDeleteProperty(QX11Info::display(), winId(), atom);
+}
+
+void
+BE::Panel::updateParent()
+{
+    if (parentWidget())
+        parentWidget()->update(geometry().adjusted(-48,-48,48,48));
 }
 
 static QPoint startPos;
@@ -469,19 +478,62 @@ BE::Panel::wheelEvent(QWheelEvent *we) {
         QFrame::wheelEvent(we);
 }
 
+void
+BE::Panel::slide(bool in)
+{
+    if ((myLayer & 1))
+        return; // that's a real window - we use the WM sliding.
+
+    QRect geo(geometry());
+    switch (myPosition)
+    {
+        default:
+        case Top:
+            move(geo.x(), geo.top() - geo.height() + 1);
+            break;
+        case Bottom:
+            move(geo.x(), geo.bottom() -  1);
+            break;
+        case Left:
+            move(geo.left() - geo.width() + 1, geo.y());
+            break;
+        case Right:
+            move(geo.right() - 1, geo.y());
+            break;
+    }
+    QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry");
+    animation->setEasingCurve(QEasingCurve::InOutCubic);
+    animation->setDuration(200);
+    if (in) {
+        show();
+        animation->setStartValue(geometry());
+        animation->setEndValue(geo);
+    }
+    else {
+        connect (animation, SIGNAL(finished()), SLOT(hide()));
+        animation->setStartValue(geo);
+        animation->setEndValue(geometry());
+    }
+    connect (animation, SIGNAL(valueChanged(QVariant)), SLOT(updateParent()));
+    connect (animation, SIGNAL(finished()), animation, SLOT(deleteLater()));
+    animation->start();
+}
+
 bool
 BE::Panel::eventFilter(QObject *o, QEvent *e)
 {
     if (o == myProxy && e->type() == QEvent::Enter)
     {
+        window()->setUpdatesEnabled(false);
         myProxy->hide();
         if (BE::Shell::touchMode()) {
             setEnabled(false);
-            show();
+            slide(true);
             QTimer::singleShot(250, this, SLOT(enable()));
         }
         else
-            show();
+            slide(true);
+        window()->setUpdatesEnabled(true);
     }
     return false;
 }
@@ -492,7 +544,7 @@ void
 BE::Panel::hideEvent( QHideEvent *event )
 {
     int elapsed = myShowTime.elapsed();
-    if (myLayer > 2 && BE::Shell::touchMode() && elapsed < 800) {
+    if (myLayer > 1 && BE::Shell::touchMode() && elapsed < 800) {
         int layer = myLayer;
         myLayer = 0; // to avoid timer restart
         show();
@@ -500,8 +552,10 @@ BE::Panel::hideEvent( QHideEvent *event )
         return;
     }
     QFrame::hideEvent(event);
-    if (myLayer < 3)
+    if (!myProxy)
         return;
+    if (myLayer == 2) // internal slide polluted geometry
+        desktopResized(); // fixed
     QRect r(geometry());
     switch (myPosition)
     {
@@ -530,7 +584,7 @@ void
 BE::Panel::leaveEvent(QEvent *e)
 {
     QFrame::leaveEvent(e);
-    if (myLayer > 2 && !BE::Shell::touchMode())
+    if (myLayer > 1 && !BE::Shell::touchMode())
         QTimer::singleShot(myAutoHideDelay, this, SLOT(conditionalHide()));
 }
 
@@ -545,7 +599,7 @@ BE::Panel::showEvent(QShowEvent *e)
     foreach (QWidget *kid, kids)
         kid->setMaximumSize(maxSize);
     emit orientationChanged(orientation());
-    if (BE::Shell::touchMode() && myLayer > 2)
+    if (BE::Shell::touchMode() && myLayer > 1)
         myShowTime.start();
 }
 
@@ -623,7 +677,7 @@ BE::Panel::mouseMoveEvent(QMouseEvent *me)
             }
             startPos = me->pos();
             desktopResized();
-            if (parentWidget()) parentWidget()->update();
+            updateParent();
             break;
         case Qt::SizeVerCursor:
             if (myPosition == Top)
@@ -646,8 +700,7 @@ BE::Panel::mouseMoveEvent(QMouseEvent *me)
             }
             startPos = me->pos();
             desktopResized();
-            if (parentWidget())
-                parentWidget()->update();
+            updateParent();
             break;
         case Qt::SizeAllCursor:
         {
@@ -682,7 +735,7 @@ BE::Panel::mouseMoveEvent(QMouseEvent *me)
                     emit orientationChanged(orientation());
                 }
                 if (parentWidget())
-                    parentWidget()->update();
+                    parentWidget()->update(); // needs full repaint, pot. large change
             }
             break;
         }
@@ -887,7 +940,7 @@ BE::Panel::conditionalHide()
             if (window != myProxy && window->parentWidget() && window->parentWidget()->window() == this)
                 window->hide();
         }
-        hide();
+        slide(false);
     }
 }
 
@@ -934,13 +987,16 @@ BE::Panel::desktopResized()
     findSameWindowKids(this, kids);
     foreach (QWidget *kid, kids)
         kid->setMaximumSize(maxSize);
-    if (!isVisible() && myLayer > 2)
+    if (!isVisible() && myLayer > 1)
     {   // to reposition the proxy
+        const int layer = myLayer; // for layer == 2, this causes a recursion, because the hideevent calls desktop resize
+        myLayer = 0;
         QHideEvent he;
         hideEvent(&he);
+        myLayer = layer;
     }
     if (parentWidget())
-        parentWidget()->update();
+        parentWidget()->update(); // needs full repaint, pot. large update
 }
 
 void
