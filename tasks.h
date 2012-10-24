@@ -25,6 +25,7 @@ class QLabel;
 #include "be.plugged.h"
 #include "button.h"
 
+#include <QFrame>
 #include <QMap>
 // #include <QPointer>
 
