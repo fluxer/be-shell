@@ -888,10 +888,17 @@ BE::Desk::setOnScreen( QAction *action )
 }
 
 void
-BE::Desk::setWallpaper( const QString &file, int mode, int desktop )
+BE::Desk::setWallpaper( QString file, int mode, int desktop )
 {
     if (file.isEmpty())
         return; // "none" is ok - [empty] is not but might result from skipped dialog
+    KUrl url(file);
+    if (!url.isLocalFile())
+    {
+        file = KGlobal::dirs()->locateLocal("data","be.shell/myWallpaper");
+        if ( !KIO::NetAccess::download(url, file, this) )
+            return; // failed download
+    }
     QList<int> desks;
     if (KWindowSystem::numberOfDesktops() == 1)
         desks << AllDesktops;
@@ -1262,14 +1269,7 @@ BE::Desk::dropEvent ( QDropEvent *de )
         if (QApplication::keyboardModifiers() & Qt::ShiftModifier)
             mode = ScaleAndCrop;
 
-        if (url.isLocalFile())
-            setWallpaper( url.path(), mode, desktop );
-        else
-        {
-            QString file = KGlobal::dirs()->locateLocal("data","be.shell/myWallpaper");
-            if ( KIO::NetAccess::download(url, file, this) )
-                setWallpaper( file, mode, desktop );
-        }
+        setWallpaper( url.path(), mode, desktop );
     }}
 }
 

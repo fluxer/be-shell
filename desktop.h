@@ -135,7 +135,7 @@ private:
 
 private:
     friend class DeskAdaptor;
-    void setWallpaper( const QString &file, int mode = 700, int desktop = -1 );
+    void setWallpaper( QString file, int mode = 700, int desktop = -1 );
     void toggleDesktopShown();
 
 private slots:
