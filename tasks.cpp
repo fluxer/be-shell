@@ -551,13 +551,24 @@ BE::Task::resortedText(const QString &text)
 QString
 BE::Task::squeezedText(const QString &text)
 {
-    int buttonWidth = contentsRect().width();
+    // contentsRect() seems broken qith QStyleSheetStyle :-(
+//     int buttonWidth = contentsRect().width();
+    int buttonWidth = width();
+    QFontMetrics fm(fontMetrics());
+    const QSize ts = fm.size(Qt::TextSingleLine|Qt::TextShowMnemonic, text);
+    // query style for overhead, padding etc.
+    QStyleOptionToolButton opt;
+    initStyleOption(&opt);
+    opt.text = text;
+    const QSize sz = style()->sizeFromContents(QStyle::CT_ToolButton, &opt, ts, this);
+    // ----------------------
+    // subtract overhead (required size  - text size)
+    buttonWidth -= sz.width() - ts.width();
     if (toolButtonStyle() == Qt::ToolButtonTextBesideIcon) {
         buttonWidth -= 4 + iconSize().width(); // TODO: "4+2" is a guess
     }
 
-    QFontMetrics fm(fontMetrics());
-    if (fm.width(text) > buttonWidth)
+    if (ts.width() > buttonWidth)
         return fm.elidedText(text, Qt::ElideRight, buttonWidth - 2 );
     return text;
 }
