@@ -624,6 +624,8 @@ BE::Desk::configure( KConfigGroup *grp )
     bool changeWallpaper = false;
     bool needUpdate = false;
 
+    iWheelOnClickOnly = grp->readEntry("WheelOnLMB", false);
+
     int oldScreen = myScreen;
     myScreen = grp->readEntry("Screen", QApplication::desktop()->primaryScreen() );
     if (myScreen >= QApplication::desktop()->screenCount())
@@ -751,6 +753,7 @@ BE::Desk::configure( KConfigGroup *grp )
     else if (needUpdate)
         update();
     ignoreSaveRequest = false;
+
 }
 
 void
@@ -1415,6 +1418,8 @@ BE::Desk::paintEvent(QPaintEvent *pe)
 void
 BE::Desk::wheelEvent(QWheelEvent *we)
 {
+    if (iWheelOnClickOnly && !(we->buttons() & Qt::LeftButton))
+        return;
     if (KWindowSystem::numberOfDesktops() < 2)
         return;
     int next = KWindowSystem::currentDesktop();

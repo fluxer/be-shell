@@ -179,7 +179,7 @@ private:
         QRect area;
     } wpSettings;
 
-    bool ignoreSaveRequest, iRootTheWallpaper;
+    bool ignoreSaveRequest, iRootTheWallpaper, iWheelOnClickOnly;
     uint myCorners;
     int myCurrentDesktop;
 
