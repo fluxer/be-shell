@@ -441,8 +441,10 @@ BE::GMenu::registerMenu(const QString &service, qlonglong key, const QString &ti
 void
 BE::GMenu::releaseFocus(qlonglong key)
 {
-    if (hasFocus() && isActiveWindow())
+    if ((myCurrentBar == myMainMenu) || hasFocus() && isActiveWindow()) {
+        show(myMainMenu);
         return;
+    }
     blockUpdates(true);
     int n = 0;
     for (MenuMap::iterator i = myMenus.begin(); i != myMenus.end(); ++i)
@@ -453,10 +455,7 @@ BE::GMenu::releaseFocus(qlonglong key)
             n += i.value()->isVisible();
     }
     if (!n)
-    {
-        myCurrentBar = myMainMenu;
         show(myMainMenu);
-    }
     // there might come an immediate request afterwards
 //     blockUpdates(false);
     QTimer::singleShot(100, this, SLOT(unlockUpdates()));
