@@ -244,7 +244,11 @@ BE::Panel::configure( KConfigGroup *grp )
     if (!iAmNested)
     {
         int layer = grp->readEntry("Layer", 0);
-        if (layer & 1)
+        if (layer != myLayer) {
+            delete myProxy; myProxy = 0;
+        }
+        const bool isWindow(layer & 1);
+        if (isWindow)
         {
             setWindowFlags( Qt::Window );
             setAttribute(Qt::WA_TranslucentBackground, grp->readEntry("ARGB", true));
@@ -262,10 +266,10 @@ BE::Panel::configure( KConfigGroup *grp )
             if (BE::Shell::touchMode())
                 setWindowFlags( Qt::Popup );
             if (!myProxy)
-                myProxy = new QWidget(this, (layer & 1) ? Qt::Window|Qt::X11BypassWindowManagerHint : Qt::Widget);
+                myProxy = new QWidget(this, isWindow ? Qt::Window|Qt::X11BypassWindowManagerHint : Qt::Widget);
             myProxy->setParent(window());
-            myProxy->setAttribute(Qt::WA_TranslucentBackground, (layer & 1));
-            myProxy->setAttribute(Qt::WA_X11NetWmWindowTypeDock, (layer & 1));
+            myProxy->setAttribute(Qt::WA_TranslucentBackground, isWindow);
+            myProxy->setAttribute(Qt::WA_X11NetWmWindowTypeDock, isWindow);
             myProxy->installEventFilter(this);
             myProxyThickness = grp->readEntry("AutoHideSensorSize", BE::Shell::touchMode() ? 2 : 1);
             myAutoHideDelay = grp->readEntry("AutoHideDelay", 2000);
@@ -481,8 +485,10 @@ BE::Panel::wheelEvent(QWheelEvent *we) {
 void
 BE::Panel::slide(bool in)
 {
-    if ((myLayer & 1))
+    if ((myLayer & 1)) {
+        in ? show() : hide();
         return; // that's a real window - we use the WM sliding.
+    }
 
     QRect geo(geometry());
     switch (myPosition)
