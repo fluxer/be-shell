@@ -7,9 +7,9 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_SOURCE_DIR}
 	${KDE4_INCLUDE_DIR}
 	${QT_INCLUDES}
-	/usr/include/KDE
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_BINARY_DIR}  )
+	${CMAKE_CURRENT_BINARY_DIR}
+	${KDE4_INCLUDES} )
 
 set(be.shell_SRCS
     be.shell.cpp
@@ -43,7 +43,7 @@ qt4_wrap_cpp(be.shell_MOC_SRCS ${be.shell_MOC_HDRS})
 
 kde4_add_executable(be.shell ${be.shell_SRCS} ${be.shell_MOC_SRCS})
 
-target_link_libraries(be.shell ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS} ${KDE4_KFILE_LIBS} solid X11 Xrender kcmutils)
+target_link_libraries(be.shell ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS} ${KDE4_KFILE_LIBS} solid X11 Xrender Xcomposite Xfixes Xdamage kcmutils)
 
 install(TARGETS be.shell DESTINATION ${BIN_INSTALL_DIR} )
 
