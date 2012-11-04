@@ -132,6 +132,14 @@ private:
     } Shadow;
 
     Shadow *shadow(int r);
+    typedef struct
+    {
+        QList<int> desks;
+        QSize targetSize;
+        BE::Wallpaper *wp;
+        QImage img;
+    } ImageToWallpaper;
+    ImageToWallpaper loadImage(QString file, int mode, QList<int> desks, Wallpaper *wp, QSize targetSize);
 
 private:
     friend class DeskAdaptor;
@@ -148,6 +156,7 @@ private slots:
     void fileCreated( const QString &path );
     void fileDeleted( const QString &path );
     void fileChanged( const QString &path );
+    void finishSetWallpaper();
     void kcmshell4(QAction *);
     void selectWallpaper();
     void setOnScreen( QAction *action );

@@ -51,6 +51,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QFileInfo>
+#include <QFutureWatcher>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -61,6 +62,7 @@
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QStyle>
+#include <QtConcurrentRun>
 #include <QtDBus>
 #include <QToolTip>
 #include <QVBoxLayout>
@@ -890,8 +892,101 @@ BE::Desk::setOnScreen( QAction *action )
         desktopResized( myScreen = screen );
 }
 
+BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int> desks, Wallpaper *wp, QSize sz)
+{
+    ImageToWallpaper ret;
+    ret.desks = desks;
+    ret.targetSize = sz;
+    ret.wp = 0;
+    QImage img( file );
+    if ( img.isNull() )
+        return ret;
+
+    if (wp->file != file)
+    {
+        wp->file = file;
+        wp->aspect = -1.0;
+    }
+
+    if (mode < 0)
+    {   // heuristics, we want central, scale'n'crop if big enough, tiled if very small (and near square)
+        wp->align = Qt::AlignCenter;
+        if ( img.width() > sz.width()/2 && img.height() > sz.height()/2 )
+        {
+            wp->mode = myWallpaperDefaultMode;
+            wp->align = myWallpaperDefaultAlign;
+        }
+        else if (( img.width() < sz.width()/6 && img.height() < sz.height()/6 ) ||
+                ( img.width() == img.height() && img.width() < sz.width()/4 && img.height() < sz.height()/4 )) {
+            // make tile at least 32x32, painting performance thing.
+            QSize dst;
+            if (img.width() < 32)
+                dst.setWidth(qCeil(32.0f/img.width())*img.width());
+            if (img.height() < 32)
+                dst.setHeight(qCeil(32.0f/img.height())*img.height());
+            if (img.size() != dst) {
+                if (img.format() == QImage::Format_Indexed8) // not supported
+                    img = img.convertToFormat(img.hasAlphaChannel() ? QImage::Format_ARGB32 :
+                                                                        QImage::Format_RGB32);
+                QImage nImg(dst, img.format());
+                QPainter p(&nImg);
+                p.fillRect(nImg.rect(), QBrush(img));
+                p.end();
+                img = nImg;
+            }
+            wp->mode = Tiled;
+        }
+        else if ( img.width() < sz.width()/10 && img.height() > 3*sz.height()/4 )
+            wp->mode = ScaleV;
+        else if ( img.height() < sz.height()/10 && img.width() > 3*sz.width()/4 )
+            wp->mode = ScaleH;
+        else
+            wp->mode = Plain;
+    }
+
+    else if (mode)
+    {
+        while ( mode < 100)
+            mode *= 10;
+        wp->mode = (WallpaperMode)( mode / 100 );
+        const int a = mode - 100*wp->mode;
+        wp->align = alignFromInt(a) | alignFromInt(a - a/10);
+    }
+
+    if (wp->aspect > 0.0)
+    {
+        const float asp = (float)sz.width()/(float)sz.height();
+        if (wp->aspect > asp)
+            img = img.scaled( sz.width(), sz.width()/wp->aspect, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
+        else
+            img = img.scaled( sz.height()*wp->aspect, sz.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
+    }
+    else
+    {
+        switch (wp->mode)
+        {
+        case ScaleV:
+            img = img.scaled( img.width(), sz.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
+        case ScaleH:
+            img = img.scaled( sz.width(), img.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
+        case Scale:
+            img = img.scaled( sz, Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
+        case Maximal:
+            img = img.scaled( sz, Qt::KeepAspectRatio, Qt::SmoothTransformation ); break;
+        case ScaleAndCrop:
+            img = img.scaled( sz, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation );
+        default:
+            break;
+        }
+    }
+    qDebug() << "setting" << &wp;
+    ret.wp = wp;
+    ret.img = img;
+    return ret;
+}
+
 void
-BE::Desk::setWallpaper( QString file, int mode, int desktop )
+BE::Desk::setWallpaper(QString file, int mode, int desktop)
 {
     if (file.isEmpty())
         return; // "none" is ok - [empty] is not but might result from skipped dialog
@@ -926,6 +1021,7 @@ BE::Desk::setWallpaper( QString file, int mode, int desktop )
     desktop = desks.takeFirst();
 
     Wallpaper &wp = (desktop < 0) ? myWallpaper : myWallpapers[desktop];
+    qDebug() << "starting with" << &wp;
 
     if ( file == "none" )
     {
@@ -959,76 +1055,18 @@ BE::Desk::setWallpaper( QString file, int mode, int desktop )
         QSize sz = wpSettings.area.isValid() ? wpSettings.area.size() : size();
 
         // we couldn't take one out of the list, load new from file
-        if (!canCopy)
+        if (canCopy)
+            finishSetWallpaper();
+        else
         {
-            QImage img( file );
-            if ( img.isNull() )
-                return;
-
-            if (wp.file != file)
-            {
-                wp.file = file;
-                wp.aspect = -1.0;
-            }
-
-            if (mode < 0)
-            {   // heuristics, we want central, scale'n'crop if big enough, tiled if very small (and near square)
-                wp.align = Qt::AlignCenter;
-                if ( img.width() > sz.width()/2 && img.height() > sz.height()/2 )
-                {
-                    wp.mode = myWallpaperDefaultMode;
-                    wp.align = myWallpaperDefaultAlign;
-                }
-                else if (( img.width() < sz.width()/6 && img.height() < sz.height()/6 ) ||
-                        ( img.width() == img.height() && img.width() < sz.width()/4 && img.height() < sz.height()/4 ))
-                    wp.mode = Tiled;
-                else if ( img.width() < sz.width()/10 && img.height() > 3*sz.height()/4 )
-                    wp.mode = ScaleV;
-                else if ( img.height() < sz.height()/10 && img.width() > 3*sz.width()/4 )
-                    wp.mode = ScaleH;
-                else
-                    wp.mode = Plain;
-            }
-
-            else if (mode)
-            {
-                while ( mode < 100)
-                    mode *= 10;
-                wp.mode = (WallpaperMode)( mode / 100 );
-                const int a = mode - 100*wp.mode;
-                wp.align = alignFromInt(a) | alignFromInt(a - a/10);
-            }
-
-            if (wp.aspect > 0.0)
-            {
-                const float asp = (float)sz.width()/(float)sz.height();
-                if (wp.aspect > asp)
-                    img = img.scaled( sz.width(), sz.width()/wp.aspect, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
-                else
-                    img = img.scaled( sz.height()*wp.aspect, sz.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
-            }
-            else
-            {
-                switch (wp.mode)
-                {
-                case ScaleV:
-                    img = img.scaled( img.width(), sz.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
-                case ScaleH:
-                    img = img.scaled( sz.width(), img.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
-                case Scale:
-                    img = img.scaled( sz, Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
-                case Maximal:
-                    img = img.scaled( sz, Qt::KeepAspectRatio, Qt::SmoothTransformation ); break;
-                case ScaleAndCrop:
-                    img = img.scaled( sz, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation );
-                default:
-                    break;
-                }
-            }
-
-            wp.pix = QPixmap::fromImage(img);
-
+            QFutureWatcher<ImageToWallpaper>* watcher = new QFutureWatcher<ImageToWallpaper>;
+            connect( watcher, SIGNAL( finished() ), SLOT( finishSetWallpaper() ), Qt::QueuedConnection );
+            if (changed)
+                connect( watcher, SIGNAL( finished() ), SIGNAL( wallpaperChanged() ), Qt::QueuedConnection );
+            watcher->setFuture(QtConcurrent::run(this, &BE::Desk::loadImage, file, mode, desks, &wp, sz));
+            return;
         }
+
         wp.calculateOffset(sz, wpSettings.area.topLeft());
 
         // apply to other demanded desktops - iff any
@@ -1042,6 +1080,38 @@ BE::Desk::setWallpaper( QString file, int mode, int desktop )
 
     if (changed)
         emit wallpaperChanged();
+    Plugged::saveSettings();
+}
+
+void
+BE::Desk::finishSetWallpaper()
+{
+    ImageToWallpaper result;
+    if (QFutureWatcher<ImageToWallpaper>* watcher =
+                dynamic_cast< QFutureWatcher<ImageToWallpaper>* >(sender()))
+    {
+        result = watcher->result();
+        watcher->deleteLater(); // has done it's job
+    }
+
+    if (!result.wp) // failed to load
+        return;
+    if (!result.img.isNull()) {
+        qDebug() << result.wp;
+        qDebug() << result.wp->file;
+        qDebug() << result.wp->pix.paintingActive() << result.img.paintingActive();
+        result.wp->pix = QPixmap::fromImage(result.img);
+    }
+
+    result.wp->calculateOffset(result.targetSize, wpSettings.area.topLeft());
+
+    // apply to other demanded desktops - iff any
+    if (!result.desks.isEmpty())
+    {
+        for (int i = 0; i < result.desks.count(); ++i)
+            myWallpapers[result.desks.at(i)] = *(result.wp);
+    }
+
     Plugged::saveSettings();
 }
 
