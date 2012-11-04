@@ -39,6 +39,7 @@ public:
     Panel( QWidget *parent = 0 );
     ~Panel();
     BE::Plugged *addStretch(int s);
+    inline int castsShadow() { return isVisible() && iCastAShadow; }
     void configure( KConfigGroup *grp );
     inline QPixmap *effectBgPix() { return myBgPix; }
     inline int layer() const { return myLayer; }
@@ -86,7 +87,7 @@ private:
     QMenu *myConfigMenuEntry;
     QAction *myVisibility;
     Qt::CursorShape myMoveResizeMode;
-    bool iStrut, iAmNested;
+    bool iStrut, iAmNested, iCastAShadow;
     QWidget *myProxy;
     QString myForcedId;
     int myShadowRadius, myShadowPadding;

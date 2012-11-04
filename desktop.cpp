@@ -979,7 +979,6 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
             break;
         }
     }
-    qDebug() << "setting" << &wp;
     ret.wp = wp;
     ret.img = img;
     return ret;
@@ -1021,7 +1020,6 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
     desktop = desks.takeFirst();
 
     Wallpaper &wp = (desktop < 0) ? myWallpaper : myWallpapers[desktop];
-    qDebug() << "starting with" << &wp;
 
     if ( file == "none" )
     {
@@ -1096,12 +1094,8 @@ BE::Desk::finishSetWallpaper()
 
     if (!result.wp) // failed to load
         return;
-    if (!result.img.isNull()) {
-        qDebug() << result.wp;
-        qDebug() << result.wp->file;
-        qDebug() << result.wp->pix.paintingActive() << result.img.paintingActive();
+    if (!result.img.isNull())
         result.wp->pix = QPixmap::fromImage(result.img);
-    }
 
     result.wp->calculateOffset(result.targetSize, wpSettings.area.topLeft());
 
@@ -1435,7 +1429,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
 
     foreach (BE::Panel *panel, myPanels)
     {
-        if (panel && panel->isVisible())
+        if (panel && panel->castsShadow())
         {
             int x,y,w,h;
             QRect prect = panel->geometry();

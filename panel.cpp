@@ -331,7 +331,11 @@ BE::Panel::configure( KConfigGroup *grp )
     }
     bool wasVis = isVisibleTo(parentWidget());
     setVisible(grp->readEntry("Visible", QVariant(true) ).toBool());
-    if ((wasVis || updateGeometry) && parentWidget())
+
+    bool castedShadow = iCastAShadow;
+    iCastAShadow = grp->readEntry("CastShadow", true);
+
+    if ((castedShadow != iCastAShadow || wasVis || updateGeometry) && parentWidget())
         parentWidget()->update(); // necessary?
 
     if (oldId != myForcedId) {
