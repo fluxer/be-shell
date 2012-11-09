@@ -1429,7 +1429,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
 
     foreach (BE::Panel *panel, myPanels)
     {
-        if (panel && panel->castsShadow())
+        if (panel)
         {
             int x,y,w,h;
             QRect prect = panel->geometry();
@@ -1440,7 +1440,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
             if (panel->effectBgPix() && panel->updatesEnabled())
                 p.drawPixmap(x,y, *panel->effectBgPix());
 
-            if (!myShadowOpacity)
+            if (!(myShadowOpacity && panel->castsShadow()))
                 continue;
 
             const int radius = panel->shadowRadius();
