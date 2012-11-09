@@ -1136,10 +1136,12 @@ BE::Desk::shadow(int r)
     p.setPen(Qt::NoPen);
     p.setBrush(rg);
     p.drawRect(shadowBlob.rect());
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setCompositionMode(QPainter::CompositionMode_DestinationOut);
-    p.setBrush(Qt::white);
-    p.drawEllipse(shadowBlob.rect().adjusted(10,7,-10,-13));
+    if (r) {
+        p.setRenderHint(QPainter::Antialiasing);
+        p.setCompositionMode(QPainter::CompositionMode_DestinationOut);
+        p.setBrush(Qt::white);
+        p.drawEllipse(shadowBlob.rect().adjusted(10,7,-10,-13));
+    }
     p.end();
 
     s->topLeft = shadowBlob.copy(0,0,r+9,r+6);
@@ -1446,6 +1448,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
             const int radius = panel->shadowRadius();
             if (radius < 0)
                 continue;
+
             int flags = 0;
             if (y > rect().top()) flags |= Top;
             if (y < rect().bottom()) flags |= Bottom;
