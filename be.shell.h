@@ -25,6 +25,7 @@
 #include <QObject>
 #include <QPoint>
 #include <QPointer>
+#include <QPen>
 #include <qwindowdefs.h>
 
 class KSharedConfig;
@@ -64,6 +65,7 @@ public:
     static QMenu *screenMenu();
     static int shadowPadding(const QString &string);
     static int shadowRadius(const QString &string);
+    static QPen shadowBorder(const QString &string);
     static void showBeMenu();
     static void showWindowContextMenu(WId window, const QPoint &pos);
     static bool touchMode();
@@ -120,7 +122,7 @@ private:
     typedef QList<QString> QStringList;
     QStringList myPanels;
     bool iAmTouchy;
-    QMap<QString, int> myShadowRadius, myShadowPadding;
+    QMap<QString, QVariant> myShadowRadius, myShadowPadding, myShadowBorder;
 };
 }
 

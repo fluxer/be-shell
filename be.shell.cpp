@@ -448,9 +448,9 @@ BE::Shell::shadowPadding(const QString &string)
 {
     if (!instance)
         return 0;
-    int ret = instance->myShadowPadding.value(string, -1);
+    int ret = instance->myShadowPadding.value(string, -1).toInt();
     if (ret < 0)
-        ret = instance->myShadowPadding.value("BE--Panel", 0);
+        ret = instance->myShadowPadding.value("BE--Panel", 0).toInt();
     return ret;
 }
 
@@ -459,11 +459,24 @@ BE::Shell::shadowRadius(const QString &string)
 {
     if (!instance)
         return 0;
-    int ret = instance->myShadowRadius.value(string, -1);
+    int ret = instance->myShadowRadius.value(string, -1).toInt();
     if (ret < 0)
-        ret = instance->myShadowRadius.value("BE--Panel", 0);
+        ret = instance->myShadowRadius.value("BE--Panel", 0).toInt();
     return ret;
 }
+
+QPen
+BE::Shell::shadowBorder(const QString &string)
+{
+    if (!instance)
+        return QPen();
+    QVariant var = instance->myShadowBorder.value(string);
+    if (!var.isValid())
+        var = instance->myShadowBorder.value("BE--Panel");
+    QPen pen = var.value<QPen>();
+    return pen;
+}
+
 
 void
 BE::Shell::showBeMenu()
@@ -1150,7 +1163,74 @@ BE::Shell::setTheme(const QString &t)
     saveSettings();
 }
 
-void parse(QString property, QString *sheet, QMap<QString,int> *map) {
+enum CssExtension { ShadowBorder = 0, ShadowRadius, ShadowPadding };
+
+QVariant shadowBorder(const QString &string, bool *ok)
+{
+    QVariant value;
+    QString s(string);
+    if (s.contains("rgba("))
+    {
+        int open = s.indexOf("rgba(");
+        int close = s.lastIndexOf(")", open);
+        QString tmp = s.mid(open, close-open);
+        tmp.remove(" ");
+        s.replace(s.mid(open, close-open), tmp);
+    }
+    const QStringList &col(s.split(" ", QString::SkipEmptyParts));
+    if (col.count() > 1)
+    {
+#define REQUIRE(_OPTS_) _OPTS_; if (!*ok) return QVariant()
+        int penWidth = 0;
+        QColor penColor;
+        foreach (QString opt, col)
+        {
+            if (opt.endsWith("px"))
+            {
+                REQUIRE(penWidth = qRound(opt.left(opt.length()-2).toFloat(ok)));
+            }
+            else if (opt.startsWith("rgba("))
+            {
+                int r, g, b, a;
+                QStringList rgba(opt.mid(5, opt.length()-6 ).split(",", QString::SkipEmptyParts));
+                if (rgba.count() == 4)
+                {
+                    REQUIRE(r = rgba.at(0).toInt(ok));
+                    REQUIRE(g = rgba.at(1).toInt(ok));
+                    REQUIRE(b = rgba.at(2).toInt(ok));
+                    REQUIRE(a = rgba.at(3).toInt(ok));
+                }
+                else
+                    return QVariant();
+                penColor = QColor(r, g, b, a);
+            }
+            else
+            {
+                penColor.setAllowX11ColorNames(true);
+                penColor.setNamedColor(opt);
+                REQUIRE(*ok = penColor.isValid());
+            }
+        }
+#undef REQUIRE
+        if ( penColor.isValid() && penWidth > 0 )
+            value.setValue(QPen(penColor, penWidth));
+    }
+    return value;
+}
+
+void parse(CssExtension ext, QString *sheet, QMap<QString,QVariant> *map) {
+    QString property;
+    switch (ext) {
+    case ShadowBorder:
+        property = "shadow-border"; break;
+    case ShadowRadius:
+        property = "shadow-radius"; break;
+    case ShadowPadding:
+        property = "shadow-padding"; break;
+    default:
+        return; // no unknown junk
+    }
+
     static QRegExp nonDig("[^0123456789\\s]");
     int pi = 0;
     map->clear();
@@ -1162,12 +1242,24 @@ void parse(QString property, QString *sheet, QMap<QString,int> *map) {
             continue;
         }
         int close = sheet->lastIndexOf('}', open) + 1;
-        QStringList elements = sheet->mid(close, open-close).simplified().split(',');
+        QStringList elements = sheet->mid(close, open-close).simplified().split(',', QString::SkipEmptyParts);
         open = sheet->indexOf(':', pi) + 1;
         close = sheet->indexOf(nonDig, open);
-        bool ok;
-        int value = sheet->mid(open, close-open).toInt(&ok);
+
+        QVariant value;
+        bool ok = false;
+        switch (ext) {
+        case ShadowBorder:
+            value = shadowBorder(sheet->mid(open, sheet->indexOf(';', open)-open).simplified(), &ok);
+            break;
+        case ShadowRadius:
+        case ShadowPadding:
+            value = sheet->mid(open, close-open).toInt(&ok);
+            break;
+        }
+
         close = sheet->indexOf(';', close);
+
         if (!ok)
             continue;
         foreach (const QString element, elements) {
@@ -1200,8 +1292,10 @@ BE::Shell::updateStyleSheet(const QString &filename)
             else
                 qWarning("INVALID CSS - comment not closed!");
         }
-        parse("shadow-radius", &sheet, &myShadowRadius);
-        parse("shadow-padding", &sheet, &myShadowPadding);
+        parse(ShadowRadius, &sheet, &myShadowRadius);
+        parse(ShadowPadding, &sheet, &myShadowPadding);
+        parse(ShadowBorder, &sheet, &myShadowBorder);
+
         qApp->setStyleSheet( sheet );
         emit styleSheetChanged();
     }

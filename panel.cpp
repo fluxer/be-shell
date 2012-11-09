@@ -849,6 +849,7 @@ void BE::Panel::themeUpdated()
     int oldShadowPadding = myShadowPadding;
     myShadowPadding = BE::Shell::shadowPadding(objectName());
     myShadowRadius = BE::Shell::shadowRadius(objectName());
+    myShadowBorder = BE::Shell::shadowBorder(objectName());
     if (oldShadowPadding != myShadowPadding)
         updateEffectBg();
 }
@@ -890,6 +891,7 @@ BE::Panel::updateName()
         setObjectName(myForcedId);
         myShadowPadding = BE::Shell::shadowPadding(myForcedId);
         myShadowRadius = BE::Shell::shadowRadius(myForcedId);
+        myShadowBorder = BE::Shell::shadowBorder(myForcedId);
         return;
     }
     QString name = names[myPosition];
@@ -906,6 +908,7 @@ BE::Panel::updateName()
     setObjectName(name);
     myShadowPadding = BE::Shell::shadowPadding(name);
     myShadowRadius = BE::Shell::shadowRadius(name);
+    myShadowBorder = BE::Shell::shadowBorder(name);
     if (formerName != name) {
         style()->unpolish(this);
         style()->polish(this);

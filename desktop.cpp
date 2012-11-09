@@ -1142,6 +1142,7 @@ BE::Desk::shadow(int r)
         p.setBrush(Qt::white);
         p.drawEllipse(shadowBlob.rect().adjusted(10,7,-10,-13));
     }
+
     p.end();
 
     s->topLeft = shadowBlob.copy(0,0,r+9,r+6);
@@ -1446,6 +1447,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
                 continue;
 
             const int radius = panel->shadowRadius();
+
             if (radius < 0)
                 continue;
 
@@ -1477,6 +1479,23 @@ BE::Desk::paintEvent(QPaintEvent *pe)
                 p.drawPixmap( x-s->bottomLeft.width(), y+h, s->bottomLeft );
             if (flags & (Bottom | Right))
                 p.drawPixmap( x+w, y+h, s->bottomRight );
+
+            QPen borderPen = panel->shadowBorder();
+            if (borderPen.width())
+            {
+                p.setPen(borderPen);
+                p.setBrush(Qt::NoBrush);
+                p.setRenderHint(QPainter::Antialiasing);
+                const uint &penWidth = borderPen.width();
+                uint needsTrans = (penWidth & 1);
+                p.save();
+                if ( needsTrans )
+                    p.translate(0.5, 0.5);
+                int d = penWidth/2+1;
+                prect.adjust(d, d, -(d+needsTrans), -(d+needsTrans));
+                p.drawRoundedRect(prect, radius, radius);
+                p.restore();
+            }
         }
     }
     p.end();

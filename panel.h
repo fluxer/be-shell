@@ -22,6 +22,7 @@
 #define BE_PANEL_H
 
 #include <QFrame>
+#include <QPen>
 #include "be.plugged.h"
 
 class QAction;
@@ -48,6 +49,7 @@ public:
     void saveSettings( KConfigGroup *grp );
     inline int shadowPadding() { return myShadowPadding; }
     inline int shadowRadius() { return myShadowRadius; }
+    inline QPen shadowBorder() { return myShadowBorder; }
 signals:
     void orientationChanged( Qt::Orientation o );
 protected:
@@ -91,6 +93,7 @@ private:
     QWidget *myProxy;
     QString myForcedId;
     int myShadowRadius, myShadowPadding;
+    QPen myShadowBorder;
 private:
     friend class BE::Shell;
     QList<BE::Plugged*> myPlugs;
