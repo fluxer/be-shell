@@ -1491,7 +1491,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
                 p.save();
                 if ( needsTrans )
                     p.translate(0.5, 0.5);
-                int d = penWidth/2+1;
+                int d = penWidth/2 + bool(radius);
                 prect.adjust(d, d, -(d+needsTrans), -(d+needsTrans));
                 p.drawRoundedRect(prect, radius, radius);
                 p.restore();
