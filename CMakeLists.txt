@@ -43,7 +43,7 @@ qt4_wrap_cpp(be.shell_MOC_SRCS ${be.shell_MOC_HDRS})
 
 kde4_add_executable(be.shell ${be.shell_SRCS} ${be.shell_MOC_SRCS})
 
-target_link_libraries(be.shell ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS} ${KDE4_KFILE_LIBS} solid X11 Xrender Xcomposite Xfixes Xdamage kcmutils)
+target_link_libraries(be.shell ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS} ${KDE4_KFILE_LIBS} solid X11 Xrender kcmutils)
 
 install(TARGETS be.shell DESTINATION ${BIN_INSTALL_DIR} )
 
