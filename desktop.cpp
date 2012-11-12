@@ -898,7 +898,19 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     ret.desks = desks;
     ret.targetSize = sz;
     ret.wp = 0;
-    QImage img( file );
+    QImage tile;
+
+    QString iFile = file;
+    if (mode == Composed || file.contains(':')) {
+        mode = Composed;
+        tile = QImage(file.section(':', 1, 1, QString::SectionSkipEmpty));
+        if ( tile.isNull() )
+            return ret;
+        tile = tile.convertToFormat(QImage::Format_ARGB32);
+        iFile = file.section(':', 0, 0, QString::SectionSkipEmpty);
+    }
+
+    QImage img( iFile );
     if ( img.isNull() )
         return ret;
 
@@ -918,22 +930,6 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
         }
         else if (( img.width() < sz.width()/6 && img.height() < sz.height()/6 ) ||
                 ( img.width() == img.height() && img.width() < sz.width()/4 && img.height() < sz.height()/4 )) {
-            // make tile at least 32x32, painting performance thing.
-            QSize dst;
-            if (img.width() < 32)
-                dst.setWidth(qCeil(32.0f/img.width())*img.width());
-            if (img.height() < 32)
-                dst.setHeight(qCeil(32.0f/img.height())*img.height());
-            if (img.size() != dst) {
-                if (img.format() == QImage::Format_Indexed8) // not supported
-                    img = img.convertToFormat(img.hasAlphaChannel() ? QImage::Format_ARGB32 :
-                                                                        QImage::Format_RGB32);
-                QImage nImg(dst, img.format());
-                QPainter p(&nImg);
-                p.fillRect(nImg.rect(), QBrush(img));
-                p.end();
-                img = nImg;
-            }
             wp->mode = Tiled;
         }
         else if ( img.width() < sz.width()/10 && img.height() > 3*sz.height()/4 )
@@ -965,12 +961,32 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     {
         switch (wp->mode)
         {
+        case Tiled: {
+            // make tile at least 32x32, painting performance thing.
+            QSize dst;
+            if (img.width() < 32)
+                dst.setWidth(qCeil(32.0f/img.width())*img.width());
+            if (img.height() < 32)
+                dst.setHeight(qCeil(32.0f/img.height())*img.height());
+            if (img.size() != dst) {
+                if (img.format() == QImage::Format_Indexed8) // not supported
+                    img = img.convertToFormat(img.hasAlphaChannel() ? QImage::Format_ARGB32 :
+                                                                        QImage::Format_RGB32);
+                QImage nImg(dst, img.format());
+                QPainter p(&nImg);
+                p.fillRect(nImg.rect(), QBrush(img));
+                p.end();
+                img = nImg;
+            }
+        }
         case ScaleV:
             img = img.scaled( img.width(), sz.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
         case ScaleH:
             img = img.scaled( sz.width(), img.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
         case Scale:
-            img = img.scaled( sz, Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
+        case Composed:
+            img = img.scaled( sz, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
+            break;
         case Maximal:
             img = img.scaled( sz, Qt::KeepAspectRatio, Qt::SmoothTransformation ); break;
         case ScaleAndCrop:
@@ -978,6 +994,13 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
         default:
             break;
         }
+    }
+    if (wp->mode == Composed) {
+        if (img.format() == QImage::Format_Indexed8) // not supported
+            img = img.convertToFormat(img.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32);
+        QPainter p(&img);
+        p.fillRect(img.rect(), QBrush(tile));
+        p.end();
     }
     ret.wp = wp;
     ret.img = img;

@@ -40,7 +40,7 @@ class KConfigGroup;
 
 namespace BE {
 
-enum WallpaperMode { Heuristic = -1, Invalid = 0, Plain = 1, Tiled, ScaleV, ScaleH, Scale, Maximal, ScaleAndCrop };
+enum WallpaperMode { Heuristic = -1, Invalid = 0, Plain = 1, Tiled, ScaleV, ScaleH, Scale, Maximal, ScaleAndCrop, Composed };
 const int AllDesktops = -1;
 const int AskForDesktops = -2;
 
