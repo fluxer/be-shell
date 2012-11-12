@@ -901,7 +901,7 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     QImage tile;
 
     QString iFile = file;
-    if (mode == Composed || file.contains(':')) {
+    if (mode == Composed || (mode < 0 && file.contains(':'))) {
         mode = Composed;
         tile = QImage(file.section(':', 1, 1, QString::SectionSkipEmpty));
         if ( tile.isNull() )
@@ -1055,6 +1055,8 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
 
         // first check whether we already have this file loaded somewhere...
         bool canCopy = false;
+        if (!mode)
+            mode = myWallpaper.mode;
         if ( (canCopy = myWallpaper.fits(file, mode)) )
             wp = myWallpaper;
         else foreach (Wallpaper present, myWallpapers)
