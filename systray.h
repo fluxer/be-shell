@@ -49,6 +49,8 @@ protected:
 private:
     void themeChanged();
     void updateFallbacks();
+    friend bool x11EventFilter(void *message, long int *result);
+    void damageEvent(void *);
 private slots:
     void configureIcons();
     void init();

@@ -23,20 +23,13 @@
 
 #include <unistd.h>
 
-#define LABEL true
-#if LABEL
-#define ICON_BASE QLabel
-#include <QLabel>
-#else
-#define ICON_BASE QToolButton
-#include <QToolButton>
-#endif
-
 #include <QAction>
+#include <QCoreApplication>
 #include <QDesktopWidget>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QHeaderView>
+#include <QLabel>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
@@ -56,7 +49,10 @@
 
 #include <X11/Xlib.h>
 // #include <X11/extensions/XTest.h>
+#include <X11/extensions/Xdamage.h>
+#include <X11/extensions/Xcomposite.h>
 #include <X11/extensions/Xrender.h>
+#include <X11/extensions/shape.h>
 #define SYSTEM_TRAY_REQUEST_DOCK    0
 #define SYSTEM_TRAY_BEGIN_MESSAGE   1
 #define SYSTEM_TRAY_CANCEL_MESSAGE  2
@@ -71,7 +67,17 @@ namespace BE {
 
 class X11EmbedContainer : public QX11EmbedContainer {
 public:
-    X11EmbedContainer(QWidget *parent) : QX11EmbedContainer(parent), m_paintingBlocked(false) {}
+    enum Mode { Plain, Backgrounded, Redirected };
+    X11EmbedContainer(QWidget *parent) : QX11EmbedContainer(parent)
+    , m_paintingBlocked(false)
+    , m_picture(0)
+    , m_bufferX(0)
+    , m_mode(Plain)
+    , m_damage(0) {
+
+    }
+    const QPixmap &buffer() { return m_buffer; }
+    Mode mode() { return m_mode; }
     void embed(WId clientId)
     {
         Display *display = QX11Info::display();
@@ -94,6 +100,20 @@ public:
 
         create(winId);
 
+        // attempt to redirect the window
+        XRenderPictFormat *format = XRenderFindVisualFormat(display, attr.visual);
+        if (format && format->type == PictTypeDirect && format->direct.alphaMask)
+        {
+            // Redirect ARGB windows to offscreen storage so we can composite them ourselves
+            XRenderPictureAttributes attr;
+            attr.subwindow_mode = IncludeInferiors;
+
+            m_picture = XRenderCreatePicture(display, clientId, format, CPSubwindowMode, &attr);
+            XCompositeRedirectSubwindows(display, winId, CompositeRedirectManual);
+            m_damage = XDamageCreate(display, clientId, XDamageReportNonEmpty);
+            m_mode = Redirected;
+        }
+
         // repeat everything from QX11EmbedContainer's ctor that might be relevant
         setFocusPolicy(Qt::StrongFocus);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -111,13 +131,28 @@ public:
                     StructureNotifyMask |
                     SubstructureNotifyMask);
 
-//         XFlush(display);
-        XSync(display, False);
+        XFlush(display);
 
         embedClient(clientId);
     }
-    void updateBackground() {
-        if (m_paintingBlocked || !isVisible() || size().isEmpty())
+
+    ~X11EmbedContainer() {
+        XDamageDestroy(QX11Info::display(), m_damage);
+    }
+    void syncToRedirected() {
+        if (!m_picture)
+            return;
+
+        if (!m_bufferX) {
+            m_bufferX = XCreatePixmap(QX11Info::display(), QX11Info::appRootWindow(), width(), height(), 32);
+            m_buffer = QPixmap::fromX11Pixmap(m_bufferX, QPixmap::ExplicitlyShared);
+        }
+        m_buffer.fill(Qt::transparent);
+        XRenderComposite(QX11Info::display(), PictOpSrc, m_picture, None, m_buffer.x11PictureHandle(),
+                                                                    0, 0, 0, 0, 0, 0, width(), height());
+    }
+    void updateClientBackground() {
+        if (m_picture || m_paintingBlocked || !isVisible() || size().isEmpty())
             return;
 
         m_paintingBlocked = true;
@@ -131,13 +166,14 @@ public:
 
         XWindowAttributes attr;
         if (XGetWindowAttributes(QX11Info::display(), clientWinId(), &attr)) {
-            Pixmap xPix = XCreatePixmap(QX11Info::display(), QX11Info::appRootWindow(), width(), height(), attr.depth);
-            QPixmap qPix = QPixmap::fromX11Pixmap(xPix, QPixmap::ExplicitlyShared);
+            m_mode = Backgrounded;
+            Pixmap bufferX = XCreatePixmap(QX11Info::display(), QX11Info::appRootWindow(), width(), height(), attr.depth);
+            QPixmap buffer = QPixmap::fromX11Pixmap(bufferX, QPixmap::ExplicitlyShared);
             for (int i = stack.count()-1; i > -1; --i)
-                stack.at(i)->render(&qPix, QPoint(), rect().translated(mapTo(stack.at(i), QPoint(0,0))), i == stack.count()-1 ? DrawWindowBackground : RenderFlag(0));
-            XSetWindowBackgroundPixmap(QX11Info::display(), clientWinId(), xPix);
+                stack.at(i)->render(&m_buffer, QPoint(), rect().translated(mapTo(stack.at(i), QPoint(0,0))), i == stack.count()-1 ? DrawWindowBackground : RenderFlag(0));
+            XSetWindowBackgroundPixmap(QX11Info::display(), clientWinId(), bufferX);
+            XFreePixmap(QX11Info::display(), bufferX);
             XClearArea(QX11Info::display(), clientWinId(), 0, 0, 0, 0, True);
-            XFreePixmap(QX11Info::display(), xPix);
         }
 
         m_paintingBlocked = false;
@@ -145,63 +181,87 @@ public:
 protected:
     void moveEvent(QMoveEvent *me) {
         QX11EmbedContainer::moveEvent(me);
-        updateBackground();
+        updateClientBackground();
     }
     void paintEvent(QPaintEvent *pe) {
-        if (!m_paintingBlocked)
-            QX11EmbedContainer::paintEvent(pe);
+        if (!m_paintingBlocked) {
+            QWidget::paintEvent(pe);
+//             if (!m_buffer.isNull()) {
+//                 QPainter p(this);
+//                 p.drawPixmap(0, 0, m_buffer);
+//                 p.end();
+//             }
+        }
     }
     void resizeEvent(QResizeEvent *re) {
         QX11EmbedContainer::resizeEvent(re);
-        updateBackground();
+        if (m_bufferX)
+            XFreePixmap(QX11Info::display(), m_bufferX);
+        m_bufferX = 0;
+        m_buffer = QPixmap();
+        updateClientBackground();
     }
     void showEvent(QShowEvent *se) {
         QX11EmbedContainer::showEvent(se);
-        updateBackground();
+        updateClientBackground();
     }
 private:
     bool m_paintingBlocked;
+    Picture m_picture;
+    QPixmap m_buffer;
+    Pixmap m_bufferX;
+    Mode m_mode;
+    Damage m_damage;
 };
 
-class SysTrayIcon : public ICON_BASE
+class SysTrayIcon : public QWidget
 {
 public:
-    SysTrayIcon(WId id, SysTray *parent) : ICON_BASE(parent), nasty(false), fallback(false)
+    enum Feature { Custom = 1<<0, InputShape = 1<<1, Curtain = 1<<2 };
+    SysTrayIcon(WId id, SysTray *parent) : QWidget(parent), nasty(false), fallback(false)
     {
         setContentsMargins(0, 0, 0, 0);
-#if LABEL
-        setScaledContents(true);
-#endif
         setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         setMinimumSize(16,16);
         setFocusPolicy(Qt::ClickFocus);
-        
+
         iName = KWindowInfo(id, NET::WMName).name();
+
+        curtain = new QLabel( this );
+        curtain->setScaledContents(true);
+        curtain->setAttribute(Qt::WA_TranslucentBackground, false);
+        curtain->setAttribute(Qt::WA_DontCreateNativeAncestors, true);
+        curtain->setAttribute(Qt::WA_NativeWindow, true);
+        curtain->setAttribute(Qt::WA_NoSystemBackground, true);
+        curtain->setAttribute(Qt::WA_TransparentForMouseEvents);
+        XShapeCombineRectangles(QX11Info::display(), curtain->winId(), ShapeInput, 0, 0, NULL, 0, ShapeSet, Unsorted);
+        XReparentWindow(QX11Info::display(), curtain->winId(), winId(), 0, 0);
+        curtain->installEventFilter(this);
 
         bed = new X11EmbedContainer( this );
         bed->setAttribute(Qt::WA_TranslucentBackground, false);
-        bed->setAttribute(Qt::WA_DontCreateNativeAncestors, false);
+        bed->setAttribute(Qt::WA_DontCreateNativeAncestors, true);
         bed->setAttribute(Qt::WA_NativeWindow, true);
+        bed->setAttribute(Qt::WA_NoSystemBackground, true);
 
         hide();
         connect(bed, SIGNAL(clientIsEmbedded()), parent, SLOT(requestShowIcon()));
         connect(bed, SIGNAL(clientClosed()), this, SLOT(deleteLater())); // this? leeds to problems with e.g. KMail
         bed->embed(id);
-        bed->setParent(this);
-        bed->setFixedSize(0,0);
-//         bed->setUpdatesEnabled(false);
-        setFocusProxy(bed);
+        bed->setFixedSize(size());
+        curtain->setFixedSize(size());
+        curtain->setVisible(fallback || bed->mode() == X11EmbedContainer::Redirected);
+        XRaiseWindow(QX11Info::display(), curtain->winId());
 
-//         XResizeWindow(QX11Info::display(), cId(), width(), height() );
-//         XMapRaised(QX11Info::display(), cId());
+        setFocusProxy(bed);
 
         wmPix = KWindowSystem::icon(id, 128, 128, false );
         updateIcon();
     }
-//     ~SysTrayIcon() {
-//         if (mouseGrabber() == this)
-//             releaseMouse();
-//     }
+
+    void fixStack() {
+        XRaiseWindow(QX11Info::display(), curtain->winId());
+    }
     inline WId cId() { return bed->clientWinId(); }
     inline bool isOutdated() { return !bed->clientWinId(); }
     const QString &name() { return iName; }
@@ -210,83 +270,40 @@ public:
         if (fallback == on)
             return;
         fallback = on;
-        if (fallback) {
-            bed->setFixedSize(size());
-        } else {
-            bed->setFixedSize(0,0);
-        }
+        curtain->setVisible(!fallback || bed->mode() == X11EmbedContainer::Redirected);
+        fixStack();
+        curtain->update();  // switch between icon and redirection buffer
     }
     inline static void setSize(int s) { ourSize = s; };
+    void syncToRedirected() { if (!bed) return; bed->syncToRedirected(); curtain->repaint(); }
     void updateIcon()
     {
         QIcon icn = BE::Plugged::themeIcon(iName, false);
-#if LABEL
-        setPixmap(icn.isNull() ? wmPix : icn.pixmap(128));
-#else
-        setIcon(icn.isNull() ? wmPix : icn);
-#endif
+        curtain->setPixmap(icn.isNull() ? wmPix : icn.pixmap(128));
     }
     bool nasty, fallback;
 protected:
-    void enterEvent( QEvent *ev )
+
+    bool eventFilter(QObject *o, QEvent *e)
     {
-        ICON_BASE::enterEvent( ev );
-        XCrossingEvent e; xCrossEvent(&e); e.type = EnterNotify;
-        sendXEvent(EnterWindowMask, (XEvent*)&e);
-    }
-//     bool eventFilter(QObject *o, QEvent *e)
-//     {
-//         if (o == bed && e->type() == QEvent::FocusOut)
-//         {
-//             qWarning("bed lost focus");
-//             XTestFakeKeyEvent(QX11Info::display(), XK_Escape, true, 0);
-//             XTestFakeKeyEvent(QX11Info::display(), XK_Escape, false, CurrentTime);
-//         }
-//         return false;
-//     }
-    void leaveEvent( QEvent *ev )
-    {
-        ICON_BASE::leaveEvent( ev );
-        XCrossingEvent e; xCrossEvent(&e);
-        e.type = LeaveNotify;
-        sendXEvent(LeaveWindowMask, &e);
-    }
-    void mousePressEvent( QMouseEvent *me)
-    {
-        // NOTICE: this does not work because oc. the popup still needs the mouse.
-//         if (mouseGrabber() == this)
-//             releaseMouse();
-//         else if (me->button() == Qt::RightButton) // let's assume this toggles a popup
-//             grabMouse();
-        me->accept();
-#if ! LABEL
-        ICON_BASE::mousePressEvent( me );
-#endif
-        XButtonEvent e;
-        xButtonEvent( &e, xButton(me->button()), me->globalPos() );
-        e.type = ButtonPress;
-        sendXEvent(ButtonPressMask, &e);
-    }
-    void mouseReleaseEvent( QMouseEvent *me)
-    {
-        bed->setFocus(Qt::MouseFocusReason);
-        me->accept();
-#if ! LABEL
-        ICON_BASE::mouseReleaseEvent( me );
-#endif
-        XButtonEvent e; xButtonEvent( &e, xButton(me->button()), me->globalPos() ); e.type = ButtonRelease;
-        sendXEvent(ButtonReleaseMask, &e);
+        if (e->type() == QEvent::Paint && o == curtain && fallback && !bed->buffer().isNull()) {
+            QPainter p(curtain);
+            p.drawPixmap(0, 0, bed->buffer());
+            p.end();
+            return true;
+        }
+        return false;
     }
 
     void resizeEvent( QResizeEvent *re )
     {
         if ( width() == height() )
         {
-            ICON_BASE::resizeEvent(re);
+            QWidget::resizeEvent(re);
 //             XResizeWindow(QX11Info::display(), cId(), width(), height() );
 //             XMapRaised(QX11Info::display(), cId());
-            if (fallback)
-                bed->setFixedSize(size());
+            bed->setFixedSize(size());
+            curtain->setFixedSize(size());
         }
         else if (width() > height())
             setMaximumWidth(height());
@@ -294,85 +311,27 @@ protected:
             setMaximumHeight(width());
     }
 
-    void wheelEvent ( QWheelEvent *we )
-    {
-        we->accept();
-        bool h = we->orientation() == Qt::Horizontal;
-        XButtonEvent e; xButtonEvent( &e, (we->delta() > 0 ? 4 : 5) + h, we->globalPos() );
-        e.type = ButtonPress;
-        XSendEvent(QX11Info::display(), cId(), True, ButtonPressMask, (XEvent*)&e);
-        usleep(1000);
-        e.type = ButtonRelease;
-        sendXEvent(ButtonReleaseMask, &e);
-    }
-private:
-    void sendXEvent( int mask, void *ev)
-    {
-        XSendEvent(QX11Info::display(), cId(), True, mask, (XEvent*)ev);
-        XSync(QX11Info::display(), True);
-    }
-    int xButton (Qt::MouseButton btn)
-    {
-        switch (btn)
-        {
-            default:
-            case Qt::NoButton: return AnyButton;
-            case Qt::LeftButton: return Button1;
-            case Qt::RightButton: return Button3;
-            case Qt::MidButton: return Button2;
-            case Qt::XButton1: return Button4;
-            case Qt::XButton2: return Button5;
-        }
-    }
-    void xButtonEvent( XButtonEvent *xe, int button, const QPoint &gPos  )
-    {
-        xe->button = button;
-        xe->display = QX11Info::display();
-        xe->state = 0;
-        xe->window = cId();
-//         xe->serial = 0;
-//         xe->xkey.state;
-        xe->send_event = True;
-        xe->same_screen = True;
-        xe->root = QX11Info::appRootWindow();
-        xe->subwindow = None;
-        xe->time = QX11Info::appTime();
-        xe->x_root = gPos.x();
-        xe->y_root = gPos.y();
-        xe->x = 1;
-        xe->y = 1;
-    }
-    void xCrossEvent( XCrossingEvent *xe )
-    {
-        xe->display = QX11Info::display();
-        xe->window = cId();
-        xe->root = QX11Info::appRootWindow();
-        xe->subwindow = None;
-        xe->time = QX11Info::appTime();
-        xe->x = 1;
-        xe->y = 1;
-        QPoint pt = mapToGlobal(QPoint(1,1));
-        xe->x_root = pt.x();
-        xe->y_root = pt.y();
-        xe->mode = NotifyNormal;
-        xe->detail = NotifyNonlinear;
-        xe->same_screen = True;
-        xe->focus = True;
-        xe->state = 0;
-        xe->send_event = True;
-    }
 protected:
     static int ourSize;
     QString iName;
     X11EmbedContainer *bed;
     QPixmap wmPix;
-    bool iGrabTheMouse;
+    QLabel *curtain;
 };
 
 }
 
+static int damageEventBase = 0;
+static QCoreApplication::EventFilter formerX11EventFilter = 0;
+static BE::SysTray *s_instance = 0;
+
 BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent), nastyOnesAreVisible(false)
 {
+    if (s_instance) {
+        deleteLater();
+        return;
+    }
+    s_instance = this;
     setObjectName("SystemTray");
     myConfigMenu = configMenu()->addMenu("SystemTray");
     QAction *act = myConfigMenu->addAction( "Show nasty ones" );
@@ -386,10 +345,30 @@ BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent), nas
     l->setContentsMargins(3, 1, 3, 1);
     l->setSpacing(2);
     QTimer::singleShot(0, this, SLOT(init()));
+    int errorBase;
+    XDamageQueryExtension(QX11Info::display(), &damageEventBase, &errorBase);
 }
 
 BE::SysTray::~SysTray() {
+    if (s_instance == this) {
+        s_instance = 0;
+    }
     delete myConfigMenu;
+    if (formerX11EventFilter)
+        QCoreApplication::instance()->setEventFilter(formerX11EventFilter);
+}
+
+namespace BE {
+
+bool x11EventFilter(void *message, long int *result) {
+    Q_ASSERT(s_instance);
+    XEvent *event = reinterpret_cast<XEvent*>(message);
+    if (event->xany.type == damageEventBase + XDamageNotify) {
+        s_instance->damageEvent(message);
+    }
+    return formerX11EventFilter ? formerX11EventFilter(message, result) : false;
+}
+
 }
 
 void
@@ -405,6 +384,9 @@ BE::SysTray::init()
     net_manager_atom = XInternAtom(dpy, "MANAGER", False);
     net_message_data_atom = XInternAtom(dpy, "_NET_SYSTEM_TRAY_MESSAGE_DATA", False);
     net_tray_visual_atom = XInternAtom(dpy, "_NET_SYSTEM_TRAY_VISUAL", False);
+
+//     formerX11EventFilter = QCoreApplication::instance()->setEventFilter(((QCoreApplication::EventFilter)&BE::SysTray::x11EventFilter));
+    formerX11EventFilter = QCoreApplication::instance()->setEventFilter(x11EventFilter);
 
     XSetSelectionOwner(dpy, net_selection_atom, winId(), CurrentTime);
 
@@ -435,7 +417,7 @@ BE::SysTray::init()
         }
         XFree(xvi);
     }
-    XChangeProperty(dpy, desktop, net_tray_visual_atom, XA_VISUALID, 32, PropModeReplace, (const uchar*)&visual, 1);
+    XChangeProperty(dpy, winId(), net_tray_visual_atom, XA_VISUALID, 32, PropModeReplace, (const uchar*)&visual, 1);
     
     XClientMessageEvent xev;
 
@@ -485,6 +467,8 @@ BE::SysTray::requestShowIcon()
         icon->deleteLater();
         return;
     }
+
+    icon->fixStack();
     icon->nasty = nastyOnes.contains(icon->name());
     if (nastyOnesAreVisible || !icon->nasty) {
         icon->show();
@@ -718,3 +702,24 @@ bool BE::SysTray::x11Event(XEvent *event)
     return false;
 }
 
+void BE::SysTray::damageEvent(void *event)
+{
+    XDamageNotifyEvent *de = static_cast<XDamageNotifyEvent*>(event);
+    QList< QPointer<SysTrayIcon> >::iterator i = myIcons.begin();
+    while (i != myIcons.end())
+    {
+        BE::SysTrayIcon *icon = *i;
+        if (!icon)
+        {
+            i = myIcons.erase(i);
+            continue;
+        }
+        else if (de->drawable == icon->cId()) {
+            XserverRegion region = XFixesCreateRegion(de->display, 0, 0);
+            XDamageSubtract(de->display, de->damage, None, region);
+            XFixesDestroyRegion(de->display, region);
+            icon->syncToRedirected();
+        }
+        ++i;
+    }
+}
