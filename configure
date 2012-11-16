@@ -1,5 +1,5 @@
 #!/bin/sh
-rm -rfd build
+rm -rf build
 mkdir build
 cd build
 echo "Configuring... please wait"
