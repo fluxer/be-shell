@@ -48,7 +48,7 @@ protected:
     bool x11Event(XEvent *event);
 private:
     void themeChanged();
-    void updateFallbacks();
+    void updateUnthemed();
     friend bool x11EventFilter(void *message, long int *result);
     void damageEvent(void *);
 private slots:
@@ -62,7 +62,7 @@ private:
     QMenu *myConfigMenu;
     QTimer *healthTimer;
     QList< QPointer<SysTrayIcon> > myIcons;
-    QStringList nastyOnes, fallbackOnes;
+    QStringList nastyOnes, unthemedOnes;
     bool nastyOnesAreVisible;
 };
 }

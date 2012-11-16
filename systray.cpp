@@ -44,6 +44,7 @@
 
 #include <KDE/KApplication>
 #include <KDE/KConfigGroup>
+#include <KDE/KLocale>
 #include <kwindowsystem.h>
 #include <netwm.h>
 
@@ -446,10 +447,10 @@ BE::SysTray::configure( KConfigGroup *grp )
     nastyOnes = grp->readEntry("NastyIcons", QStringList());
     if (nastyOnes != oldOnes)
         toggleNastyOnes(nastyOnesAreVisible);
-    oldOnes = fallbackOnes;
-    fallbackOnes = grp->readEntry("FallbackIcons", QStringList());
-    if (fallbackOnes != oldOnes)
-        updateFallbacks();
+    oldOnes = unthemedOnes;
+    unthemedOnes = grp->readEntry("FallbackIcons", QStringList());
+    if (unthemedOnes != oldOnes)
+        updateUnthemed();
 }
 
 void
@@ -473,7 +474,7 @@ BE::SysTray::requestShowIcon()
     if (nastyOnesAreVisible || !icon->nasty) {
         icon->show();
     }
-    icon->setFallBack(fallbackOnes.contains(icon->name()));
+    icon->setFallBack(unthemedOnes.contains(icon->name()));
 }
 
 void
@@ -561,7 +562,7 @@ BE::SysTray::configureIcons()
         ++it;
     }
 
-    foreach (QString s, fallbackOnes)
+    foreach (QString s, unthemedOnes)
         icons[s] |= 1;
 
     foreach (QString s, nastyOnes)
@@ -569,7 +570,7 @@ BE::SysTray::configureIcons()
 
     for (QMap<QString, int>::const_iterator it = icons.constBegin(), end = icons.constEnd(); it != end; ++it)
     {
-        QTreeWidgetItem *item = new QTreeWidgetItem( QStringList() << it.key() << "Hidden" << "Fallback");
+        QTreeWidgetItem *item = new QTreeWidgetItem( QStringList() << it.key() << i18n("Nasty") << i18n("Unthemed"));
         item->setCheckState(2, it.value() & 1 ? Qt::Checked : Qt::Unchecked );
         item->setCheckState(1, it.value() & 2 ? Qt::Checked : Qt::Unchecked );
         item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
@@ -591,7 +592,7 @@ BE::SysTray::configureIcons()
     if (d->result() == QDialog::Accepted)
     {
         nastyOnes.clear();
-        fallbackOnes.clear();
+        unthemedOnes.clear();
         const int n = tree->topLevelItemCount();
         for (int i = 0; i < n; ++i)
         {
@@ -599,10 +600,10 @@ BE::SysTray::configureIcons()
             if (item->checkState(1) == Qt::Checked)
                 nastyOnes << item->text(0);
             if (item->checkState(2) == Qt::Checked)
-                fallbackOnes << item->text(0);
+                unthemedOnes << item->text(0);
         }
         toggleNastyOnes(nastyOnesAreVisible);
-        updateFallbacks();
+        updateUnthemed();
         Plugged::saveSettings();
     }
     delete d;
@@ -624,7 +625,7 @@ void
 BE::SysTray::saveSettings( KConfigGroup *grp )
 {
     grp->writeEntry( "NastyIcons", nastyOnes);
-    grp->writeEntry( "FallbackIcons", fallbackOnes);
+    grp->writeEntry( "FallbackIcons", unthemedOnes);
 }
 
 
@@ -645,7 +646,7 @@ BE::SysTray::toggleNastyOnes(bool on)
 }
 
 void
-BE::SysTray::updateFallbacks()
+BE::SysTray::updateUnthemed()
 {
     QList< QPointer<SysTrayIcon> >::iterator i = myIcons.begin();
     while (i != myIcons.end())
@@ -653,7 +654,7 @@ BE::SysTray::updateFallbacks()
         BE::SysTrayIcon *icon = *i;
         if (!icon) { i = myIcons.erase(i); continue; }
         
-        icon->setFallBack(fallbackOnes.contains(icon->name()));
+        icon->setFallBack(unthemedOnes.contains(icon->name()));
         ++i;
     }
 }
