@@ -38,7 +38,6 @@ class Device : public QToolButton
     Q_OBJECT
 public:
     enum DefaultAction { Mount = 0, Open, UMount, Eject };
-    enum Type { iPod = 0, VideoDisc, AudioDisc, WritableDisc, Camera, NumTypes };
     Device( QWidget *parent, const Solid::Device &dev, Solid::StorageDrive *drv = 0);
     void setEmpty();
     void setMounted( bool mounted, const QString &path = QString() );
@@ -47,6 +46,7 @@ public:
     inline const Solid::StorageDrive *drive() { return myDrv; }
     inline const QString &udi() { return myUdi; }
     inline const QString &iconString() { return myIcon; }
+    static void updateSolidActions();
 
 public slots:
     void setVolume(bool, const QString &udi);
@@ -55,22 +55,21 @@ protected:
     void resizeEvent(QResizeEvent *re);
 
 private slots:
+    void lostActions();
     void mount();
     void open(); void finishOpen(Solid::ErrorType error);
-    void runCommand();
+    void runAction();
     void toggleEject(); void ejected(Solid::ErrorType error);
     void umount();
     void setCheckState();
 private:
     void extendMenu( const QMap<QString, QString> &map, QAction **defAction );
 private:
+    static QList<QAction*> ourSolidActions;
     QPointer<Solid::StorageDrive> myDrv;
     QString myUdi, myDriveUdi, myProduct, myLabel, myPath, myIcon;
     bool ejectable;
     qulonglong myCapacity;
-private:
-    friend class MediaTray;
-    static QMap<QString,QString> ourTypeMap[NumTypes];
 };
 
 // stuff like KHBox is evil... ok: inflexible (if we ever wanted this vertical...)
@@ -82,11 +81,18 @@ public:
     void configure( KConfigGroup *grp );
     void saveSettings( KConfigGroup *grp );
     void themeChanged();
+    static QString ejectCommand() { return ourEjectCommand; };
+protected:
+    void mousePressEvent(QMouseEvent *ev);
 private slots:
     void addDevice( const Solid::Device &device );
     void addDevice( const QString &udi );
     void removeDevice( const QString &udi );
-    void collectDevices( );
+    void collectDevices();
+    void updateSolidActions();
+private:
+    static bool ourSolidActionsAreDirty;
+    static QString ourEjectCommand;
 };
 
 }

@@ -25,6 +25,7 @@
 
 #include <KDE/KAction>
 #include <KDE/KConfigGroup>
+#include <KDE/KDesktopFile>
 #include <KDE/KLocale>
 #include <KDE/KRun>
 #include <KDE/KStandardDirs>
@@ -37,6 +38,7 @@
 #include <solid/deviceinterface.h>
 #include <solid/opticaldisc.h>
 #include <solid/opticaldrive.h>
+#include <solid/predicate.h>
 #include <solid/storageaccess.h>
 #include <solid/storagevolume.h>
 
@@ -46,6 +48,7 @@
 #include <QDialog>
 #include <QIcon>
 #include <QMenu>
+#include <QMouseEvent>
 #include <QProcess>
 #include <QTime>
 #include <QToolButton>
@@ -53,7 +56,11 @@
 #include <kdebug.h>
 
 static QTime ejectMonitor;
-QMap<QString, QString> BE::Device::ourTypeMap[BE::Device::NumTypes];
+QList<QAction*> BE::Device::ourSolidActions;
+bool BE::MediaTray::ourSolidActionsAreDirty = true;
+QString BE::MediaTray::ourEjectCommand("eject");
+
+Q_DECLARE_METATYPE(Solid::Predicate)
 
 static QString sizeString(qulonglong n)
 {
@@ -89,11 +96,15 @@ static Solid::StorageDrive *drive4(const Solid::Device &device)
 BE::Device::Device( QWidget *parent, const Solid::Device &dev, Solid::StorageDrive *drv) :
 QToolButton(parent)
 {
-    if (!dev.isValid())
-    {
+    if (!dev.isValid()) {
         deleteLater();
         return;
     }
+
+    if (ourSolidActions.isEmpty()) // TODO: thread?
+        updateSolidActions();
+    foreach (QAction *act, ourSolidActions)
+        connect(act, SIGNAL(triggered()), SLOT(runAction()) );
 
 //         setPopupMode( QToolButton::MenuButtonPopup );
     setMinimumSize(16,16);
@@ -103,7 +114,7 @@ QToolButton(parent)
     ejectable = dev.as<Solid::OpticalDrive>();
 
     if (const Solid::StorageAccess *acc = dev.as<Solid::StorageAccess>())
-        connect( acc, SIGNAL(accessibilityChanged(bool, const QString&)), this, SLOT(setVolume(bool, const QString&)) );
+        connect(acc, SIGNAL(accessibilityChanged(bool,const QString&)), SLOT(setVolume(bool,const QString&)));
 
     if (dev.as<Solid::StorageVolume>())
         setVolume(false, dev.udi());
@@ -119,7 +130,13 @@ QToolButton(parent)
 }
 
 void
-BE::Device::resizeEvent(QResizeEvent *re)
+BE::Device::lostActions()
+{
+    setVolume(false, myUdi);
+}
+
+void
+BE::Device::resizeEvent(QResizeEvent *)
 {
     const int s = qMin(contentsRect().width(), contentsRect().height()) - 1;
     setIconSize(QSize(s,s));
@@ -135,24 +152,6 @@ BE::Device::setEmpty()
     setIcon( BE::Plugged::themeIcon(myIcon) );
     delete menu(); setMenu( 0L );
     connect(this, SIGNAL( clicked(bool) ), this, SLOT(toggleEject()) );
-}
-
-void
-BE::Device::extendMenu( const QMap<QString, QString> &map, QAction **defAction )
-{
-    QMap<QString, QString>::const_iterator i = map.constBegin();
-    while (i != map.constEnd())
-    {
-        if (*defAction)
-            menu()->addAction( i.key(), this, SLOT(runCommand()) )->setData(i.value());
-        else
-        {
-            *defAction = menu()->addAction( i.key(), this, SLOT(runCommand()) );
-            (*defAction)->setData(i.value());
-        }
-        ++i;
-    }
-    menu()->addSeparator();
 }
 
 void
@@ -173,6 +172,7 @@ BE::Device::setVolume(bool, const QString &udi)
     myCapacity = vol->size();
     myIcon = dev.icon();
     setIcon( BE::Plugged::themeIcon(myIcon) );
+
     if (!menu())
     {
         QMenu *menu = new QMenu("Actions", this);
@@ -181,55 +181,60 @@ BE::Device::setVolume(bool, const QString &udi)
     else
         menu()->clear();
 
-    QAction *defAction = 0;
+    foreach (QAction *action, ourSolidActions) {
+        if (action->data().value<Solid::Predicate>().matches(dev))
+            menu()->addAction(action);
+    }
+    if (!ourSolidActions.isEmpty())
+        connect (ourSolidActions.last(), SIGNAL(destroyed()), SLOT(lostActions()), Qt::QueuedConnection);
+    else
+        qWarning("MediaTray has empty global action list. This is a BUG!");
+
     const Solid::StorageAccess *acc = dev.as<Solid::StorageAccess>();
-    if (const Solid::OpticalDisc *disc = dev.as<Solid::OpticalDisc>())
-    {   // maybe cdda, dvd, vcd, blank,...
-        if (disc->isAppendable() || disc->isBlank() || disc->isRewritable())
-            extendMenu(ourTypeMap[WritableDisc], &defAction);
-        if (disc->isBlank())
-        {
-            menu()->addAction( "Eject", this, SLOT(toggleEject()) );
-            setToolTip("Blank Disc");
-            if (defAction)
-                connect(this, SIGNAL( clicked(bool) ), defAction, SIGNAL(triggered()) );
+    if (const Solid::OpticalDisc *disc = dev.as<Solid::OpticalDisc>()) {
+        if (disc->isBlank()) {
+            setToolTip(i18n("Blank Disc"));
             return;
         }
-
-        if (disc->availableContent() & Solid::OpticalDisc::Audio)
-            extendMenu(ourTypeMap[AudioDisc], &defAction);
-
-        if (disc->availableContent() & (Solid::OpticalDisc::VideoCd|Solid::OpticalDisc::SuperVideoCd|Solid::OpticalDisc::VideoDvd))
-            extendMenu(ourTypeMap[VideoDisc], &defAction);
-
-        if (defAction)
-            connect(this, SIGNAL( clicked(bool) ), defAction, SIGNAL(triggered()) );
-
-        if (acc && disc->availableContent() & Solid::OpticalDisc::Data)
-            setMounted(acc->isAccessible(), acc->filePath());
+        if (!(disc->availableContent() & Solid::OpticalDisc::Data))
+            acc = 0;
     }
-    else if (acc)
+
+    if (acc)
         setMounted(acc->isAccessible(), acc->filePath());
     else
         setEmpty();
 
-    if (!defAction)
-        connect(this, SIGNAL( clicked(bool) ), this, SLOT(open()) );
-
+    connect(this, SIGNAL( clicked(bool) ), this, SLOT(open()) );
     connect(this, SIGNAL( clicked(bool) ), this, SLOT(setCheckState()) );
 }
 
 void
-BE::Device::runCommand()
+BE::Device::runAction()
 {
     QAction *act = qobject_cast<QAction*>(sender());
     if (!act)
         return;
-
-    QString exec = act->data().toString().trimmed();
+    QString exec = act->toolTip().trimmed();
+    if (exec.contains("%f")) { // want's path. first ensure it's mounted'
+        if (Solid::StorageAccess *vol = Solid::Device(myUdi).as<Solid::StorageAccess>()) {
+            if (!vol->isAccessible()) {
+                qDebug() << "need to setup" << myUdi << "for" << exec;
+                connect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()));
+                vol->setup(); // the command likes the device to be mounted
+                return;
+            } else { // tidy up
+                qDebug() << "disconnecting" << myUdi << "for" << exec;
+                disconnect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()));
+            }
+            exec.replace("%f", vol->filePath());
+        }
+    }
+    exec.replace("%i", myUdi);
     if (Solid::Block *block = Solid::Device(myUdi).as<Solid::Block>())
-        exec.replace("%@", block->device());
+        exec.replace("%@", block->device()).replace("%d", block->device());
 
+    qDebug() << "running" << myUdi << "for" << exec;
     BE::Shell::run(exec);
 }
 
@@ -263,14 +268,14 @@ BE::Device::setMounted( bool mounted, const QString &path )
 
     if (mounted)
     {
-        menu()->addAction( "Open", this, SLOT(open()) );
+//         menu()->addAction( "Open", this, SLOT(open()) );
         menu()->addSeparator();
         menu()->addAction( "Release", this, SLOT(umount()) );
         diskname += QString("\n(mounted as %1)").arg(path);
     }
     else
     {
-        menu()->addAction( "Open", this, SLOT(open()) );
+//         menu()->addAction( "Open", this, SLOT(open()) );
         menu()->addAction( "Mount", this, SLOT(mount()) );
         menu()->addSeparator();
     }
@@ -300,12 +305,16 @@ BE::Device::toggleEject()
         return;
     }
 
-    QString path = KStandardDirs::findExe( "kdeeject" );
+    QString path = KStandardDirs::findExe( MediaTray::ejectCommand() );
 
     if( path.isEmpty())
         return;
 
-    QProcess::startDetached( path, QStringList() << "-T" << myDriveUdi.section('/', -1) );
+    QStringList args;
+    if (!vol)
+        args << "-T";
+    args << myDriveUdi.section('/', -1);
+    QProcess::startDetached( path, args );
 
 //     Solid::OpticalDrive *odrv = Solid::Device(myDriveUdi).as<Solid::OpticalDrive>();
 //     if (odrv)
@@ -372,6 +381,40 @@ BE::Device::finishOpen(Solid::ErrorType error)
     }
 }
 
+void
+BE::Device::updateSolidActions()
+{
+    static QElapsedTimer t;
+    if (t.isValid() && t.elapsed() < 5000)
+        return; // we don't read this over and over again... nothing changed in that 5 secs
+
+    qDeleteAll(ourSolidActions);
+    ourSolidActions.clear();
+
+    QStringList serviceFiles = KGlobal::dirs()->findAllResources("data", "solid/actions/");
+    foreach (const QString &serviceFile, serviceFiles) {
+        KDesktopFile service(serviceFile);
+        QStringList actions = service.desktopGroup().readEntry("Actions", QString()).split(';', QString::SkipEmptyParts);
+        if (actions.isEmpty())
+            continue;
+        Solid::Predicate predicate = Solid::Predicate::fromString(service.desktopGroup().readEntry("X-KDE-Solid-Predicate"));
+        foreach (const QString &action, actions) {
+            const KConfigGroup group(&service, "Desktop Action " + action.trimmed());
+            QAction *act = new QAction(BE::Plugged::themeIcon(group.readEntry("Icon")), group.readEntry("Name"), 0);
+            act->setToolTip(group.readEntry("Exec"));
+            act->setData(QVariant::fromValue(predicate));
+            ourSolidActions << act;
+        }
+    }
+    // add a dummy, tagging for sure that this list has been set
+    QAction *act = new QAction("", 0);
+    act->setData(QVariant::fromValue(Solid::Predicate()));
+    ourSolidActions << act;
+    t.start();
+}
+
+// =======================================================================
+
 // class ActionDialog : public QDialog
 // {
 // public:
@@ -393,7 +436,18 @@ BE::MediaTray::MediaTray( QWidget *parent ) : QFrame(parent), BE::Plugged(parent
     QMetaObject::invokeMethod(this, "collectDevices", Qt::QueuedConnection);
 }
 
-const char *types[BE::Device::NumTypes] = { "iPod", "VidoDisc", "AudioDisc", "WritableDisc", "Camera" };
+
+void
+BE::MediaTray::mousePressEvent(QMouseEvent *ev)
+{
+    if( ev->button() == Qt::RightButton )
+    {
+        BE::Shell::run("kcmshell4 solid-actions");
+        ev->accept();
+    }
+    else
+        QFrame::mousePressEvent(ev);
+}
 
 void
 BE::MediaTray::addDevice( const Solid::Device &dev )
@@ -433,20 +487,9 @@ BE::MediaTray::collectDevices()
 void
 BE::MediaTray::configure(KConfigGroup *grp)
 {
-    for (int i = 0; i < BE::Device::NumTypes; ++i )
-    {
-        QStringList oldActions = BE::Device::ourTypeMap[i].keys();
-        QStringList oldCommands = BE::Device::ourTypeMap[i].values();
-        QStringList actions = grp->readEntry(types[i] + QString("_actions"), QStringList());
-        QStringList commands = grp->readEntry(types[i] + QString("_commands"), QStringList());
-        if (oldActions != actions || oldCommands != commands)
-        {
-            BE::Device::ourTypeMap[i].clear();
-            int n = qMin(actions.count(), commands.count());
-            for (int j = 0; j < n; ++j)
-                BE::Device::ourTypeMap[i].insertMulti(actions.at(j), commands.at(j));
-        }
-    }
+    ourEjectCommand = grp->readEntry("Eject", "eject");
+    ourSolidActionsAreDirty = true;
+    QMetaObject::invokeMethod(this, "updateSolidActions", Qt::QueuedConnection);
 }
 
 void
@@ -467,7 +510,7 @@ BE::MediaTray::removeDevice( const QString &udi )
 }
 
 void
-BE::MediaTray::saveSettings( KConfigGroup *grp )
+BE::MediaTray::saveSettings(KConfigGroup *)
 {
 }
 
@@ -479,3 +522,11 @@ BE::MediaTray::themeChanged()
         device->setIcon( themeIcon(device->iconString()) );
 }
 
+void
+BE::MediaTray::updateSolidActions()
+{
+    if (ourSolidActionsAreDirty) {
+        BE::Device::updateSolidActions();
+        ourSolidActionsAreDirty = false;
+    }
+}
