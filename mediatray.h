@@ -58,7 +58,7 @@ private slots:
     void lostActions();
     void mount();
     void open(); void finishOpen(Solid::ErrorType error);
-    void runAction();
+    void run(QAction*);
     void toggleEject(); void ejected(Solid::ErrorType error);
     void umount();
     void setCheckState();

@@ -103,8 +103,6 @@ QToolButton(parent)
 
     if (ourSolidActions.isEmpty()) // TODO: thread?
         updateSolidActions();
-    foreach (QAction *act, ourSolidActions)
-        connect(act, SIGNAL(triggered()), SLOT(runAction()) );
 
 //         setPopupMode( QToolButton::MenuButtonPopup );
     setMinimumSize(16,16);
@@ -175,8 +173,9 @@ BE::Device::setVolume(bool, const QString &udi)
 
     if (!menu())
     {
-        QMenu *menu = new QMenu("Actions", this);
-        setMenu(menu);
+        QMenu *m = new QMenu("Actions", this);
+        setMenu(m);
+        connect (m, SIGNAL(triggered(QAction*)), SLOT(run(QAction*)));
     }
     else
         menu()->clear();
@@ -210,31 +209,31 @@ BE::Device::setVolume(bool, const QString &udi)
 }
 
 void
-BE::Device::runAction()
+BE::Device::run(QAction *act)
 {
-    QAction *act = qobject_cast<QAction*>(sender());
     if (!act)
         return;
     QString exec = act->toolTip().trimmed();
+    Solid::Device dev(myUdi);
+    if (!dev.isValid()) {
+        qDebug() << "action for invalid device" << this << myUdi << "this is a BUG!";
+    }
     if (exec.contains("%f")) { // want's path. first ensure it's mounted'
-        if (Solid::StorageAccess *vol = Solid::Device(myUdi).as<Solid::StorageAccess>()) {
+        if (Solid::StorageAccess *vol = dev.as<Solid::StorageAccess>()) {
             if (!vol->isAccessible()) {
-                qDebug() << "need to setup" << myUdi << "for" << exec;
                 connect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()));
                 vol->setup(); // the command likes the device to be mounted
                 return;
             } else { // tidy up
-                qDebug() << "disconnecting" << myUdi << "for" << exec;
                 disconnect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()));
             }
             exec.replace("%f", vol->filePath());
         }
     }
     exec.replace("%i", myUdi);
-    if (Solid::Block *block = Solid::Device(myUdi).as<Solid::Block>())
+    if (Solid::Block *block = dev.as<Solid::Block>())
         exec.replace("%@", block->device()).replace("%d", block->device());
 
-    qDebug() << "running" << myUdi << "for" << exec;
     BE::Shell::run(exec);
 }
 
