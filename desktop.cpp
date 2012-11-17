@@ -978,6 +978,7 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
                 p.end();
                 img = nImg;
             }
+            break;
         }
         case ScaleV:
             img = img.scaled( img.width(), sz.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
