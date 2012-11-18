@@ -183,13 +183,23 @@ BE::Label::readFiFo()
     const QString ns = QString::fromLocal8Bit(myFiFo->readAll());
     if (!ns.isEmpty())
     {
-        QString s = text() + ns;
+        QString s = text() + '\n' + ns;
         const QStringList l = s.split('\n');
         s.clear();
-        for (int i = qMax(0, l.count()-myLines); i < l.count() - 1; ++i)
-            s += l.at(i) + '\n';
-        s += l.at(l.count()-1);
-        // we want the last myLines of this appended to the existing text()and use the
+        int last = l.count(), lines = 0;
+        while (lines < myLines && last > -1) {
+            if (!l.at(--last).isEmpty())
+                ++lines;
+        }
+        while (lines > -1 && last < l.count()) {
+            if (!l.at(last).isEmpty()) {
+                --lines;
+                s += l.at(last);
+                if (lines)
+                    s+= '\n';
+            }
+            ++last;
+        }
         setText(s);
     }
 //     myFiFo->flush();
