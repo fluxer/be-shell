@@ -5,19 +5,20 @@ BE_WIFI_SELECT="${file%%:*}be.shell/scripts/wifi-select"
 file="${file%%:*}be.shell/netcfg.xml"
 CURRENT="`/usr/bin/netcfg current 2>/dev/null`"
 
-echo '<menu>' > "$file"
-    echo "<action label=\""Best"\" exec=\""$BE_NETCFG __best"\"/>" >> "$file"
+STREAM="<menu>\n"
+STREAM="${STREAM}<action label=\"Best\" exec=\"$BE_NETCFG __best\"/>\n"
 for network in `netcfg -l`; do
     if [ "$network" != "$CURRENT" ]; then
-        echo "<action label=\""$network"\" exec=\""$BE_NETCFG $network"\"/>" >> "$file"
+        STREAM="${STREAM}<action label=\"$network\" exec=\"$BE_NETCFG $network\"/>\n"
     fi
 done
-echo '<separator/>' >> "$file"
-echo "<action label=\"Scan Access Points\" exec=\"$BE_WIFI_SELECT\"/>" >> "$file"
+STREAM="${STREAM}<separator/>\n"
+STREAM="${STREAM}<action label=\"Scan Access Points\" exec=\"$BE_WIFI_SELECT\"/>\n"
 if [ ! -z "$CURRENT" ]; then
-    echo '<separator/>' >> "$file"
-    echo "<action label=\"Disconnect\" exec=\"sudo netcfg -a\"/>" >> "$file"
+    STREAM="${STREAM}<separator/>\n"
+    STREAM="${STREAM}<action label=\"Disconnect\" exec=\"sudo netcfg -a\"/>\n"
 fi
-echo '<separator/>' >> "$file"
-echo "<action label=\"Restart network\" exec=\"sudo /etc/rc.d/network restart\"/>" >> "$file"
-echo '</menu>' >> "$file"
+STREAM="${STREAM}<separator/>\n"
+STREAM="${STREAM}<action label=\"Restart network\" exec=\"sudo /etc/rc.d/network restart\"/>\n"
+STREAM="${STREAM}</menu>"
+echo -e "${STREAM}" > "$file"
