@@ -1,0 +1,48 @@
+CONDITION=( "Tornado" \
+"Tropensturm" \
+"Hurrikan" \
+"Schweres Gewitter" \
+"Gewitter" \
+"Schnee und Regen" \
+"Regen bis Schneeregen" \
+"Schneeregen bis Schnee" \
+"Leichter Graupel" \
+"Nieselregen" \
+"Graupel" \
+"Schauer" \
+"Schauer" \
+"Schneetreiben" \
+"Leichte Schneeschauer" \
+"Schneetreiben" \
+"Schneeregen" \
+"Hagel" \
+"Schneeregen" \
+"Staubig" \
+"Neblig" \
+"Dunst" \
+"Dunstig" \
+"Stürmisch" \
+"Windig" \
+"Kalt" \
+"Bewölkt" \
+"Überwiegend bewölkt" \
+"Überwiegend bewölkt" \
+"Teilweise bewölkt" \
+"Teilweise bewölkt" \
+"Klar" \
+"Sonnig" \
+"Heiter" \
+"Heiter" \
+"Hagel und Regen" \
+"Heiß" \
+"Vereinzelte Gewitter" \
+"Vereinzelte Gewitter" \
+"Vereinzelte Gewitter" \
+"Vereinzelte Schauer" \
+"Starker Schneefall" \
+"vereinzelte Schneeschauer" \
+"Starker Schneefall" \
+"Teilweise bewölkt" \
+"Gewitterschauer" \
+"Schneeschauer" \
+"Vereinzelte Gewitterschauer" )

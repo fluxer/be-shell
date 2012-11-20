@@ -1,0 +1,77 @@
+Simple weather script
+
+The script fetches the current weather from the weather.yahoo.com rss feed.
+It takes up to two parameters:
+1. the location code (this is mandatory) - go to weather.yahoo.com, seach for your location and check the trailing number in the URL (eg "650272" for FFaM/Germany)
+2. the language code. Notice that so far only german is provided, english is provided by default
+
+To use the script in be.shell, create a new applet
+
+[Weather]
+Type=Label
+Exec=/path/to/weather/script/weather.sh <location code> [<language>]
+PollInterval=3600000
+
+This will update once per hour.
+
+Icons:
+-------
+The script is shipped with the http://www.stardock.com icons, free for use as long as you contain the permissions file and are not a commercial project ("check")
+
+You can replace them by whatever matching icons you want, the script catches leading zero (ie. can resolve 09.png as well as 9.png)
+
+Translation:
+------------
+
+The rss feed provides English weather descriptions and no parameter to select other codes (setting the wget header didn't help either) so the script supports translation, by a simple CONDITION array in a file sourced by the second parameter, see the "de" file for an example to write your own translation.
+
+The weather codes (and I frankly had to look up the translation for some of them myself ;-)
+
+0   tornado
+1   tropical storm
+2   hurricane
+3   severe thunderstorms
+4   thunderstorms
+5   mixed rain and snow
+6   mixed rain and sleet
+7   mixed snow and sleet
+8   freezing drizzle
+9   drizzle
+10  freezing rain
+11  showers
+12  showers
+13  snow flurries
+14  light snow showers
+15  blowing snow
+16  snow
+17  hail
+18  sleet
+19  dust
+20  foggy
+21  haze
+22  smoky
+23  blustery
+24  windy
+25  cold
+26  cloudy
+27  mostly cloudy (night)
+28  mostly cloudy (day)
+29  partly cloudy (night)
+30  partly cloudy (day)
+31  clear (night)
+32  sunny
+33  fair (night)
+34  fair (day)
+35  mixed rain and hail
+36  hot
+37  isolated thunderstorms
+38  scattered thunderstorms
+39  scattered thunderstorms
+40  scattered showers
+41  heavy snow
+42  scattered snow showers
+43  heavy snow
+44  partly cloudy
+45  thundershowers
+46  snow showers
+47  isolated thundershowers
