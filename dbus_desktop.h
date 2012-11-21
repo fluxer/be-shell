@@ -41,8 +41,9 @@ public slots:
     Q_NOREPLY void setWallpaper( const QString &file, int mode ) { myDesk->setWallpaper(file, mode); }
     Q_NOREPLY void setWallpaper( const QString &file ) { myDesk->setWallpaper(file, -1); }
     Q_NOREPLY void toggleDesktopShown() { myDesk->toggleDesktopShown(); }
+    Q_NOREPLY void reArrangeIcons() { myDesk->reArrangeIcons(); }
     Q_NOREPLY void refresh() { myDesk->update(); }
     int winId() { return myDesk->winId(); }
 };
 }
-#endif //BLAZER_ADAPTOR_H
+#endif

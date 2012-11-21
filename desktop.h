@@ -145,6 +145,7 @@ private:
     friend class DeskAdaptor;
     void setWallpaper( QString file, int mode = 700, int desktop = -1 );
     void toggleDesktopShown();
+    void reArrangeIcons();
 
 private slots:
     void bindScreenMenu();
@@ -177,6 +178,8 @@ private:
         QRect rect;
         QAction *menuItem;
     } myIcons;
+
+    int myIconPaddings[4];
 
     int myScreen;
 

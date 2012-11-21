@@ -228,6 +228,25 @@ BE::Desk::populate( const QString &path )
         fileCreated(file.absoluteFilePath());
 }
 
+void
+BE::Desk::reArrangeIcons()
+{
+    if (!myIcons.areShown)
+        return;
+
+    const int d = 4*DeskIcon::size().height()/3;
+    myIcons.lastPos = myIcons.rect.topLeft();
+    for (IconList::iterator it = myIcons.list.begin(), end = myIcons.list.end(); it != end; ++it) {
+        if ( myIcons.lastPos.y() > myIcons.rect.bottom() - d )
+        {
+            myIcons.lastPos.ry() = myIcons.rect.top();
+            myIcons.lastPos.rx() += d;
+        }
+        (*it)->move( myIcons.lastPos );
+        myIcons.lastPos.ry() += d;
+    }
+}
+
 
 class BE::CornerDialog : public QDialog
 {
@@ -628,19 +647,35 @@ BE::Desk::configure( KConfigGroup *grp )
 
     iWheelOnClickOnly = grp->readEntry("WheelOnLMB", false);
 
+    QStringList l = grp->readEntry("IconAreaPaddings", QStringList());
+    bool needIconShift = false;
+    if (l.count() < 4)
+        myIconPaddings[0] = myIconPaddings[1] = myIconPaddings[2] = myIconPaddings[3] = 32;
+    else {
+        for (int i = 0; i < 4; ++i) {
+            int p = l.at(i).toInt();
+            needIconShift = needIconShift || myIconPaddings[i] != p;
+            myIconPaddings[i] = p;
+        }
+    }
+
+    b = myIcons.areShown;
+    // read before eventually resizing the desktop to avoid pointless re-arrangements
+    myIcons.areShown = grp->readEntry("ShowIcons", QVariant(true) ).toBool();
+
     int oldScreen = myScreen;
     myScreen = grp->readEntry("Screen", QApplication::desktop()->primaryScreen() );
     if (myScreen >= QApplication::desktop()->screenCount())
         myScreen = QApplication::desktop()->primaryScreen();
-    if (myScreen != oldScreen && (oldScreen < 0 || myScreen < 0 ||
-                                  oldScreen >= QApplication::desktop()->screenCount() ||
-                                  QApplication::desktop()->screenGeometry(myScreen) != geometry()) )
+    if (needIconShift || (myScreen != oldScreen && (oldScreen < 0 || myScreen < 0 ||
+                          oldScreen >= QApplication::desktop()->screenCount() ||
+                          QApplication::desktop()->screenGeometry(myScreen) != geometry())) ) {
         desktopResized( myScreen );
+    }
 
-    b = myIcons.areShown;
-    myIcons.areShown = grp->readEntry("ShowIcons", QVariant(true) ).toBool();
-    if (b != myIcons.areShown )
+    if (b != myIcons.areShown)
         populate(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation));
+
     myIcons.menuItem->setChecked(myIcons.areShown);
 
     toggleTrashcan(grp->readEntry("TrashCan", QVariant(true) ).toBool());
@@ -861,6 +896,10 @@ BE::Desk::saveSettings( KConfigGroup *grp )
         grp->writeEntry( "TrashX", myTrash.can->geometry().x());
         grp->writeEntry( "TrashY", myTrash.can->geometry().y());
     }
+    grp->writeEntry( "IconAreaPaddings", QStringList() <<   QString::number(myIconPaddings[0]) <<
+                                                            QString::number(myIconPaddings[1]) <<
+                                                            QString::number(myIconPaddings[2]) <<
+                                                            QString::number(myIconPaddings[3]) );
 }
 
 void
@@ -1610,7 +1649,8 @@ BE::Desk::desktopResized ( int screen )
         }
         ++i;
     }
-    myIcons.rect.adjust(30,30,-30,-30);
+    myIcons.rect.adjust(myIconPaddings[0],myIconPaddings[1],-myIconPaddings[2],-myIconPaddings[3]);
+    reArrangeIcons();
 }
 
 void
