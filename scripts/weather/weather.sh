@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EXEC="`realpath $0`"
+EXEC="`readlink -f $0`"
 SPATH="`dirname $EXEC`"
 
 # resolves $text $code $temp and $date
