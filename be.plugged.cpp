@@ -92,13 +92,23 @@ BE::Plugged::popupPosition(const QSize &popupSize) const
         qWarning("Warning: Calling popupPosition() from a non widget plugin is pointless!");
         return QPoint(0,0);
     }
-    const QPoint center = QApplication::desktop()->screenGeometry().center();
+    const QRect screen = QApplication::desktop()->screenGeometry();
+    const QPoint center = screen.center();
     QPoint pt = that->mapToGlobal(that->rect().center());
     if (orientation() == Qt::Horizontal)
         pt -= QPoint(popupSize.width()/2, (pt.y() > center.y()) ? that->height()/2 + popupSize.height() + 8 : -(that->height()/2 + 8));
     else
         pt -= QPoint((pt.x() > center.x()) ? that->width()/2 + popupSize.width() + 8 : -(that->width()/2 + 8), popupSize.height()/2 );
-    return pt;
+    QRect r(pt, popupSize); // bind to screen
+    if (r.right() > screen.right())
+        r.moveRight(screen.right());
+    if (r.bottom() > screen.bottom())
+        r.moveBottom(screen.bottom());
+    if (r.left() < screen.left())
+        r.moveLeft(screen.left());
+    if (r.top() < screen.top())
+        r.moveTop(screen.top());
+    return r.topLeft();
 }
 
 void
