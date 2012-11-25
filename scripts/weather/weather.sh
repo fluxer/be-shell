@@ -57,8 +57,11 @@ if [[ "$MODE" =~ "now" ]]; then
 
     TEXT="$(l10n $code $text)"
     ICON="$(icon $code)"
-
-    REPLY="${REPLY}<td><div>Now</div><div><img src=\"${ICON}\" width=\"${ICON_SIZE}\"/><span style=\"font-size:${BIG_TEXT}px;\">${temp}°</span></div><div align=\"right\" style=\"font-size:${SMALL_TEXT}px\">${TEXT}</div></td>"
+    REPLY="${REPLY}<td>"
+    if [ ! "$MODE" = "now" ]; then
+        REPLY="${REPLY}<div>Now</div>"
+    fi
+    REPLY="${REPLY}<div><img src=\"${ICON}\" width=\"${ICON_SIZE}\"/><span style=\"font-size:${BIG_TEXT}px;\">${temp}°</span></div><div align=\"right\" style=\"font-size:${SMALL_TEXT}px\">${TEXT}</div></td>"
     if [ "$5" = "v" ]; then
         REPLY="${REPLY}</tr><tr>"
         NEED_HR=true
