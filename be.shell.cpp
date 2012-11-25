@@ -905,6 +905,15 @@ BE::Shell::hasFullscreenAction()
     return false;
 }
 
+bool
+BE::Shell::name(BE::Plugged *p, const QString &string)
+{
+    if (!p->myName.isEmpty())
+        return false;
+    p->myName = string;
+    return true;
+}
+
 void
 BE::Shell::populateScreenMenu()
 {

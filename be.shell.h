@@ -59,6 +59,7 @@ public:
     static QRect desktopGeometry(int screen = -1);
     static QString executable(WId id);
     static bool hasFullscreenAction();
+    static bool name(BE::Plugged *p, const QString &string);
     static void populateWindowList(const QList<WId> &windows, QMenu *popup, bool allDesktops);
     static void run(const QString &command);
     static int screen();
