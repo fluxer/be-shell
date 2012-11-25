@@ -67,7 +67,7 @@ fi
 
 if [[ "$MODE" =~ "today" ]]; then
     # resolves $text $code $temp and $date
-    eval "`echo "$DATA" | sed -e '0,/yweather:forecast/d; s/^[^ ]*//g; s%\s*/>%%g; s/" /"; /g'`"
+    eval "`echo "$DATA" | sed -e '0,/yweather:forecast/! d; s/^[^ ]*//g; s%\s*/>%%g; s/" /"; /g'`"
 
     TEXT="$(l10n $code $text)"
     ICON="$(icon $code)"
