@@ -20,6 +20,8 @@
 
 #include "label.h"
 
+#include "be.shell.h"
+
 #include <KDE/KConfigGroup>
 
 #include <QDBusConnection>
@@ -27,6 +29,7 @@
 #include <QFile>
 #include <QProcess>
 #include <QtDBus>
+#include <QTimer>
 #include <QTimerEvent>
 
 #include <sys/stat.h>
@@ -43,6 +46,8 @@ BE::Label::Label( QWidget *parent ) : QLabel(parent)
 , myDBusArgs(0)
 , myReplyIsPending(false)
 , myFiFo(0)
+, myToolTip(0)
+, myToolTipTimer(0)
 {
 }
 
@@ -127,6 +132,24 @@ BE::Label::configure( KConfigGroup *grp )
         }
     }
 
+    QString toolTip = grp->readEntry("TipLabel", QString());
+    if (toolTip.isEmpty() || (myToolTip && myToolTip->objectName() != toolTip)) {
+        delete myToolTip;
+        myToolTip = 0;
+    }
+    if (!toolTip.isEmpty() && !myToolTip) {
+        myToolTip = new Label(this);
+        myToolTip->setWindowFlags(Qt::ToolTip);
+
+        if (!BE::Shell::name(myToolTip, toolTip)) {
+            qWarning("failed to name a tooltip label, this should not have happened!");
+            delete myToolTip;
+            myToolTip = 0;
+        }
+    }
+    if (myToolTip)
+        myToolTip->Plugged::configure();
+
     if (myTimer)
         killTimer(myTimer);
     if (!myFiFo && !myCommand.isEmpty())
@@ -137,7 +160,44 @@ BE::Label::configure( KConfigGroup *grp )
     }
 }
 
+void
+BE::Label::enterEvent(QEvent *e)
+{
+    QLabel::enterEvent(e);
+    if (!myToolTip)
+        return;
+    myToolTip->adjustSize();
+    myToolTip->move(popupPosition(myToolTip->size()));
+    if (!myToolTipTimer) {
+        myToolTipTimer = new QTimer(this);
+        myToolTipTimer->setSingleShot(true);
+    }
+    else
+        myToolTipTimer->stop();
+    if (myToolTip->isVisible())
+        return;
+    connect (myToolTipTimer, SIGNAL(timeout()), myToolTip, SLOT(show()));
+    connect (myToolTipTimer, SIGNAL(timeout()), myToolTip, SLOT(raise()));
+    myToolTipTimer->start(128);
+}
 
+void
+BE::Label::leaveEvent(QEvent *e)
+{
+    QLabel::leaveEvent(e);
+    if (!myToolTip)
+        return;
+    if (!myToolTipTimer) {
+        myToolTipTimer = new QTimer(this);
+        myToolTipTimer->setSingleShot(true);
+    }
+    else
+        myToolTipTimer->stop();
+    if (!myToolTip->isVisible())
+        return;
+    connect (myToolTipTimer, SIGNAL(timeout()), myToolTip, SLOT(hide()));
+    myToolTipTimer->start(512);
+}
 
 
 void

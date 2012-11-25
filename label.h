@@ -24,6 +24,7 @@
 class QDBusInterface;
 class QFile;
 class QProcess;
+class QTimer;
 
 #include "be.plugged.h"
 
@@ -38,6 +39,8 @@ public:
     Label(QWidget *parent = 0);
     void configure( KConfigGroup *grp );
 protected:
+    void enterEvent(QEvent *e);
+    void leaveEvent(QEvent *e);
     void timerEvent(QTimerEvent *te);
 private slots:
     void updateContents();
@@ -51,6 +54,8 @@ private:
     QList<QVariant> *myDBusArgs;
     bool myReplyIsPending;
     QFile *myFiFo;
+    Label *myToolTip;
+    QTimer *myToolTipTimer;
 };
 
 }
