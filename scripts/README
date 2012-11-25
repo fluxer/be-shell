@@ -1,0 +1,49 @@
+Random scripts for usage with BE::Shell
+
+[weather]
+---------
+Weather script, fetching data from yahoo.
+Needs bash, wget, grep, sed
+See weather/README for more details
+
+gen_system_menu.sh
+------------------
+script to generate a hierarchical list of systemsettings modules.
+can be directly used with globalmenu (and xbar for that matter) and easily adjusted for usage with a button (remove <submenu> tags)
+Needs bash, grep and kde4-config
+
+be.random.wp.sh
+----------------
+Set random wallpapers after configurable interval.
+Needs adjustments in the script (mostly wallpaper path and delay)
+Needs bash, wc, qdbus
+
+rss2htm
+-------
+Fetch an rss feed (only parameter) and convert it into html (usable by Lable plugs)
+Needs bash, wget, sed, xmlstarlet
+
+topfeeder.sh
+------------
+Write 4 topmost cpu suckers into a FIFO
+Needs be.fifo.daemon, top, cut, grep
+
+be.fifo.daemon
+--------------
+Framework for daemons writing into FIFOs usable by Label plugs
+Needs nohup, trap, kill, pkill, mkdir, mkfifo - ie. UNIX ;-)
+
+be.apt
+be.pacman
+---------
+Scripts to fetch available package updates and display them on a Button plug
+Need the resp. package managers, qdbus and visudo or pkexec adjustments for pacman (to update the database, unless you've a root cronjob on that)
+Thought to be added to crontab
+
+netcfg
+netquality
+wifi-select
+netcfg-profiles
+---------------
+Scripts around netcfg configuration.
+WARNING: wifi-select does not work with recent netcfg versions (needs update, bug me ;-)
