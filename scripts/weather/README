@@ -1,16 +1,21 @@
 Simple weather script
 
 The script fetches the current weather from the weather.yahoo.com rss feed.
-It takes up to two parameters:
+It takes up to 5 parameters:
 1. the location code (this is mandatory) - go to weather.yahoo.com, seach for your location and check the trailing number in the URL (eg "650272" for FFaM/Germany)
-2. the language code. Notice that so far only german is provided, english is provided by default
+2. Size of the icon, determines font sizes
+3. forecast mode. the strings "now" "today" (range) and "tomorrow" (range) joined, eg. nowtomorrow or nowtodaytomorrow
+4. the language code. Notice that so far only german is provided, english is provided by default
+5. whether the direction is v|ertical or h|orizontal
 
 To use the script in be.shell, create a new applet
 
 [Weather]
 Type=Label
-Exec=/path/to/weather/script/weather.sh <location code> [<language>]
+#Exec=/path/to/weather/script/weather.sh <location code> [<icon size>] [<forecast>] [<language>] [h|v]
+Exec=/path/to/weather/script/weather.sh 650272 48 nowtomorrow de h # weather now and tomorrow, horizontal layout
 PollInterval=3600000
+
 
 This will update once per hour.
 
