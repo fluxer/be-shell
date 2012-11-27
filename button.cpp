@@ -324,6 +324,8 @@ void
 BE::Button::updateMenu()
 {
     if (!myExe.isEmpty()) {
+        delete myMenuWatcher;
+        myMenuWatcher = 0;
         QProcess proc(this);
         proc.start(myExe);
         proc.waitForFinished(myUpdaterTimeout);
