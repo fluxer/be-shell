@@ -270,6 +270,7 @@ BE::Panel::configure( KConfigGroup *grp )
             myProxy->setParent(window());
             myProxy->setAttribute(Qt::WA_TranslucentBackground, isWindow);
             myProxy->setAttribute(Qt::WA_X11NetWmWindowTypeDock, isWindow);
+            myProxy->setAttribute(Qt::WA_NoSystemBackground, true);
             myProxy->installEventFilter(this);
             myProxyThickness = grp->readEntry("AutoHideSensorSize", BE::Shell::touchMode() ? 2 : 1);
             myAutoHideDelay = grp->readEntry("AutoHideDelay", 2000);
@@ -415,6 +416,11 @@ BE::Panel::mousePressEvent(QMouseEvent *me)
 {
     if (iAmNested)
         return;
+    if (myMoveResizeMode == Qt::BlankCursor && BE::Shell::touchMode())
+    {   // just a regular slide - let's see whether the user pushes the panel back
+        if (me->button() == Qt::LeftButton)
+            startPos = me->pos();
+    }
     if (myMoveResizeMode == Qt::ArrowCursor)
     {
         releaseMouse();
@@ -426,7 +432,7 @@ BE::Panel::mousePressEvent(QMouseEvent *me)
     }
     else if (myMoveResizeMode != Qt::BlankCursor)
         startPos = me->pos();
-    else if( me->button() == Qt::RightButton )
+    else if ( me->button() == Qt::RightButton )
         myConfigMenuEntry->exec(QCursor::pos());
     else
         QFrame::mousePressEvent(me);
@@ -587,7 +593,8 @@ BE::Panel::hideEvent( QHideEvent *event )
     }
     myProxy->setFixedSize(r.size());
     myProxy->move(r.topLeft());
-    myProxy->show();
+    QTimer::singleShot(250, myProxy, SLOT(show()));
+    QTimer::singleShot(300, myProxy, SLOT(raise()));
 }
 
 void
@@ -619,8 +626,36 @@ BE::Panel::mouseMoveEvent(QMouseEvent *me)
     if (iAmNested)
         return;
 
-    if (myMoveResizeMode == Qt::BlankCursor)
-    {
+    if (myMoveResizeMode == Qt::BlankCursor) {
+        if (BE::Shell::touchMode()) {
+            // let's see whether the user pushes the panel back
+            bool doHide = false;
+            switch (myPosition)
+            {
+            default:
+            case Top:
+                if (startPos.y() - me->y() > height()/2 && qAbs(startPos.x() - me->x()) < 64)
+                    doHide = true; break;
+            case Bottom:
+                if (me->y() - startPos.y() > height()/2 && qAbs(startPos.x() - me->x()) < 64)
+                    doHide = true; break;
+            case Left:
+                if (startPos.x() - me->x() > width()/2 && qAbs(startPos.y() - me->y()) < 64)
+                    doHide = true; break;
+            case Right:
+                if (me->x() - startPos.x() > width()/2 && qAbs(startPos.y() - me->y()) < 64)
+                    doHide = true; break;
+            }
+            if (doHide) {
+                foreach (QWidget *window, QApplication::topLevelWidgets()) {
+                    if (window != myProxy && window->parentWidget() &&
+                        window->parentWidget()->window() == this)
+                        window->hide();
+                }
+                slide(false);
+                return;
+            }
+        }
         QFrame::mouseMoveEvent(me);
         return;
     }
