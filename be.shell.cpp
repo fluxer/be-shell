@@ -1137,6 +1137,23 @@ BE::Shell::setCurrentDesktop()
 }
 
 void
+BE::Shell::setPanelVisible(const QString &name, bool vis)
+{
+    for (QList<Plugged*>::iterator it = myPlugs.begin(), end = myPlugs.end(); it != end; ++it) {
+        BE::Panel *panel = dynamic_cast<BE::Panel*>(*it);
+        if (!panel)
+            continue;
+        if (panel->name() == name) {
+            if (panel->layer() > 1 || !panel->struts())
+                panel->slide(vis);
+            else
+                panel->setVisible(vis);
+            break;
+        }
+    }
+}
+
+void
 BE::Shell::setTheme(QAction *action)
 {
     if (action)

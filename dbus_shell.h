@@ -60,8 +60,10 @@ public:
     ShellAdaptor(BE::Shell *shell) : QDBusAbstractAdaptor(shell), myShell(shell) { }
 
 public slots:
+    Q_NOREPLY void hidePanel(const QString &name) { myShell->setPanelVisible(name, false); }
     Q_NOREPLY void reconfigure() { myShell->configure(); }
     Q_NOREPLY void showWindowList(int x, int y) { myShell->myWindowList->popup(QPoint(x,y)); }
+    Q_NOREPLY void showPanel(const QString &name) { myShell->setPanelVisible(name, true); }
     Q_NOREPLY void setTheme(const QString &theme) { myShell->setTheme(theme); }
 };
 }

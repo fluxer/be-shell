@@ -87,6 +87,7 @@ private slots:
     void contextWindowToDesktop(QAction*);
     void resetCompositing();
     void setTheme(const QString &);
+    void setPanelVisible(const QString &name, bool vis);
 private slots:
     friend class ScreenLockerAdaptor;
     void lockScreen();

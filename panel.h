@@ -50,6 +50,8 @@ public:
     inline int shadowPadding() { return myShadowPadding; }
     inline int shadowRadius() { return myShadowRadius; }
     inline QPen shadowBorder() { return myShadowBorder; }
+    void slide(bool in);
+    inline bool struts() { return iStrut; }
 signals:
     void orientationChanged( Qt::Orientation o );
 protected:
@@ -66,7 +68,6 @@ protected:
 private:
     void registerStrut();
     StrutManager *strut() const;
-    void slide(bool in);
     virtual void themeChanged();
     void unregisterStrut();
     void updateName();

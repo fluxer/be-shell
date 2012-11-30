@@ -135,7 +135,7 @@ private:
     PanelList panels;
 };
 
-QMap<int, StrutManager*> struts;
+QMap<int, StrutManager*> gs_struts;
 static QMenu *configSubMenu = 0;
 
 static void findSameWindowKids( QWidget *root, QList<QWidget*> &list )
@@ -541,7 +541,6 @@ BE::Panel::eventFilter(QObject *o, QEvent *e)
     if (o == myProxy && e->type() == QEvent::Enter)
     {
         window()->setUpdatesEnabled(false);
-        myProxy->hide();
         if (BE::Shell::touchMode()) {
             setEnabled(false);
             slide(true);
@@ -568,10 +567,10 @@ BE::Panel::hideEvent( QHideEvent *event )
         return;
     }
     QFrame::hideEvent(event);
+    if (!BE::Shell::desktopGeometry(myScreen).contains(geometry())) // internal slide polluted geometry
+        desktopResized(); // fixed
     if (!myProxy)
         return;
-    if (myLayer == 2) // internal slide polluted geometry
-        desktopResized(); // fixed
     QRect r(geometry());
     switch (myPosition)
     {
@@ -608,6 +607,8 @@ BE::Panel::leaveEvent(QEvent *e)
 void
 BE::Panel::showEvent(QShowEvent *e)
 {
+    if (myProxy)
+        myProxy->hide();
     QWidget::showEvent(e);
     updateEffectBg();
     QSize maxSize = (orientation() == Qt::Horizontal) ? QSize(QWIDGETSIZE_MAX, mySize) : QSize(mySize, QWIDGETSIZE_MAX);
@@ -869,7 +870,7 @@ BE::Panel::startMoveResize()
 BE::StrutManager *
 BE::Panel::strut() const
 {
-    return struts.value(qMax(0,myScreen), 0);
+    return gs_struts.value(qMax(0,myScreen), 0);
 }
 
 void BE::Panel::themeChanged()
@@ -897,7 +898,7 @@ BE::Panel::registerStrut()
         s = new StrutManager;
         QRect screen = BE::Shell::desktopGeometry(myScreen);
         s->setGeometry(screen.x(), screen.y(), 1, 1);
-        struts.insert( qMax(0,myScreen), s );
+        gs_struts.insert( qMax(0,myScreen), s );
     }
     s->registrate(this);
 }
@@ -909,7 +910,7 @@ BE::Panel::unregisterStrut()
     if (s) {
         s->unregistrate(this);
         if (s->isEmpty()) {
-            struts.remove(qMax(0,myScreen));
+            gs_struts.remove(qMax(0,myScreen));
             delete s;
         }
     }
@@ -1050,11 +1051,12 @@ BE::Panel::desktopResized()
 void
 BE::Panel::updateEffectBg()
 {
-    int x,y,w,h;
+    int x(0),y(0),w(0),h(0);
     QRect prect = geometry();
     getContentsMargins(&x,&y,&w,&h);
     const int d = shadowPadding();
     prect.adjust(x-d,y-d,d-w,d-h);
+    prect &= BE::Shell::desktopGeometry(myScreen);
     prect.getRect(&x,&y,&w,&h);
     if (myBlurRadius && parentWidget())
     {
