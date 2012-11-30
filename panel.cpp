@@ -907,7 +907,7 @@ BE::Panel::registerStrut()
 void
 BE::Panel::unregisterStrut()
 {
-    StrutManager *s = iStrut ? strut() : NULL;
+    StrutManager *s = strut();
     if (s) {
         s->unregistrate(this);
         if (s->isEmpty()) {
