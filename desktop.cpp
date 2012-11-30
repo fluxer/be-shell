@@ -1497,11 +1497,11 @@ BE::Desk::paintEvent(QPaintEvent *pe)
 
     foreach (BE::Panel *panel, myPanels)
     {
-        if (panel)
+        if (panel && panel->isVisible())
         {
-            int x,y,w,h;
+            int x(0),y(0),w(0),h(0);
             QRect prect = panel->geometry();
-            panel->getContentsMargins(&x,&y,&w,&h);
+//             panel->getContentsMargins(&x,&y,&w,&h);
             const int d = panel->shadowPadding();
             prect.adjust(x-d,y-d,d-w,d-h);
             prect.getRect(&x,&y,&w,&h);

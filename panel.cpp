@@ -522,6 +522,7 @@ BE::Panel::slide(bool in)
     animation->setDuration(200);
     if (in) {
         show();
+        connect (animation, SIGNAL(finished()), SLOT(updateEffectBg()));
         animation->setStartValue(geometry());
         animation->setEndValue(geo);
     }
@@ -1053,7 +1054,7 @@ BE::Panel::updateEffectBg()
 {
     int x(0),y(0),w(0),h(0);
     QRect prect = geometry();
-    getContentsMargins(&x,&y,&w,&h);
+//     getContentsMargins(&x,&y,&w,&h);
     const int d = shadowPadding();
     prect.adjust(x-d,y-d,d-w,d-h);
     prect &= BE::Shell::desktopGeometry(myScreen);
