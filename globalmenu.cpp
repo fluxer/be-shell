@@ -274,6 +274,7 @@ BE::GMenu::changeEntry(qlonglong key, int idx, const QString &entry, bool add)
                 setBold(before, false);
             }
         }
+        act->setVisible(!act->text().isEmpty());
         bar->insertAction(before, act);
     }
     else
@@ -286,7 +287,9 @@ BE::GMenu::changeEntry(qlonglong key, int idx, const QString &entry, bool add)
                 act->setSeparator(true);
             else
                 act->setData(entry);
-            if (idx && !act->isSeparator()) act->setText(entry);
+            if (idx && !act->isSeparator())
+                act->setText(entry);
+            act->setVisible(!act->text().isEmpty());
         }
     }
 }
@@ -441,10 +444,6 @@ BE::GMenu::registerMenu(const QString &service, qlonglong key, const QString &ti
 void
 BE::GMenu::releaseFocus(qlonglong key)
 {
-    if ((myCurrentBar == myMainMenu) || hasFocus() && isActiveWindow()) {
-        show(myMainMenu);
-        return;
-    }
     blockUpdates(true);
     int n = 0;
     for (MenuMap::iterator i = myMenus.begin(); i != myMenus.end(); ++i)
