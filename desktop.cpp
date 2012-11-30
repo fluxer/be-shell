@@ -428,7 +428,7 @@ bool
 BE::Corner::eventFilter( QObject *o, QEvent *e )
 {
     if ( (e->type() == QEvent::ZOrderChange && o == this) ||
-         (e->type() == QEvent::ChildAdded && o == parentWidget()) )
+         ((e->type() == QEvent::ChildAdded || e->type() == QEvent::ShowToParent) && o == parentWidget()) )
     {
         if ( weAreNotInRace )
         {
