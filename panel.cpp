@@ -26,7 +26,6 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QDesktopWidget>
-#include <QElapsedTimer>
 #include <QLinearGradient>
 #include <QList>
 #include <QMenu>
@@ -149,6 +148,56 @@ static void findSameWindowKids( QWidget *root, QList<QWidget*> &list )
         }
 }
 
+class PanelProxy : public QWidget {
+public:
+    PanelProxy(QWidget *panel) : QWidget(panel->window(),
+                                         panel->windowFlags() & Qt::Window ?
+                                         Qt::Window|Qt::X11BypassWindowManagerHint : Qt::Widget)
+                                , myPanel(panel) {
+        setAttribute(Qt::WA_TranslucentBackground, windowFlags() & Qt::Window);
+        setAttribute(Qt::WA_X11NetWmWindowTypeDock, windowFlags() & Qt::Window);
+        setAttribute(Qt::WA_NoSystemBackground, true);
+        installEventFilter(panel);
+        ++s_numProxies;
+        if (!s_raiseTriggerTimer) {
+            s_raiseTriggerTimer = new QTimer;
+            s_raiseTriggerTimer->start(30000); // every 30 secs we conditionally raise the proxy
+        }
+        connect (s_raiseTriggerTimer, SIGNAL(timeout()), panel, SLOT(raiseProxy()));
+    }
+    ~PanelProxy() {
+        --s_numProxies;
+        Q_ASSERT(s_numProxies > -1);
+        if (!s_numProxies) {
+            delete s_raiseTriggerTimer;
+            s_raiseTriggerTimer = 0;
+        }
+    }
+protected:
+    bool eventFilter(QObject *o, QEvent *e)
+    {
+        if (o != myPanel) {
+            o->removeEventFilter(this);
+            return false;
+        }
+        switch (e->type()) {
+            case QEvent::Show:
+                hide();
+                break;
+            default:
+                break;
+        }
+        return false;
+    }
+private:
+    static int s_numProxies;
+    static QTimer *s_raiseTriggerTimer;
+    QWidget *myPanel;
+};
+
+int PanelProxy::s_numProxies = 0;
+QTimer *PanelProxy::s_raiseTriggerTimer = 0;
+
 }
 
 BE::Panel::Panel( QWidget *parent ) : QFrame( parent, Qt::FramelessWindowHint)
@@ -166,6 +215,7 @@ BE::Panel::Panel( QWidget *parent ) : QFrame( parent, Qt::FramelessWindowHint)
 , myProxy(0)
 , myShadowRadius(0)
 , myShadowPadding(0)
+, myAutoHideTimer(0)
 {
     QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
     layout->setSpacing(0);
@@ -246,6 +296,7 @@ BE::Panel::configure( KConfigGroup *grp )
         int layer = grp->readEntry("Layer", 0);
         if (layer != myLayer) {
             delete myProxy; myProxy = 0;
+            delete myAutoHideTimer; myAutoHideTimer = 0;
         }
         const bool isWindow(layer & 1);
         if (isWindow)
@@ -266,12 +317,7 @@ BE::Panel::configure( KConfigGroup *grp )
             if (BE::Shell::touchMode())
                 setWindowFlags( Qt::Popup );
             if (!myProxy)
-                myProxy = new QWidget(this, isWindow ? Qt::Window|Qt::X11BypassWindowManagerHint : Qt::Widget);
-            myProxy->setParent(window());
-            myProxy->setAttribute(Qt::WA_TranslucentBackground, isWindow);
-            myProxy->setAttribute(Qt::WA_X11NetWmWindowTypeDock, isWindow);
-            myProxy->setAttribute(Qt::WA_NoSystemBackground, true);
-            myProxy->installEventFilter(this);
+                myProxy = new PanelProxy(this);
             myProxyThickness = grp->readEntry("AutoHideSensorSize", BE::Shell::touchMode() ? 2 : 1);
             myAutoHideDelay = grp->readEntry("AutoHideDelay", 2000);
         }
@@ -536,6 +582,15 @@ BE::Panel::slide(bool in)
     animation->start();
 }
 
+void
+BE::Panel::enterEvent(QEvent *e)
+{
+    if (myAutoHideTimer && myAutoHideTime.elapsed() > 100) {
+        myAutoHideTimer->stop();
+    }
+    QWidget::enterEvent(e);
+}
+
 bool
 BE::Panel::eventFilter(QObject *o, QEvent *e)
 {
@@ -554,17 +609,16 @@ BE::Panel::eventFilter(QObject *o, QEvent *e)
     return false;
 }
 
-QElapsedTimer myShowTime;
-
 void
 BE::Panel::hideEvent( QHideEvent *event )
 {
-    int elapsed = myShowTime.elapsed();
+    int elapsed = myAutoHideTime.isValid() ? myAutoHideTime.elapsed() : 801;
     if (myLayer > 1 && BE::Shell::touchMode() && elapsed < 800) {
-        int layer = myLayer;
-        myLayer = 0; // to avoid timer restart
-        show();
-        myLayer = layer;
+//         int layer = myLayer;
+//         myLayer = 0; // to avoid timer restart
+//         show();
+//         myLayer = layer;
+        QMetaObject::invokeMethod(this, "show", Qt::QueuedConnection);
         return;
     }
     QFrame::hideEvent(event);
@@ -593,23 +647,30 @@ BE::Panel::hideEvent( QHideEvent *event )
     }
     myProxy->setFixedSize(r.size());
     myProxy->move(r.topLeft());
-    QTimer::singleShot(250, myProxy, SLOT(show()));
-    QTimer::singleShot(300, myProxy, SLOT(raise()));
+    QTimer::singleShot(250, this, SLOT(raiseProxy()));
 }
 
 void
 BE::Panel::leaveEvent(QEvent *e)
 {
     QFrame::leaveEvent(e);
-    if (myLayer > 1 && !BE::Shell::touchMode())
-        QTimer::singleShot(myAutoHideDelay, this, SLOT(conditionalHide()));
+    if (myLayer > 1 && !BE::Shell::touchMode()) {
+        if (!myAutoHideTimer) {
+            myAutoHideTimer = new QTimer(this);
+            myAutoHideTimer->setSingleShot(true);
+            connect (myAutoHideTimer, SIGNAL(timeout()), SLOT(conditionalHide()));
+        }
+        myAutoHideTime.start();
+        myAutoHideTimer->start(myAutoHideDelay);
+    }
 }
 
 void
 BE::Panel::showEvent(QShowEvent *e)
 {
-    if (myProxy)
-        myProxy->hide();
+    if (myAutoHideTimer) {
+        myAutoHideTimer->stop();
+    }
     QWidget::showEvent(e);
     updateEffectBg();
     QSize maxSize = (orientation() == Qt::Horizontal) ? QSize(QWIDGETSIZE_MAX, mySize) : QSize(mySize, QWIDGETSIZE_MAX);
@@ -618,8 +679,15 @@ BE::Panel::showEvent(QShowEvent *e)
     foreach (QWidget *kid, kids)
         kid->setMaximumSize(maxSize);
     emit orientationChanged(orientation());
-    if (BE::Shell::touchMode() && myLayer > 1)
-        myShowTime.start();
+    if (BE::Shell::touchMode() && myLayer > 1) {
+        if (!myAutoHideTimer) {
+            myAutoHideTimer = new QTimer(this);
+            myAutoHideTimer->setSingleShot(true);
+            connect (myAutoHideTimer, SIGNAL(timeout()), SLOT(conditionalHide()));
+        }
+        myAutoHideTime.start();
+        myAutoHideTimer->start(8000); // hide after 8 inactive seconds
+    }
 }
 
 void
@@ -891,6 +959,16 @@ void BE::Panel::themeUpdated()
         updateEffectBg();
 }
 
+void BE::Panel::raiseProxy()
+{
+    if (isVisible())
+        return; // no
+    if (!myProxy) // should not happen
+        return; // no
+    myProxy->show();
+    myProxy->raise();
+}
+
 void
 BE::Panel::registerStrut()
 {
@@ -972,15 +1050,16 @@ BE::Panel::updatePlugOrder()
 void
 BE::Panel::conditionalHide()
 {
-    bool haveMouse = underMouse();
+    bool haveMouse = BE::Shell::touchMode() ? false : underMouse(); // for the touch thing this is a popup and grabs the pointer
     if (!haveMouse)
     {
         foreach (const QWidget *window, QApplication::topLevelWidgets()) {
             haveMouse = window->isVisible() && window->parentWidget() &&
                         window->parentWidget()->window() == this &&
                         window->geometry().contains(QCursor::pos());
-            if (haveMouse)
+            if (haveMouse) {
                 break;
+            }
         }
     }
     if (!haveMouse)
@@ -991,6 +1070,8 @@ BE::Panel::conditionalHide()
                 window->hide();
         }
         slide(false);
+    } else if (BE::Shell::touchMode()) {
+        myAutoHideTimer->start(8000);
     }
 }
 

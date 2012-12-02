@@ -21,6 +21,7 @@
 #ifndef BE_PANEL_H
 #define BE_PANEL_H
 
+#include <QElapsedTimer>
 #include <QFrame>
 #include <QPen>
 #include "be.plugged.h"
@@ -31,6 +32,7 @@ class QMenu;
 namespace BE {
 
 class StrutManager;
+class PanelProxy;
 
 class Panel : public QFrame, public Plugged
 {
@@ -52,11 +54,14 @@ public:
     inline QPen shadowBorder() { return myShadowBorder; }
     void slide(bool in);
     inline bool struts() { return iStrut; }
+public slots:
+    void raiseProxy();
 signals:
     void orientationChanged( Qt::Orientation o );
 protected:
     void childEvent(QChildEvent*);
     bool eventFilter(QObject *o, QEvent *e);
+    void enterEvent( QEvent * event );
     void hideEvent( QHideEvent * event );
     void leaveEvent(QEvent *e);
     void showEvent(QShowEvent *e);
@@ -91,10 +96,12 @@ private:
     QAction *myVisibility;
     Qt::CursorShape myMoveResizeMode;
     bool iStrut, iAmNested, iCastAShadow;
-    QWidget *myProxy;
+    PanelProxy *myProxy;
     QString myForcedId;
     int myShadowRadius, myShadowPadding;
     QPen myShadowBorder;
+    QTimer *myAutoHideTimer;
+    QElapsedTimer myAutoHideTime;
 private:
     friend class BE::Shell;
     QList<BE::Plugged*> myPlugs;
