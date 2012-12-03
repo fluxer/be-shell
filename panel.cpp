@@ -460,8 +460,10 @@ static QPoint startPos;
 void
 BE::Panel::mousePressEvent(QMouseEvent *me)
 {
-    if (iAmNested)
+    if (iAmNested) {
+        me->ignore();
         return;
+    }
     if (myMoveResizeMode == Qt::BlankCursor && BE::Shell::touchMode())
     {   // just a regular slide - let's see whether the user pushes the panel back
         if (me->button() == Qt::LeftButton)
@@ -693,8 +695,10 @@ BE::Panel::showEvent(QShowEvent *e)
 void
 BE::Panel::mouseMoveEvent(QMouseEvent *me)
 {
-    if (iAmNested)
+    if (iAmNested) {
+        me->ignore();
         return;
+    }
 
     if (myMoveResizeMode == Qt::BlankCursor) {
         if (BE::Shell::touchMode()) {
