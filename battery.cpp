@@ -239,6 +239,10 @@ BE::Battery::sizeHint() const
 {
     int l,t,r,b;
     getContentsMargins(&l,&t,&r,&b);
-    const int h = height() - (t+b);
-    return QSize(11*h/5 + l+r, h + t+b);
+    if (orientation() == Qt::Horizontal) {
+        const int h = height() - (t+b);
+        return QSize(11*h/5 + l+r, h + t+b);
+    }
+    const int w = width() - (l+r);
+    return QSize(w + l+r, 5*w/11 + t+b);
 }
