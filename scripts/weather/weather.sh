@@ -38,6 +38,14 @@ icon() {
     echo $ICON
 }
 
+WAIT_FOR_NET=true
+while $WAIT_FOR_NET; do
+    if ping -c1 weather.yahooapis.com > /dev/null 2>&1; then
+        WAIT_FOR_NET=false
+    else
+        sleep 30
+    fi
+done
 
 DATA="`wget -qO- "http://weather.yahooapis.com/forecastrss?w=$1&u=c" | grep -E 'yweather:condition|yweather:forecast'`"
 
