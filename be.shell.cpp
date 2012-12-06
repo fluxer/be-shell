@@ -462,8 +462,8 @@ BE::Shell::shadowPadding(const QString &string)
 {
     if (!instance)
         return 0;
-    int ret = instance->myShadowPadding.value(string, 0xffffffff).toInt();
-    if (ret == 0xffffffff)
+    int ret = instance->myShadowPadding.value(string, 0xfffffff).toInt();
+    if (ret == 0xfffffff)
         ret = instance->myShadowPadding.value("BE--Panel", 0).toInt();
     return ret;
 }
