@@ -1506,7 +1506,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
             prect.adjust(x-d,y-d,d-w,d-h);
             prect.getRect(&x,&y,&w,&h);
             if (panel->effectBgPix() && panel->updatesEnabled())
-                p.drawPixmap(x,y, *panel->effectBgPix());
+                p.drawPixmap(qMax(x,0), qMax(y,0), *panel->effectBgPix());
 
             if (!(myShadowOpacity && panel->castsShadow()))
                 continue;
