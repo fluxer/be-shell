@@ -448,8 +448,8 @@ BE::Shell::shadowPadding(const QString &string)
 {
     if (!instance)
         return 0;
-    int ret = instance->myShadowPadding.value(string, -1).toInt();
-    if (ret < 0)
+    int ret = instance->myShadowPadding.value(string, 0xffffffff).toInt();
+    if (ret == 0xffffffff)
         ret = instance->myShadowPadding.value("BE--Panel", 0).toInt();
     return ret;
 }
@@ -1257,7 +1257,7 @@ void parse(CssExtension ext, QString *sheet, QMap<QString,QVariant> *map) {
         return; // no unknown junk
     }
 
-    static QRegExp nonDig("[^0123456789\\s]");
+    static QRegExp nonDig("[^-0123456789\\s]");
     int pi = 0;
     map->clear();
     while ((pi = sheet->indexOf(property, pi)) > -1) {
