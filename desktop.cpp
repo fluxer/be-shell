@@ -1518,7 +1518,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
 
             int flags = 0;
             if (y > rect().top()) flags |= Top;
-            if (y < rect().bottom()) flags |= Bottom;
+            if (y+h < rect().bottom()) flags |= Bottom;
             if (x > rect().left()) flags |= Left;
             if (x+w < rect().right()) flags |= Right;
 
