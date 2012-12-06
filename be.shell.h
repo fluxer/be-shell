@@ -52,6 +52,17 @@ public:
     ~Shell();
     static BE::Plugged* addApplet(const QString &name, Panel *panel);
     static void blur( QImage &img, int radius );
+    /** NOTICE WARNING GOD DAMN CARE TO READ THIS!
+     * BE::Shell::getContentsMargins(.) obtains the geometry of the element minus the styled margins
+     * IT DOES SO THROUGH AN ABUSIVE CALL TO QStyle::subElementRect() on SE_ProgressBarGroove
+     * IN THE HOPE that no "real" style adjusts that particular rectangle
+     * If this assumption fails, as a result UNSTYLED (by QSS) elements making use of this call
+     * will ARTIFICIALLY RECEIVE A WRONG DIMENSION what in best case leads to a wrong visual result
+     * IN WORST CASE the QSS implementation may alter (since this is entirely undocumentd) and cause
+     * segfaults because of this.
+     * USE WITH GOD DAMN CARE!
+     */
+    static void getContentsMargins(QWidget *w, int *l, int *t, int *r, int *b);
     static void buildMenu(const QString &name, QWidget *widget, const QString &type);
     static void call(const QString &instruction);
     static bool callThemeChangeEventFor(BE::Plugged*);

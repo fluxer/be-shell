@@ -1501,6 +1501,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
         {
             int x(0),y(0),w(0),h(0);
             QRect prect = panel->geometry();
+            BE::Shell::getContentsMargins(panel, &x, &y, &w, &h);
 //             panel->getContentsMargins(&x,&y,&w,&h);
             const int d = panel->shadowPadding();
             prect.adjust(x-d,y-d,d-w,d-h);

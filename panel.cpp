@@ -1139,6 +1139,7 @@ BE::Panel::updateEffectBg()
 {
     int x(0),y(0),w(0),h(0);
     QRect prect = geometry();
+    BE::Shell::getContentsMargins(this, &x, &y, &w, &h);
 //     getContentsMargins(&x,&y,&w,&h);
     const int d = shadowPadding();
     prect.adjust(x-d,y-d,d-w,d-h);

@@ -46,6 +46,7 @@
 #include <QMouseEvent>
 #include <QtDBus>
 #include <QTimer>
+#include <QStyleOptionProgressBarV2>
 #include <QWidgetAction>
 
 #include <signal.h>
@@ -380,6 +381,19 @@ BE::Shell::rBuildMenu(const QDomElement &node, QWidget *widget)
         }
         kid = kid.nextSibling();
     }
+}
+
+void
+BE::Shell::getContentsMargins(QWidget *w, int *l, int *t, int *r, int *b)
+{
+    QStyleOptionProgressBarV2 sopbv2;
+    sopbv2.initFrom(w);
+    const QRect outer = w->rect();
+    const QRect inner = w->style()->subElementRect(QStyle::SE_ProgressBarGroove, &sopbv2, w);
+    *l = inner.left() - outer.left();
+    *t = inner.top() - outer.top();
+    *r = outer.right() - inner.right();
+    *b = outer.bottom() - inner.bottom();
 }
 
 void
