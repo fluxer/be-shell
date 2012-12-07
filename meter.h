@@ -30,6 +30,7 @@ namespace BE {
 
 class Meter : public QFrame, public Plugged
 {
+    Q_OBJECT
 public:
     Meter(QWidget *parent = 0);
     virtual void configure( KConfigGroup *grp );
@@ -58,6 +59,7 @@ private:
 
 class CpuMeter : public Meter
 {
+    Q_OBJECT
 public:
     CpuMeter(QWidget *parent = 0);
     void configure( KConfigGroup *grp );
@@ -70,6 +72,7 @@ private:
 
 class RamMeter : public Meter
 {
+    Q_OBJECT
 public:
     enum Mode { Used, NonInactive, Active };
     RamMeter(QWidget *parent = 0);
@@ -82,6 +85,7 @@ private:
 
 class NetMeter : public Meter
 {
+    Q_OBJECT
 public:
     enum Mode { Dynamic, Up, Down };
     NetMeter( QWidget *parent = 0 );
@@ -97,6 +101,7 @@ private:
 
 class HddMeter : public Meter
 {
+    Q_OBJECT
 public:
     HddMeter( QWidget *parent = 0 );
     void configure( KConfigGroup *grp );
