@@ -1503,8 +1503,12 @@ BE::Desk::paintEvent(QPaintEvent *pe)
             QRect prect = panel->geometry();
             BE::Shell::getContentsMargins(panel, &x, &y, &w, &h);
 //             panel->getContentsMargins(&x,&y,&w,&h);
-            const int d = panel->shadowPadding();
-            prect.adjust(x-d,y-d,d-w,d-h);
+            const int v = panel->shadowPadding();
+            int d[4] = { (v&0xff) - 128, ((v >> 8) & 0xff) - 128,
+                         ((v >> 16) & 0xff) - 128, ((v >> 24) & 0xff) - 128 };
+            if (d[1] == d[2] && d[2] == d[3] && d[3] == 0xff)
+                d[1] = d[2] = d[3] = d[0];
+            prect.adjust(x-d[3],y-d[0],d[1]-w,d[2]-h);
             prect.getRect(&x,&y,&w,&h);
             if (panel->effectBgPix() && panel->updatesEnabled())
                 p.drawPixmap(qMax(x,0), qMax(y,0), *panel->effectBgPix());

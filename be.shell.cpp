@@ -462,9 +462,9 @@ BE::Shell::shadowPadding(const QString &string)
 {
     if (!instance)
         return 0;
-    int ret = instance->myShadowPadding.value(string, 0xfffffff).toInt();
-    if (ret == 0xfffffff)
-        ret = instance->myShadowPadding.value("BE--Panel", 0).toInt();
+    int ret = instance->myShadowPadding.value(string, 0xffffffff).toInt();
+    if (ret == 0xffffffff)
+        ret = instance->myShadowPadding.value("BE--Panel", 0x80808080).toInt();
     return ret;
 }
 
@@ -1293,9 +1293,24 @@ void parse(CssExtension ext, QString *sheet, QMap<QString,QVariant> *map) {
             value = shadowBorder(sheet->mid(open, sheet->indexOf(';', open)-open).simplified(), &ok);
             break;
         case ShadowRadius:
-        case ShadowPadding:
             value = sheet->mid(open, close-open).toInt(&ok);
             break;
+        case ShadowPadding: {
+            QStringList s = sheet->mid(open, close-open).simplified().split(" ", QString::SkipEmptyParts);
+            if (s.count() == 1) {
+                value = ((s.at(0).toInt(&ok) + 128) & 0xff) | (0xffffff << 8);
+            }
+            else if (s.count() == 4) {
+                int v = 0;
+                for (int i = 0; i < 4; ++i) {
+                    v |= ((s.at(i).toInt(&ok) + 128) & 0xff) << (8*i);
+                    if (!ok)
+                        break;
+                }
+                value = v;
+            }
+            break;
+        }
         }
 
         close = sheet->indexOf(';', close);
