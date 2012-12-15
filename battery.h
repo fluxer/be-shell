@@ -43,6 +43,8 @@ private slots:
     void setAcPlugged(bool newState, const QString &udi);
     void setBatteryPlugged(bool newState, const QString &udi);
 private:
+    void countCharge();
+private:
     bool myACisPlugged, iAmCharging;
     int myCharge;
     QMap<QString, int> myBatteries;

@@ -68,12 +68,7 @@ BE::Battery::addDevice( const QString &udi )
         connect(battery, SIGNAL(chargeStateChanged(int, const QString&)), SLOT(setState(int, const QString&)));
         const bool cin = battery->chargeState() == Solid::Battery::Charging;
         myBatteries.insert(udi, cin ? battery->chargePercent() : -battery->chargePercent());
-        iAmCharging |= cin;
-        myCharge = 0;
-        for (QMap<QString, int>::const_iterator it = myBatteries.constBegin(), end = myBatteries.constEnd(); it != end; ++it)
-            myCharge += qAbs(*it);
-        if (myBatteries.count())
-            myCharge /= myBatteries.count();
+        countCharge();
     }
     update();
 }
@@ -87,6 +82,27 @@ void BE::Battery::collectDevices()
     foreach( Solid::Device device, Solid::Device::listFromType(Solid::DeviceInterface::Battery))
         addDevice(device.udi());
     update();
+}
+
+void
+BE::Battery::countCharge()
+{
+    myCharge = 0;
+    iAmCharging = false;
+    for (QMap<QString, int>::const_iterator it = myBatteries.constBegin(),
+                                            end = myBatteries.constEnd(); it != end; ++it)
+    {
+        if (*it > 0)
+        {
+            iAmCharging = true;
+            myCharge += *it;
+        }
+        else
+            myCharge -= *it;
+    }
+    if (myBatteries.count())
+        myCharge /= myBatteries.count();
+    setToolTip(QString::number(myCharge) + '%');
 }
 
 void
@@ -155,20 +171,7 @@ BE::Battery::removeDevice( const QString &udi )
     }
     else if (myBatteries.remove( udi ))
     {
-        myCharge = 0;
-        iAmCharging = false;
-        for (QMap<QString, int>::const_iterator it = myBatteries.constBegin(), end = myBatteries.constEnd(); it != end; ++it)
-        {
-            if (*it > 0)
-            {
-                iAmCharging = true;
-                myCharge += *it;
-            }
-            else
-                myCharge -= *it;
-        }
-        if (myBatteries.count())
-            myCharge /= myBatteries.count();
+        countCharge();
     }
     update();
 }
@@ -202,11 +205,7 @@ BE::Battery::setCharge(int value, const QString &udi)
     if (charge == myBatteries.end())
         return; // should not happen
     *charge = *charge > 0 ? value : -value;
-    myCharge = 0;
-    for (QMap<QString, int>::const_iterator it = myBatteries.constBegin(), end = myBatteries.constEnd(); it != end; ++it)
-        myCharge += qAbs(*it);
-    if (myBatteries.count())
-        myCharge /= myBatteries.count();
+    countCharge();
     update();
 }
 
