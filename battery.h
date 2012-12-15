@@ -18,14 +18,13 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#include "be.plugged.h"
+#include "button.h"
 #include <solid/acadapter.h>
 #include <solid/battery.h>
-#include <QFrame>
 #include <QMap>
 
 namespace BE {
-class Battery : public QFrame, public Plugged{
+class Battery : public Button {
     Q_OBJECT
 public:
     Battery(QWidget *parent = 0);
@@ -48,6 +47,5 @@ private:
     int myCharge;
     QMap<QString, int> myBatteries;
     QMap<QString, bool> myACs;
-    QMenu *myMenu;
 };
 }

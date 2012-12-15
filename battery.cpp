@@ -26,24 +26,23 @@
 
 #include <QtDebug>
 
-static QPainterPath icon;
+static QPainterPath gs_icon;
 
-BE::Battery::Battery( QWidget *parent ) : QFrame(parent)
-, BE::Plugged(parent)
+BE::Battery::Battery( QWidget *parent ) : Button(parent)
 , myACisPlugged(false)
 , iAmCharging(false)
 {
-    if (icon.isEmpty())
+    if (gs_icon.isEmpty())
     {
-        icon.moveTo(0,0);
-        icon.lineTo(90,0);
-        icon.lineTo(90,25);
-        icon.lineTo(100,25);
-        icon.lineTo(100,75);
-        icon.lineTo(90,75);
-        icon.lineTo(90,100);
-        icon.lineTo(0,100);
-        icon.closeSubpath();
+        gs_icon.moveTo(0,0);
+        gs_icon.lineTo(90,0);
+        gs_icon.lineTo(90,25);
+        gs_icon.lineTo(100,25);
+        gs_icon.lineTo(100,75);
+        gs_icon.lineTo(90,75);
+        gs_icon.lineTo(90,100);
+        gs_icon.lineTo(0,100);
+        gs_icon.closeSubpath();
     }
 
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -117,7 +116,7 @@ BE::Battery::paintEvent(QPaintEvent *pe)
 
     c.setAlpha(96);
     p.setBrush(c);
-    p.drawPath(icon);
+    p.drawPath(gs_icon);
 
     p.resetTransform();
 
@@ -140,7 +139,7 @@ BE::Battery::paintEvent(QPaintEvent *pe)
 
     c.setAlpha(192);
     p.setBrush(c);
-    p.drawPath(icon);
+    p.drawPath(gs_icon);
 
     p.end();
 }
