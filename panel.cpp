@@ -1137,22 +1137,36 @@ BE::Panel::desktopResized()
 void
 BE::Panel::updateEffectBg()
 {
+    delete myBgPix; myBgPix = 0; // ensure the desktop will not paint our effect background
+    if (!parentWidget())
+        return;
+
     int x(0),y(0),w(0),h(0);
     QRect prect = geometry();
     BE::Shell::getContentsMargins(this, &x, &y, &w, &h);
-//     getContentsMargins(&x,&y,&w,&h);
     const int v = shadowPadding();
     int d[4] = { (v&0xff) - 128, ((v >> 8) & 0xff) - 128,
-                 ((v >> 16) & 0xff) - 128, ((v >> 24) & 0xff) - 128 };
+                ((v >> 16) & 0xff) - 128, ((v >> 24) & 0xff) - 128 };
     if (d[1] == d[2] && d[2] == d[3] && d[3] == 0xff)
         d[1] = d[2] = d[3] = d[0];
     prect.adjust(x-d[3],y-d[0],d[1]-w,d[2]-h);
-    prect &= BE::Shell::desktopGeometry(myScreen);
-    prect.getRect(&x,&y,&w,&h);
-    if (myBlurRadius && parentWidget())
+    const QRect desktop = BE::Shell::desktopGeometry(myScreen);
+
+    QPainterPath path;
+    if (myBlurRadius) {
+        path.addRoundedRect(prect, myShadowRadius, myShadowRadius);
+        QPainterPath p2; p2.addRect(desktop);
+        path = path.intersected(p2);
+    }
+
+    prect &= desktop;
+
+    if (myBlurRadius)
+        path.translate(-prect.topLeft());
+
+    if (myBlurRadius)
     {
         QImage *img = new QImage(prect.size(), QImage::Format_ARGB32);
-        delete myBgPix; myBgPix = 0; // ensure the desktop will not paint our effect background
         int sr = myShadowRadius;
         myShadowRadius = -1; // ensure the desktop will not paint our shadow now
         parentWidget()->render(img, QPoint(), prect, DrawWindowBackground);
@@ -1164,7 +1178,7 @@ BE::Panel::updateEffectBg()
         p.setBrush( Qt::white );
         p.setRenderHint( QPainter::Antialiasing );
         p.setCompositionMode(QPainter::CompositionMode_DestinationOut);
-        p.drawRoundedRect(blurCp->rect(), myShadowRadius, myShadowRadius);
+        p.drawPath(path);
         p.end();
         p.begin(blurCp);
         p.drawImage(0,0,*img);
@@ -1175,6 +1189,5 @@ BE::Panel::updateEffectBg()
         delete blurCp;
         parentWidget()->update(prect);
     }
-    else
-        { delete myBgPix; myBgPix = 0L; if (parentWidget()) parentWidget()->update(prect); }
+    parentWidget()->update(prect);
 }
