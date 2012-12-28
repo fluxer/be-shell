@@ -61,6 +61,9 @@ public:
     void showWindowList();
     void update(const unsigned long *properties);
 protected:
+    void dragEnterEvent(QDragEnterEvent*);
+    void dragLeaveEvent(QDragLeaveEvent*);
+    void dropEvent(QDropEvent*);
     void enterEvent(QEvent *e);
     void leaveEvent(QEvent *e);
     void mousePressEvent(QMouseEvent *);
@@ -78,6 +81,7 @@ private slots:
     void highlightAllOrNone();
     void highlightWindow(QAction *a);
     void _repolish();
+    void raiseForDnD();
     void toggleSticky();
 private:
     bool iStick, iAmImportant, iAmMinimized, iAmDirty;
@@ -87,6 +91,7 @@ private:
     static QLabel *ourToolTip;
     QSize mySizeHint, myRequiredSize;
     bool mySizeHintIsDirty;
+    quint64 myDragEnterTime;
 };
 
 class Tasks : public QFrame, public Plugged

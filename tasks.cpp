@@ -20,6 +20,10 @@
 
 #include <QApplication>
 #include <QBoxLayout>
+#include <QDragEnterEvent>
+#include <QDragLeaveEvent>
+#include <QDropEvent>
+#include <QElapsedTimer>
 #include <QLabel>
 #include <QMenu>
 #include <QMouseEvent>
@@ -91,7 +95,8 @@ static bool isOccluded(WId id)
             occluded = i.hasState(NET::StaysOnTop);
         if (i.hasState(NET::KeepBelow))
             occluded = j.hasState(NET::KeepBelow);
-        return occluded;
+        if (occluded)
+            return true;
     }
     return false;
 }
@@ -111,6 +116,7 @@ BE::Task::Task(QWidget *parent, WId id, bool sticky, const QString &name) : BE::
 
     setSizePolicy(QSizePolicy( QSizePolicy::Preferred, QSizePolicy::Fixed ));
     setCheckable(true);
+    setAcceptDrops( true );
     setFont( KGlobalSettings::taskbarFont() );
     setPopupMode(QToolButton::DelayedPopup);
 
@@ -157,6 +163,91 @@ BE::Task::configure( KConfigGroup *grp )
 {
     BE::Button::configure(grp);
     myText = myLabel = text();
+}
+
+static QElapsedTimer gs_dragMeasureClock;
+
+void
+BE::Task::dragEnterEvent(QDragEnterEvent*)
+{   // user wants to drop into one of our clients
+    if (!gs_dragMeasureClock.isValid())
+        gs_dragMeasureClock.start();
+    myDragEnterTime = gs_dragMeasureClock.elapsed();
+    QTimer::singleShot(750, this, SLOT(raiseForDnD()));
+}
+
+
+void
+BE::Task::dragLeaveEvent(QDragLeaveEvent*)
+{   // no longer DnD target
+    // TODO: not received?
+    myDragEnterTime = 0;
+}
+
+void
+BE::Task::dropEvent(QDropEvent*)
+{   // dropped here, ie. there's no more a DnD in process
+    // TODO: not received?
+    myDragEnterTime = 0;
+}
+
+void
+BE::Task::raiseForDnD()
+{
+    if (!myDragEnterTime || gs_dragMeasureClock.elapsed() - myDragEnterTime < 720 ||
+        !rect().contains(mapFromGlobal(QCursor::pos())))
+        return; // this was cancelled
+
+    // now the task is to find a drop target
+    QList <WId> foreigners, minimized;
+    foreach (WId id, myWindows) {
+        if (!isOccluded(id)) { // assume the user is not stupid
+            continue;
+        }
+        KWindowInfo i(id, NET::WMState|NET::XAWMState|NET::WMDesktop );
+        if (!i.isOnCurrentDesktop()) {
+            foreigners << id;
+            continue;
+        }
+        if (i.isMinimized()) {
+            minimized << id;
+            continue;
+        }
+        // we found one!
+        KWindowSystem::raiseWindow(id);
+        // "fake" next time reference
+        // and in 300 ms present the user the next candidate ;-)
+        QTimer::singleShot(750, this, SLOT(raiseForDnD()));
+        myWindows.removeAll(id); // we can only do this because we'LL no exit
+        myWindows << id; // and append it so it will not be the next candidate again
+        return;
+    }
+
+    // TODO: is some of our clients occlude each other, we will *never* get here.
+
+    // Ok - try one of the minimized
+    if (!minimized.isEmpty()) {
+        WId id = minimized.first();
+        KWindowSystem::forceActiveWindow(id);
+        // "fake" next time reference
+        // and in 300 ms present the user the next candidate ;-)
+        QTimer::singleShot(750, this, SLOT(raiseForDnD()));
+        myWindows.removeAll(id); // we can only do this because we'LL no exit
+        myWindows << id; // and append it so it will not be the next candidate again
+        return;
+    }
+
+    // No? Move to another Desktop then
+    if (!foreigners.isEmpty()) {
+        WId id = foreigners.first();
+        KWindowSystem::forceActiveWindow(id);
+        // "fake" next time reference
+        // and in 300 ms present the user the next candidate ;-)
+        QTimer::singleShot(750, this, SLOT(raiseForDnD()));
+        myWindows.removeAll(id); // we can only do this because we'LL no exit
+        myWindows << id; // and append it so it will not be the next candidate again
+        return;
+    }
 }
 
 void
