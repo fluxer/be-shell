@@ -131,8 +131,9 @@ BE::Session::Session( QWidget *parent ) : Button(parent)
     setPopupMode( QToolButton::InstantPopup );
     QMenu *menu = new QMenu(this);
     mySessionMenu = new QMenu(menu);
-    menu->addAction(i18n("Lock Screen"), this, SLOT(lockscreen()));
+    menu->addAction(i18n("Lock screen"), this, SLOT(lockscreen()));
     menu->addAction(i18n("Fall asleep"), this, SLOT(suspend()));
+    menu->addAction(i18n("Lock && sleep"), this, SLOT(saveSuspend()));
     menu->addSeparator();
     menu->addAction(i18n("Logout"), this, SLOT(logout()));
     mySessionAction = menu->addAction(i18n("New session ..."), this, SLOT(login()));
@@ -291,6 +292,14 @@ void BE::Session::suspend()
     dlg->show();
 }
 
+void BE::Session::saveSuspend()
+{
+    RescueDialog *dlg = new RescueDialog(i18n("Lock screen & fall asleep"), 10, desktop());
+    dlg->setProperty("DelayedAction", SaveSuspend);
+    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)));
+    dlg->show();
+}
+
 void BE::Session::shutdown()
 {
     RescueDialog *dlg = new RescueDialog(i18n("Power Off"), 10, desktop());
@@ -312,6 +321,9 @@ void BE::Session::rescueDialogFinished(int result)
                 ksmserver.call(QLatin1String("logout"), 0, 1, 2); break;
             case Logout:
                 ksmserver.call(QLatin1String("logout"), 0, 0, 2); break;
+            case SaveSuspend:
+                lockscreen();
+                // fall through
             case Suspend: {
 #if BE_SHELL_USE_HAL
                 QDBusInterface("org.freedesktop.Hal", "/org/freedesktop/Hal/devices/computer",

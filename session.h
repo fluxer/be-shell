@@ -33,7 +33,7 @@ class Session : public Button
 {
     Q_OBJECT
 public:
-    enum Termination { PowerOff = 1, Logout, Reboot, Suspend };
+    enum Termination { PowerOff = 1, Logout, Reboot, Suspend, SaveSuspend };
     Session(QWidget *parent = 0);
     void configure( KConfigGroup *grp );
     void saveSettings( KConfigGroup *grp );
@@ -48,6 +48,7 @@ private slots:
     void login();
     void reboot();
 //     void sessionsUpdated();
+    void saveSuspend();
     void suspend();
     void shutdown();
     void updateSessions();
