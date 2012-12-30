@@ -149,7 +149,8 @@ BE::Button::configure( KConfigGroup *grp )
     else if (!connected)
         connect( this, SIGNAL(clicked()), this, SLOT(runCommand()) );
 
-    setIcon(themeIcon(myIcon));
+    if (!myIcon.isEmpty())
+        setIcon(themeIcon(myIcon));
     setShortcut(QKeySequence()); // getrid of mnemonics
 }
 
@@ -296,7 +297,8 @@ BE::Button::startService()
 void
 BE::Button::themeChanged()
 {
-    setIcon(themeIcon(myIcon));
+    if (!myIcon.isEmpty())
+        setIcon(themeIcon(myIcon));
 }
 
 void
