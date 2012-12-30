@@ -39,6 +39,7 @@ public:
     void requestAttention(int count = 12);
 protected:
     bool eventFilter(QObject *o, QEvent *e);
+    inline const QString &iconName() const { return myIcon; }
     inline bool isSyntheticCrossing() const { return imNotReallyCrossed; }
     void enterEvent(QEvent *e);
     void leaveEvent(QEvent *e);

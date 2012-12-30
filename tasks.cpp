@@ -758,7 +758,7 @@ BE::Task::update(const unsigned long *properties)
     else
         setText(myLabel);
 
-    if (props[0] & NET::WMIcon)
+    if (props[0] & NET::WMIcon && iconName().isEmpty()) // if an icon was set, this is a sticky one
     {
         QIcon icn = BE::Plugged::themeIcon(exe().isEmpty() ? myGroup : exe(), false);
         if (icn.isNull() && id)
