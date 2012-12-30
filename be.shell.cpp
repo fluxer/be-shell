@@ -599,7 +599,7 @@ BE::Shell::launchRunner()
 }
 
 static KProcess *kscreenlocker = 0;
-static KProcess *kscreenlockerconfig = 0;
+// static KProcess *kscreenlockerconfig = 0;
 static bool usedCompositing = false;
 
 static bool runProcess(KProcess **proc, const char *cmd, const char *arg, QObject *parent = 0, bool sync = false)
@@ -662,7 +662,8 @@ BE::Shell::resetCompositing()
 void
 BE::Shell::configureScreenLocker()
 {
-    runProcess(&kscreenlockerconfig, "kcmshell4", "screensaver", this);
+    run("kcmshell4 screensaver");
+//     runProcess(&kscreenlockerconfig, "kcmshell4", "screensaver", this);
 }
 
 void
@@ -670,6 +671,11 @@ BE::Shell::configure()
 {
     KSharedConfig::Ptr shellConfig = KSharedConfig::openConfig("be.shell");
     KConfigGroup grp = shellConfig->group("BE::Shell");
+
+    QString oldS = myTheme;
+    myTheme = grp.readEntry("Theme", "default");
+    if ( myTheme != oldS )
+        setTheme(myTheme);
 
     iAmTouchy = grp.readEntry("Touch", false);
 
@@ -730,11 +736,6 @@ BE::Shell::configure()
 
     myPanels = panels;
 
-    grp = shellConfig->group("BE::Shell");
-    QString oldS = myTheme;
-    myTheme = grp.readEntry("Theme", "default");
-    if ( myTheme != oldS )
-        setTheme(myTheme);
 
 //     bool reloadStyle = true;
 
