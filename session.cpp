@@ -199,11 +199,11 @@ BE::Session::configure( KConfigGroup *grp )
     //     RoomNumber, WorkPhone, HomePhone
     setToolTip( tooltip.arg(user.property(KUser::FullName).toString()).arg(user.loginName()).
                         arg(user.uid()).arg(user.homeDir()).arg(user.shell()) );
-    QString icon = grp->readEntry("Icon", "");
-    if (icon.isEmpty())
+    myIcon = grp->readEntry("Icon", "");
+    if (myIcon.isEmpty())
         setIcon(QPixmap::fromImage(QImage(user.faceIconPath())));
     else
-        setIcon(themeIcon(icon));
+        setIcon(themeIcon(myIcon));
 }
 
 void
@@ -340,6 +340,12 @@ void BE::Session::rescueDialogFinished(int result)
         }
     }
     sender()->deleteLater();
+}
+
+void BE::Session::themeChanged()
+{
+    if (!myIcon.isEmpty())
+        setIcon(themeIcon(myIcon));
 }
 
 void BE::Session::updateSessions()

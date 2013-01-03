@@ -39,7 +39,7 @@ public:
     void saveSettings( KConfigGroup *grp );
 protected:
     void mousePressEvent(QMouseEvent *ev);
-    void themeChanged() { /*Do nothing - esp. not what BE::Button does ;-) */ }
+    void themeChanged();
 private slots:
     void activateSession();
     void rescueDialogFinished(int);
@@ -56,6 +56,7 @@ private slots:
 private:
     QAction *useFullName, *mySessionAction;
     QMenu *myConfigMenu, *mySessionMenu;
+    QString myIcon;
 };
 }
 #endif // SESSION_H
