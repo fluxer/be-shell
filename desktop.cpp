@@ -889,6 +889,7 @@ BE::Desk::saveSettings( KConfigGroup *grp )
         grp->writeEntry( QString("WallpaperAspect_%1").arg(i.key()), (float)i.value().aspect );
         grp->writeEntry( QString("WallpaperMode_%1").arg(i.key()), (int)i.value().mode );
     }
+    grp->writeEntry("WheelOnLMB", iWheelOnClickOnly);
     grp->writeEntry( "TrashCan", bool(myTrash.can) );
     if (myTrash.can)
     {
