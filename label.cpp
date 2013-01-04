@@ -73,8 +73,14 @@ BE::Label::configure( KConfigGroup *grp )
     bool isActive = grp->readEntry("Active", false);
     setOpenExternalLinks(isActive);
     setTextInteractionFlags(isActive ? Qt::TextSelectableByKeyboard|Qt::LinksAccessibleByMouse : Qt::LinksAccessibleByMouse);
+
+    QString _home, _user;
+    char *env;
+    if ((env = getenv("HOME"))) _home = QString::fromLocal8Bit(env);
+    if ((env = getenv("USER"))) _user = QString::fromLocal8Bit(env);
     if (!myCommand.isEmpty())
     {
+        myCommand.replace("$HOME", _home).replace("$USER", _user);
         myProcess = new QProcess(this);
         if ( myPollInterval )
             connect( myProcess, SIGNAL(finished(int,QProcess::ExitStatus)), SLOT(updateContents()) );
@@ -83,9 +89,10 @@ BE::Label::configure( KConfigGroup *grp )
     }
     else
     {
-        const QString file = grp->readEntry("FiFo", QString());
+        QString file = grp->readEntry("FiFo", QString());
         if (!file.isEmpty())
         {
+            file.replace("$HOME", _home).replace("$USER", _user);
             if (QFile::exists(file) && isFiFo(file)) {
                 if (int fd = open(CHAR(file), O_RDWR|O_ASYNC|O_NONBLOCK))
                 {
