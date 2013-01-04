@@ -1003,7 +1003,7 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
         {
         case Tiled: {
             // make tile at least 32x32, painting performance thing.
-            QSize dst;
+            QSize dst(img.size());
             if (img.width() < 32)
                 dst.setWidth(qCeil(32.0f/img.width())*img.width());
             if (img.height() < 32)
