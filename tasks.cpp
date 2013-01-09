@@ -799,6 +799,13 @@ BE::Tasks::Tasks(QWidget *parent) : QFrame(parent), BE::Plugged(parent)
 static const unsigned long
 supported_types = NET::Unknown | NET::NormalMask | NET::DialogMask | NET::UtilityMask;
 
+inline static bool matching(const QString &s1, const QString &s2)
+{
+    if (s1.isEmpty() || s2.isEmpty())
+        return false;
+    return s1.compare(s2, Qt::CaseInsensitive) == 0;
+}
+
 BE::Task*
 BE::Tasks::addWindow( WId id )
 {
@@ -824,14 +831,14 @@ BE::Tasks::addWindow( WId id )
         foreach (Task *t, myTasks) {
             if (!(iStackNow || t->isSticky()))
                 continue;
-            if (newClass.compare(t->group(), Qt::CaseInsensitive) && newExe.compare(t->exe(), Qt::CaseInsensitive) &&
-                newClass.compare(t->exe(), Qt::CaseInsensitive) && newExe.compare(t->group(), Qt::CaseInsensitive))
-                continue;
-            // found one, add and outa here
-            t->add(id);
-            updateVisibility(t);
-//             t->setToolButtonStyle(myButtonMode);
-            return 0;
+            if (matching(newClass, t->group()) || matching(newExe, t->exe()) ||
+                matching(newClass, t->exe()) || matching(newExe, t->group())) {
+                // found one, add and outa here
+                t->add(id);
+                updateVisibility(t);
+//                 t->setToolButtonStyle(myButtonMode);
+                return 0;
+            }
         }
     }
 
