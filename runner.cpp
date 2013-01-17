@@ -560,10 +560,21 @@ void BE::Run::execute( const QString &exec/*Line*/ )
         myOutput->show();
 
         QStringList cmds;
-        if (bc_abuse)
+        if (bc_abuse) {
             cmds << "bc -l";
-        else
+            if (myOutput->objectName() != "Calculator") {
+                myOutput->setObjectName("Calculator");
+                style()->unpolish(myOutput);
+                style()->polish(myOutput);
+            }
+        } else {
             cmds = exec.mid(1).split('|', QString::SkipEmptyParts);
+            if (myOutput->objectName() != "TextShell") {
+                myOutput->setObjectName("TextShell");
+                style()->unpolish(myOutput);
+                style()->polish(myOutput);
+            }
+        }
 
         for (int i = 0; i < cmds.count(); ++i)
         {
@@ -580,7 +591,7 @@ void BE::Run::execute( const QString &exec/*Line*/ )
 
 
         for (int i = 0; i < myIOProcs.count(); ++i) {
-            qDebug() << myAliases.value(cmds.at(i), cmds.at(i));
+//             qDebug() << myAliases.value(cmds.at(i), cmds.at(i));
             myIOProcs.at(i)->start(myAliases.value(cmds.at(i), cmds.at(i)));
         }
         if (bc_abuse)
@@ -922,8 +933,7 @@ static int rFilter( const QStringList &strings, QTreeWidgetItem *item, bool incr
             if ( kid->childCount() && kid != favorites )
             {   //this is a group, filter children as well
                 kidCnt = rFilter( strings, kid, incremental, favorites, visible );
-                if (!visible)
-                    visible = kidCnt; // ...but maybe due to visible children
+                visible = visible || kidCnt; // ...but maybe due to visible children
                 // the recursion determines the odds of this group, set it as probability
                 probability = kid->data(1, Qt::DisplayRole).toDouble();
             }
@@ -1025,9 +1035,11 @@ void BE::Run::filter( const QString &string )
     if (string.startsWith(':') || string.startsWith('='))
         return; // IO command - no filtering. Doesn't make sense
     m_currentHistoryEntry = -1;
-    bool inc = !string.isEmpty() && string.contains(m_lastFilter, Qt::CaseInsensitive);
-    if ( inc && m_visibleIcons < 2 )
+    bool inc = !(string.isEmpty() || m_lastFilter.isEmpty()) && string.contains(m_lastFilter, Qt::CaseInsensitive);
+
+    if ( inc && m_visibleIcons < 2 ) {
         return;
+    }
 
     m_visibleIcons = rFilter(string.split( ' ', QString::SkipEmptyParts, Qt::CaseInsensitive ),
                               m_tree->invisibleRootItem(), inc, favorites);
