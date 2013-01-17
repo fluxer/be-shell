@@ -314,17 +314,17 @@ BE::NetMeter::configure( KConfigGroup *grp )
 void
 BE::NetMeter::poll()
 {
-    uint read = 0, written = 0;
+    quint64 read = 0, written = 0;
     QFile f(myDevice + "rx_bytes");
     if (f.open(QIODevice::ReadOnly))
     {
-        read = QString(f.readLine()).toUInt();
+        read = QString(f.readLine()).toULongLong();
         f.close();
     }
     QFile f2(myDevice + "tx_bytes");
     if (f2.open(QIODevice::ReadOnly))
     {
-        written = QString(f2.readLine()).toUInt();
+        written = QString(f2.readLine()).toULongLong();
         f2.close();
     }
 
@@ -332,7 +332,7 @@ BE::NetMeter::poll()
     switch (myMode) {
         default:
         case Dynamic:
-            up = maximum(1)/(value(1)+1) < maximum(0)/(value(0)+1);
+            up = (maximum(1)+1)/(value(1)+1) < (maximum(0)+1)/(value(0)+1);
             setValues( 8*(read - myLastValues[0])/myPollInterval, 8*(written - myLastValues[1])/myPollInterval );
             break;
         case Up:

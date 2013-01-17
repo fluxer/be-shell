@@ -87,7 +87,7 @@ class NetMeter : public Meter
 {
     Q_OBJECT
 public:
-    enum Mode { Dynamic, Up, Down };
+    enum Mode { Dynamic = 0, Up, Down };
     NetMeter( QWidget *parent = 0 );
     void configure( KConfigGroup *grp );
 protected:
@@ -95,7 +95,7 @@ protected:
 private:
     QString speed(int i);
     QString myDevice;
-    uint myLastValues[2];
+    quint64 myLastValues[2];
     Mode myMode;
 };
 
