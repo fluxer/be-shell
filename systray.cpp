@@ -340,7 +340,8 @@ BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent), nas
     connect(act, SIGNAL(toggled(bool)), this, SLOT(toggleNastyOnes(bool)));
     myConfigMenu->addAction( "Configure...", this, SLOT(configureIcons()) );
     healthTimer = new QTimer(this);
-//     connect (healthTimer, SIGNAL(timeout()), this, SLOT(selfCheck()));
+    healthTimer->setSingleShot(true);
+    connect (healthTimer, SIGNAL(timeout()), this, SLOT(selfCheck()));
 
     FlowLayout *l = new FlowLayout(this);
     l->setContentsMargins(3, 1, 3, 1);
@@ -684,7 +685,7 @@ bool BE::SysTray::x11Event(XEvent *event)
             myIcons.append( icon );
             layout()->addWidget( icon );
             icon->hide();
-            QTimer::singleShot( 2000, this, SLOT(selfCheck()) );
+            healthTimer->start(2000);
         }
         else if(event->xclient.message_type == net_opcode_atom && event->xclient.data.l[1] == SYSTEM_TRAY_BEGIN_MESSAGE)
         {
