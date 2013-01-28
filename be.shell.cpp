@@ -501,9 +501,42 @@ BE::Shell::showBeMenu()
 #define ADD_WINDOW_ACTION(_STRING_, _ACTION_, _STATE_) \
 act = instance->myContextMenu->addAction( i18n(_STRING_) ); \
 act->setCheckable(_STATE_); \
-act->setChecked(info.hasState(_STATE_)); \
+act->setChecked((info.state() & _STATE_) == _STATE_); \
 act->setData(_STATE_); \
-act->setEnabled(!_ACTION_ || info.actionSupported(_ACTION_))
+act->setEnabled(!_ACTION_ || ((info.allowedActions() & _ACTION_) == _ACTION_))
+
+/// internal implementation
+/// a) because i need it and don't want a extra KWindowInfo on a NETWinInfo
+/// b) because the KWindowInfo implementaion has issues - see https://git.reviewboard.kde.org/r/108308
+bool isMinimized(unsigned long int state, NET::MappingState mappingState)
+{
+    // NETWM 1.2 compliant WM - uses NET::Hidden for minimized windows
+    if(( state & NET::Hidden ) != 0 && ( state & NET::Shaded ) == 0 ) // shaded may have NET::Hidden too
+        return true;
+    // ICCCM
+    if( mappingState != NET::Iconic )
+        return false;
+
+    // older WMs use WithdrawnState for other virtual desktops
+    // and IconicState only for minimized
+    return KWindowSystem::icccmCompliantMappingState() ? false : true;
+}
+
+char processState(int pid) {
+    if (!pid)
+        return 0;
+    QFile linux_proc("/proc/" + QString::number(pid) + "/stat");
+    if (!linux_proc.exists())
+        return 0;
+    if (!linux_proc.open(QFile::ReadOnly))
+        return 0;
+    QString stat = linux_proc.readAll(); // <pid> (<exec>) <state> many numbers
+    linux_proc.close();
+    int idx = stat.lastIndexOf(')') + 2;
+    if (stat.count() <= idx)
+        return 0;
+    return stat.at(idx).toAscii();
+}
 
 void
 BE::Shell::showWindowContextMenu(WId id, const QPoint &pos)
@@ -519,20 +552,29 @@ BE::Shell::showWindowContextMenu(WId id, const QPoint &pos)
     }
     else
         instance->myContextMenu->clear();
-
-    KWindowInfo info(instance->myContextWindow, NET::WMState|NET::XAWMState|NET::WMDesktop, NET::WM2AllowedActions);
+    static const unsigned long props[2] = {NET::WMState|NET::XAWMState|NET::WMDesktop|NET::WMPid, NET::WM2AllowedActions};
+    NETWinInfo info(QX11Info::display(), instance->myContextWindow, QX11Info::appRootWindow(), props, 2);
     QAction *act;
+
+    if (const char pstate = processState(info.pid())) {
+        act = instance->myContextMenu->addAction( pstate == 'T' ? i18n("{>} Continue process") : i18n("{=} Pause process") );
+        act->setCheckable(false);
+        act->setData(0xffffffff);
+        act->setEnabled(true);
+        instance->myContextMenu->addSeparator();
+    }
+
     ADD_WINDOW_ACTION("Close", NET::ActionClose, (NET::State)0);
     instance->myContextMenu->addSeparator();
 
     ADD_WINDOW_ACTION("On all desktops", NET::ActionStick, NET::Sticky);
     act->setEnabled(true); //hack
-    act->setChecked(info.onAllDesktops());
+    act->setChecked(info.desktop() == NET::OnAllDesktops);
     QMenu *desktopMenu = instance->myContextMenu->addMenu(i18n("To desktop"));
     connect (desktopMenu, SIGNAL(triggered(QAction*)), instance, SLOT(contextWindowToDesktop(QAction*)));
     act = desktopMenu->addAction(i18n("This desktop"));
     act->setCheckable(true);
-    act->setChecked(info.isOnCurrentDesktop());
+    act->setChecked(info.desktop() == NET::OnAllDesktops || info.desktop() == KWindowSystem::currentDesktop());
     act->setData(KWindowSystem::currentDesktop());
     desktopMenu->addSeparator();
     const int n = KWindowSystem::numberOfDesktops() + 1;
@@ -540,14 +582,14 @@ BE::Shell::showWindowContextMenu(WId id, const QPoint &pos)
     {
         act = desktopMenu->addAction(i18n("%1 desktop %1").arg(i));
         act->setCheckable(true);
-        act->setChecked(info.isOnDesktop(i));
+        act->setChecked(info.desktop() == NET::OnAllDesktops || info.desktop() == i);
         act->setData(i);
     }
     instance->myContextMenu->addSeparator();
     ADD_WINDOW_ACTION("FullScreen", NET::ActionFullScreen, NET::FullScreen);
     ADD_WINDOW_ACTION("Maximized", NET::ActionMax, NET::Max);
     ADD_WINDOW_ACTION("Minimized", NET::ActionMinimize, NET::Hidden);
-    act->setChecked(info.isMinimized()); //hack
+    act->setChecked(isMinimized(info.state(), info.mappingState())); //hack
     ADD_WINDOW_ACTION("Shaded", NET::ActionShade, NET::Shaded);
     instance->myContextMenu->addSeparator();
     ADD_WINDOW_ACTION("Above other windows", (NET::Action)0, NET::KeepAbove);
@@ -758,14 +800,57 @@ BE::Shell::contextWindowAction(QAction *act)
 
     const NET::State singleState = (NET::State)act->data().toUInt();
 
-    if (!singleState) // "close"
+    if (!singleState) { // "close"
         NETRootInfo(QX11Info::display(), NET::CloseWindow).closeWindowRequest(myContextWindow);
+        return;
+    }
+
+    if (singleState == (NET::State)0xffffffff) { // toggle pause
+        NETWinInfo info(QX11Info::display(), myContextWindow, QX11Info::appRootWindow(), NET::WMPid);
+        const char pstate = processState(info.pid());
+        if (!pstate) // error
+            return;
+        if (pstate == 'T') // paused
+            ::kill(info.pid(), SIGCONT);
+        else {
+            ::kill(info.pid(), SIGSTOP);
+            KConfig cfg;
+            KConfigGroup cg(&cfg, "Notification Messages");  // Depends on KMessageBox
+            if (!cg.readEntry("SIGSTOP_warning", true))
+                return;
+            KMessageBox::information(0, i18n("<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1>"
+                                        "<h2>SIGSTOP is not for noobs!</h2>"
+                                        "You just stopped a process, what will freeze it.<br>"
+                                        "The process can be re-activtated by sending it SIGCONT "
+                                        "(contact the kill manpage)<br>"
+                                        "What you <b>must understand</b> is that neither the Windowmanager, "
+                                        "nor the display server (X11) are stopped.<br>"
+                                        "<h3>This has serious implications</h3>"
+                                        "All - and I mean <b>all</b> input events are still delivered "
+                                        "to the process and will be executed immediately when the "
+                                        "process continues!<br>"
+                                        "<h3>Example:</h3>"
+                                        "If you paused konsole and then happily typed<br>"
+                                        "<pre>rm -rf ~/* ~/.*</pre><br>"
+                                        "into it, there will be no immediate output or reaction.<br>"
+                                        "<b>BUT:</b> The moment the process continues, konsole will "
+                                        "<b>delete all your personal data</b> by that command."
+                                        "<h2>Sum up</h2>"
+                                        "Do not do \"funny\" things with a process because it seems inreactive.<br>"
+                                        "Best minimize the window and do not touch it before you continued "
+                                        "to play it."
+                                        "<h1>You have been warned!</h1>"),
+                                        i18n("SIGSTOP is not for fools!"), "SIGSTOP_warning",
+                                        KMessageBox::Dangerous);
+        }
+        return;
+    }
 
     const KWindowInfo info(myContextWindow, NET::WMState|NET::WMDesktop);
     const unsigned long state = info.state();
     if (singleState == NET::Hidden) // minimize
     {
-        if (info.isMinimized())
+        if (isMinimized(info.state(), info.mappingState()))
             KWindowSystem::unminimizeWindow(myContextWindow);
         else
             KWindowSystem::minimizeWindow(myContextWindow);
@@ -1054,7 +1139,7 @@ nextWindow: continue;
                 if (info.hasState(NET::SkipTaskbar))
                     continue;
                 QString title = info.visibleIconName();
-                if (info.isMinimized())
+                if (isMinimized(info.state(), info.mappingState()))
                     title = "( " + title + " )";
                 title = "    " + title;
                 if (title.length() > 52)
