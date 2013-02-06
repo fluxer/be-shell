@@ -254,7 +254,7 @@ BE::Label::readFiFo()
         const QStringList l = s.split('\n');
         s.clear();
         int last = l.count(), lines = 0;
-        while (lines < myLines && last > -1) {
+        while (lines < myLines && last > 0) {
             if (!l.at(--last).isEmpty())
                 ++lines;
         }
