@@ -1,8 +1,10 @@
 #!/bin/sh
 
 USER=`whoami`
+mkdir -p "/tmp/${USER}/be.shell/"
 FIFO_FILE="/tmp/${USER}/be.shell/${FIFO}"
 LOCK_FILE="${FIFO_FILE}.lock"
+
 
 # DAEMONIZE ---------------------------------
 
@@ -32,7 +34,6 @@ esac
 trap 'rm "$LOCK_FILE"; exit' INT TERM EXIT
 
 if [ ! -p "$FIFO_FILE" ]; then
-    mkdir -p "/tmp/${USER}/be.shell/"
     rm "$FIFO_FILE"
     mkfifo "$FIFO_FILE"
 fi
