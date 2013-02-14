@@ -309,10 +309,16 @@ BE::Device::toggleEject()
     if( path.isEmpty())
         return;
 
+    QString blockDevice;
+    if (Solid::Block *block = Solid::Device(myDriveUdi).as<Solid::Block>())
+        blockDevice = block->device();
+    else // last resort - does not work with udisks2 ...
+        myDriveUdi.section('/', -1);
+
     QStringList args;
     if (!vol)
         args << "-T";
-    args << myDriveUdi.section('/', -1);
+    args << blockDevice;
     QProcess::startDetached( path, args );
 
 //     Solid::OpticalDrive *odrv = Solid::Device(myDriveUdi).as<Solid::OpticalDrive>();
