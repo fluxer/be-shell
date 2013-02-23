@@ -1,0 +1,48 @@
+CONDITION=( "Tornado" \
+"Tempesta tropicale" \
+"Uragano" \
+"Forti temporali" \
+"Temporali" \
+"Pioggia mista a neve" \
+"Pioggia mista a nevischio" \
+"Neve mista a nevischio" \
+"Nevischio" \
+"Pioviggine" \
+"Pioggia gelata" \
+"Pioggia" \
+"Forti piogge" \
+"Raffiche di neve" \
+"Lievi nevicate" \
+"Soffi di neve" \
+"Neve" \
+"Grandine" \
+"Nevischio" \
+"Pulviscolo" \
+"Nebbia" \
+"Foschia" \
+"Smog" \
+"Ventoso" \
+"Vento" \
+"Freddo intenso" \
+"Nuvoloso" \
+"Molto nuvoloso" \
+"Molto nuvoloso" \
+"Parzialmente nuvoloso" \
+"Parzialmente nuvoloso" \
+"Sereno" \
+"Soleggiato" \
+"Sereno" \
+"Sereno" \
+"Grandine e pioggia" \
+"Molto caldo" \
+"Temporali isolati" \
+"Temporali" \
+"Sereno variabile" \
+"Piogge isolate" \
+"Nevicate" \
+"Nevicate sparse" \
+"Forti nevicate" \
+"Parzialmente nuvoloso" \
+"Pioggia" \
+"Neve" \
+"Isolati temporali" )
