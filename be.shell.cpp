@@ -716,8 +716,7 @@ BE::Shell::configure()
 
     QString oldS = myTheme;
     myTheme = grp.readEntry("Theme", "default");
-    if ( myTheme != oldS )
-        setTheme(myTheme);
+    const bool reloadStyle = myTheme != oldS;
 
     iAmTouchy = grp.readEntry("Touch", false);
 
@@ -778,11 +777,8 @@ BE::Shell::configure()
 
     myPanels = panels;
 
-
-//     bool reloadStyle = true;
-
-//     if (reloadStyle)
-//         setTheme(myTheme);
+    if (reloadStyle)
+        QMetaObject::invokeMethod(this, "setTheme", Qt::QueuedConnection, Q_ARG(QString, myTheme));
 }
 
 static bool _isContextDesktopChange = false;
@@ -1272,12 +1268,7 @@ BE::Shell::setTheme(const QString &t)
     QString file = KGlobal::dirs()->locate("data","be.shell/Themes/" + myTheme + "/style.css");
     qApp->setStyleSheet( QString() );
     if( !file.isEmpty() )
-    {
-        myStyleWatcher = new QFileSystemWatcher(this);
-        myStyleWatcher->addPath(file);
-        connect( myStyleWatcher, SIGNAL(fileChanged(const QString &)), this, SLOT(updateStyleSheet(const QString &)) );
         updateStyleSheet(file);
-    }
 
     foreach (Plugged *p, myPlugs)
     {
@@ -1440,6 +1431,10 @@ BE::Shell::updateStyleSheet(const QString &filename)
         qApp->setStyleSheet( sheet );
         emit styleSheetChanged();
     }
+    delete myStyleWatcher;
+    myStyleWatcher = new QFileSystemWatcher(this);
+    myStyleWatcher->addPath(filename);
+    connect( myStyleWatcher, SIGNAL(fileChanged(const QString &)), this, SLOT(updateStyleSheet(const QString &)) );
 }
 
 void
