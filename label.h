@@ -43,6 +43,7 @@ protected:
     void leaveEvent(QEvent *e);
     void timerEvent(QTimerEvent *te);
 private slots:
+    void protectedExec(const QString &cmd) const;
     void updateContents();
     void readFiFo();
 private:
@@ -52,6 +53,7 @@ private:
     QProcess *myProcess;
     QDBusInterface *myDBus;
     QList<QVariant> *myDBusArgs;
+    QStringList myPermittedCommands;
     bool myReplyIsPending;
     QFile *myFiFo;
     Label *myToolTip;

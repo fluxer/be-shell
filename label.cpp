@@ -31,6 +31,7 @@
 #include <QtDBus>
 #include <QTimer>
 #include <QTimerEvent>
+#include <QUrl>
 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -70,9 +71,13 @@ BE::Label::configure( KConfigGroup *grp )
     myLines = grp->readEntry("Lines", -1);
     myCommand = grp->readEntry("Exec", QString());
     setWordWrap(grp->readEntry("Wrap", false));
+    myPermittedCommands = grp->readEntry("PermittedCommands", QStringList());
     bool isActive = grp->readEntry("Active", false);
-    setOpenExternalLinks(isActive);
+    setOpenExternalLinks(isActive && myPermittedCommands.isEmpty());
     setTextInteractionFlags(isActive ? Qt::TextSelectableByKeyboard|Qt::LinksAccessibleByMouse : Qt::LinksAccessibleByMouse);
+    disconnect (this, SIGNAL(linkActivated(const QString &)), this, SLOT(protectedExec(const QString &)));
+    if (isActive && !myPermittedCommands.isEmpty())
+        connect(this, SIGNAL(linkActivated(const QString &)), SLOT(protectedExec(const QString &)));
 
     QString _home, _user;
     char *env;
@@ -165,6 +170,20 @@ BE::Label::configure( KConfigGroup *grp )
             myTimer = startTimer(myPollInterval);
         poll();
     }
+}
+
+void 
+BE::Label::protectedExec(const QString &cmd) const
+{
+    QUrl url(cmd);
+    if (url.scheme() != "exec") // not for us
+        return;
+    if (!myPermittedCommands.contains(url.path())) {
+        qWarning() << "***WARNING*** Execution of unpermitted path requested\nPath: " << url.path() << 
+                      "The path *must* be in the \"PermittedCommands\" list of the sender" << sender();;
+        return;
+    }
+    BE::Shell::run(url.path());
 }
 
 void
