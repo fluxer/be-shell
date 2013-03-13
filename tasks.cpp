@@ -642,7 +642,7 @@ BE::Task::resortedText(const QString &text)
 QString
 BE::Task::squeezedText(const QString &text)
 {
-    // contentsRect() seems broken qith QStyleSheetStyle :-(
+    // contentsRect() seems broken with QStyleSheetStyle :-(
 //     int buttonWidth = contentsRect().width();
     int buttonWidth = width();
     QFontMetrics fm(fontMetrics());
