@@ -19,8 +19,11 @@
 ***************************************************************************/
 
 #include <battery.h>
+#include <QEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <QStyle>
+#include <QStyleOptionToolButton>
 #include <solid/device.h>
 #include <solid/devicenotifier.h>
 
@@ -74,6 +77,16 @@ BE::Battery::addDevice( const QString &udi )
 }
 
 
+bool BE::Battery::event(QEvent *e)
+{
+    if (e->type() == QEvent::Polish || e->type() == QEvent::StyleChange) {
+        QStyleOptionToolButton opt;
+        initStyleOption(&opt);
+        myPadding = style()->sizeFromContents(QStyle::CT_ToolButton, &opt, size(), this) - size();
+    }
+    return Button::event(e);
+}
+
 void BE::Battery::collectDevices()
 {
     window()->setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -113,13 +126,14 @@ BE::Battery::paintEvent(QPaintEvent *pe)
     p.setPen(Qt::NoPen);
     p.setRenderHint(QPainter::Antialiasing);
 
-    QRect r(contentsRect());
+    // contentsRect() seems broken with QStyleSheetStyle :-(
+    QRect r(rect().adjusted(myPadding.width(), myPadding.height(), 0, 0));
     const int demH = 22*r.height()/10;
     if (demH > r.width())
         r.setHeight(10*r.width()/22);
     else
         r.setWidth(demH);
-    r.moveCenter(contentsRect().center());
+    r.moveCenter(rect().center());
     const int w = r.width(), h = r.height();
     p.translate(r.topLeft());
     if (!iAmCharging)
@@ -235,12 +249,10 @@ BE::Battery::setState(int state, const QString &udi)
 QSize
 BE::Battery::sizeHint() const
 {
-    int l,t,r,b;
-    getContentsMargins(&l,&t,&r,&b);
     if (orientation() == Qt::Horizontal) {
-        const int h = height() - (t+b);
-        return QSize(11*h/5 + l+r, h + t+b);
+        const int h = height() - myPadding.height();
+        return QSize(11*h/5, h) + myPadding;
     }
-    const int w = width() - (l+r);
-    return QSize(w + l+r, 5*w/11 + t+b);
+    const int w = width() - myPadding.width();
+    return QSize(w, 5*w/11) + myPadding;
 }

@@ -33,6 +33,7 @@ public:
 protected:
 //     void mousePressEvent(QMouseEvent *me);
 //     void mouseReleaseEvent(QMouseEvent *me);
+    bool event(QEvent *e);
     void paintEvent(QPaintEvent *pe);
 private slots:
     void collectDevices();
@@ -47,6 +48,7 @@ private:
 private:
     bool myACisPlugged, iAmCharging;
     int myCharge;
+    QSize myPadding;
     QMap<QString, int> myBatteries;
     QMap<QString, bool> myACs;
 };
