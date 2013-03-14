@@ -121,6 +121,8 @@ BE::Battery::countCharge()
 void
 BE::Battery::paintEvent(QPaintEvent *pe)
 {
+    Button::paintEvent(pe);
+
     QColor c = palette().color(foregroundRole());
     QPainter p(this);
     p.setPen(Qt::NoPen);
@@ -133,6 +135,7 @@ BE::Battery::paintEvent(QPaintEvent *pe)
         r.setHeight(10*r.width()/22);
     else
         r.setWidth(demH);
+    r.adjust((width() - r.width()) % 2, (height() - r.height()) % 2, 0, 0);
     r.moveCenter(rect().center());
     const int w = r.width(), h = r.height();
     p.translate(r.topLeft());
