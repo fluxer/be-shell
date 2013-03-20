@@ -132,7 +132,7 @@ BE::Clock::mousePressEvent(QMouseEvent *ev)
     if( ev->button() == Qt::LeftButton )
     {
         KPopupFrame calenderPopup(this);
-        calenderPopup.setProperty("BespinWindowHints", 1);
+        calenderPopup.setProperty("KStyleFeatureRequest", property("KStyleFeatureRequest").toUInt() | 1); // "Shadowed"
         calenderPopup.setObjectName("Calendar");
         KDatePicker *calender = new KDatePicker(&calenderPopup);
         calenderPopup.setMainWidget(calender);

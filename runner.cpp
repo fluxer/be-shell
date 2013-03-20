@@ -208,7 +208,7 @@ m_currentHistoryEntry(-1), m_visibleIcons(10000), m_flat(false), iScheduledResor
     connect ( m_hideTimer, SIGNAL(timeout()), this, SLOT(hideDueToInactivity()) );
 
     setObjectName("BE::Run");
-    setProperty("BespinWindowHints", 1); // "Shadowed"
+    setProperty("KStyleFeatureRequest", property("KStyleFeatureRequest").toUInt() | 1); // "Shadowed"
 //     setAttribute(Qt::WA_MacBrushedMetal);
     setSizeGripEnabled(true);
 

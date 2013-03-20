@@ -59,7 +59,7 @@ uint BE::InfoDialog::jobId = 0;
 BE::InfoDialog::InfoDialog(QWidget *parent) : QDialog(parent, Qt::Dialog|Qt::FramelessWindowHint)
 {
     setObjectName("InfoDialog");
-    setProperty("BespinWindowHints", 1); // "Shadowed"
+    setProperty("KStyleFeatureRequest", property("KStyleFeatureRequest").toUInt() | 1); // "Shadowed"
     setWindowTitle("Hermes");
     setSizeGripEnabled(true);
     QHBoxLayout *hbl = new QHBoxLayout;
