@@ -26,6 +26,7 @@
 #include <QPointer>
 #include <QToolButton>
 #include <solid/device.h>
+#include <solid/opticaldisc.h>
 #include <solid/solidnamespace.h>
 #include <solid/storagedrive.h>
 
@@ -64,6 +65,7 @@ private slots:
     void setCheckState();
 private:
     void extendMenu( const QMap<QString, QString> &map, QAction **defAction );
+    void setMediaDisc(Solid::OpticalDisc::ContentTypes type, QString label);
 private:
     static QList<QAction*> ourSolidActions;
     QPointer<Solid::StorageDrive> myDrv;

@@ -36,7 +36,6 @@
 #include <solid/block.h>
 #include <solid/devicenotifier.h>
 #include <solid/deviceinterface.h>
-#include <solid/opticaldisc.h>
 #include <solid/opticaldrive.h>
 #include <solid/predicate.h>
 #include <solid/storageaccess.h>
@@ -152,18 +151,44 @@ BE::Device::setEmpty()
     connect(this, SIGNAL( clicked(bool) ), this, SLOT(toggleEject()) );
 }
 
+void 
+BE::Device::setMediaDisc(Solid::OpticalDisc::ContentTypes type, QString label)
+{
+    if (type & Solid::OpticalDisc::Audio)
+        { myIcon = "media-optical-audio"; if (label.isEmpty()) label = "CDDA"; }
+    else if (type & Solid::OpticalDisc::VideoDvd)
+        { myIcon = "media-optical-dvd-video"; if (label.isEmpty()) label = "DvD"; }
+    else if (type & Solid::OpticalDisc::VideoBluRay)
+        { myIcon = "media-optical-blu-ray"; if (label.isEmpty()) label = "Blu-ray"; }
+    else if (type & Solid::OpticalDisc::VideoCd)
+        { myIcon = "media-optical-video"; if (label.isEmpty()) label = "VCD"; }
+    else if (type & Solid::OpticalDisc::SuperVideoCd)
+        { myIcon = "media-optical-video"; if (label.isEmpty()) label = "SVCD"; }
+    else
+        { myIcon = "media-optical"; if (label.isEmpty()) label = i18n("Disc"); }
+    setIcon( BE::Plugged::themeIcon(myIcon) );
+    setToolTip(label);
+}
+
 void
 BE::Device::setVolume(bool, const QString &udi)
 {
     const Solid::Device dev(udi);
 
-    disconnect(SIGNAL( clicked(bool) ));
     const Solid::StorageVolume *vol = dev.as<Solid::StorageVolume>();
     if (!vol)
     {
         ejectable ? setEmpty() : deleteLater();
         return;
     }
+    const Solid::StorageAccess *acc = dev.as<Solid::StorageAccess>();
+    if (!(acc || ejectable)) { // somehow invalid
+        if (myUdi.isEmpty()) // do not replace god with junk
+            deleteLater(); // but get rid of junk
+        return;
+    }
+
+    disconnect(SIGNAL( clicked(bool) ));
 
     myUdi = dev.udi();
     myLabel = vol->label();
@@ -189,14 +214,24 @@ BE::Device::setVolume(bool, const QString &udi)
     else
         qWarning("MediaTray has empty global action list. This is a BUG!");
 
-    const Solid::StorageAccess *acc = dev.as<Solid::StorageAccess>();
     if (const Solid::OpticalDisc *disc = dev.as<Solid::OpticalDisc>()) {
+
         if (disc->isBlank()) {
             setToolTip(i18n("Blank Disc"));
+            if (ejectable)
+                    menu()->addAction( "Eject", this, SLOT(toggleEject()) );
             return;
         }
-        if (!(disc->availableContent() & Solid::OpticalDisc::Data))
-            acc = 0;
+        if (!(disc->availableContent() & Solid::OpticalDisc::Data)) {
+            if (disc->availableContent()) { // some unmountable content, DvD or CDDA etc.
+                setMediaDisc(disc->availableContent(), disc->label());
+                if (ejectable)
+                    menu()->addAction( "Eject", this, SLOT(toggleEject()) );
+                return;
+            } else {
+                acc = 0;
+            }
+        }
     }
 
     if (acc)
