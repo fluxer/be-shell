@@ -1072,7 +1072,7 @@ BE::Shell::populateWindowList(const QList<WId> &windows, QMenu *popup, bool allD
         {
             foreach ( QWidget *w, QApplication::topLevelWidgets() )
             {
-                if ( w->winId() == id )
+                if ( w->testAttribute(Qt::WA_WState_Created) && w->internalWinId() && w->winId() == id )
                     goto nextWindow;
             }
 

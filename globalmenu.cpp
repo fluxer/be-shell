@@ -37,6 +37,7 @@
 #include <QMessageBox>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QtConcurrentRun>
 #include <QTimer>
 #include <QX11Info>
 
@@ -168,11 +169,7 @@ void BE::GMenu::configure( KConfigGroup *grp )
         connect( KWindowSystem::self(), SIGNAL( windowRemoved(WId) ), SLOT( ggmWindowRemoved(WId) ) );
         connect (&ourBodyCleaner, SIGNAL(timeout()), SLOT(cleanBodies()));
         ourBodyCleaner.start(30000); // every 5 minutes - it's just to clean menus from crashed windows, so users won't constantly scroll them
-        callMenus();
-        ggmSetLocalMenus(false);
-        // and read them
-        foreach ( WId id, KWindowSystem::windows() )
-            ggmWindowAdded( id );
+        QMetaObject::invokeMethod(this, "callMenus", Qt::QueuedConnection);
     }
 }
 
@@ -206,8 +203,7 @@ BE::GMenu::blockUpdates(bool on)
     parentWidget() ? parentWidget()->setUpdatesEnabled(on) : setUpdatesEnabled(on);
 }
 
-void
-BE::GMenu::callMenus()
+static void callDBusMenus()
 {
     QDBusConnectionInterface *session = QDBusConnection::sessionBus().interface();
     QStringList services = session->registeredServiceNames();
@@ -221,6 +217,16 @@ BE::GMenu::callMenus()
                 interface.call("activate");
         }
     }
+}
+
+void
+BE::GMenu::callMenus()
+{
+    QtConcurrent::run(&callDBusMenus);
+    ggmSetLocalMenus(false);
+    // and read them
+    foreach (WId id, KWindowSystem::windows())
+        ggmWindowAdded( id );
 }
 
 void
@@ -968,12 +974,12 @@ BE::GMenu::ggmWindowAdded( WId id )
     NET::WindowType type = info.windowType( supported_types );
     if ( type == NET::Unknown ) // everything that's not a supported_type
         return;
-    foreach ( QWidget *w, QApplication::topLevelWidgets() )
-    {
-        if ( w->winId() == id )
+
+    foreach ( QWidget *w, QApplication::topLevelWidgets() ) {
+        if ( w->testAttribute(Qt::WA_WState_Created) && w->internalWinId() && w->winId() == id )
             return;
     }
-    
+
     XSelectInput( QX11Info::display(), id, PropertyChangeMask );
     qApp->syncX();
     ggmUpdate( id );
