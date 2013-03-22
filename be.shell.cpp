@@ -51,6 +51,7 @@
 
 #include <signal.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "battery.h"
 #include "button.h"
@@ -1494,15 +1495,29 @@ int main (int argc, char *argv[])
     QString path = "/etc/gtk-2.0/gtkrc:" + home + "/.gtkrc-2.0:" + home + "/.gtkrc-2.0-kde4:" + KGlobal::dirs()->localkdedir() + "/share/config/gtkrc-2.0";
     setenv("GTK2_RC_FILES", path.toLocal8Bit().data(), 0);
     KCmdLineArgs::init( argc, argv, &aboutData );
+
+    KCmdLineOptions options;
+    options.add("restart", ki18n("Send all your private data to the empire!"));
+    KCmdLineArgs::addCmdLineOptions(options);
+    KUniqueApplication::addCmdLineOptions();
+
+    KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
+    if (args->isSet("restart")) {
+        QDBusInterface be_shell("org.kde.be.shell", "/MainApplication", "org.kde.KApplication", QDBusConnection::sessionBus());
+        be_shell.call(QLatin1String("quit"));
+        usleep(500000);
+        BE::Shell::run("be.shell");
+        return 0;
+    }
+    args->clear();
+
     KUniqueApplication app;
     app.disableSessionManagement();
 
-    QDBusInterface ksmserver( "org.kde.ksmserver", "/KSMServer", "org.kde.KSMServerInterface", QDBusConnection::sessionBus() );
     const QString startupID("workspace desktop");
+    QDBusInterface ksmserver( "org.kde.ksmserver", "/KSMServer", "org.kde.KSMServerInterface", QDBusConnection::sessionBus() );
     ksmserver.call(QLatin1String("suspendStartup"), startupID);
-
     BE::Shell beShell;
-
     ksmserver.call(QLatin1String("resumeStartup"), startupID);
 
     KCrash::setCrashHandler(handle_crash);
