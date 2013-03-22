@@ -218,15 +218,19 @@ BE::Device::setVolume(bool, const QString &udi)
 
         if (disc->isBlank()) {
             setToolTip(i18n("Blank Disc"));
-            if (ejectable)
+            if (ejectable) {
+                    menu()->addSeparator();
                     menu()->addAction( "Eject", this, SLOT(toggleEject()) );
+            }
             return;
         }
         if (!(disc->availableContent() & Solid::OpticalDisc::Data)) {
             if (disc->availableContent()) { // some unmountable content, DvD or CDDA etc.
                 setMediaDisc(disc->availableContent(), disc->label());
-                if (ejectable)
+                if (ejectable) {
+                    menu()->addSeparator();
                     menu()->addAction( "Eject", this, SLOT(toggleEject()) );
+                }
                 return;
             } else {
                 acc = 0;
