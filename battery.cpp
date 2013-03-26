@@ -123,11 +123,6 @@ BE::Battery::paintEvent(QPaintEvent *pe)
 {
     Button::paintEvent(pe);
 
-    QColor c = palette().color(foregroundRole());
-    QPainter p(this);
-    p.setPen(Qt::NoPen);
-    p.setRenderHint(QPainter::Antialiasing);
-
     // contentsRect() seems broken with QStyleSheetStyle :-(
     QRect r(rect().adjusted(myPadding.width(), myPadding.height(), 0, 0));
     const int demH = 22*r.height()/10;
@@ -138,6 +133,10 @@ BE::Battery::paintEvent(QPaintEvent *pe)
     r.adjust((width() - r.width()) % 2, (height() - r.height()) % 2, 0, 0);
     r.moveCenter(rect().center());
     const int w = r.width(), h = r.height();
+
+    QPainter p(this);
+    p.setPen(Qt::NoPen);
+    p.setRenderHint(QPainter::Antialiasing);
     p.translate(r.topLeft());
     if (!iAmCharging)
     {
@@ -147,8 +146,7 @@ BE::Battery::paintEvent(QPaintEvent *pe)
     }
     p.scale(w/100.0, h/100.0);
 
-    c.setAlpha(96);
-    p.setBrush(c);
+    p.setBrush(palette().brush(foregroundRole()));
     p.drawPath(gs_icon);
 
     p.resetTransform();
@@ -170,8 +168,7 @@ BE::Battery::paintEvent(QPaintEvent *pe)
         p.translate(10,10);
     }
 
-    c.setAlpha(192);
-    p.setBrush(c);
+    p.setBrush(palette().brush(QPalette::Highlight));
     p.drawPath(gs_icon);
 
     p.end();
