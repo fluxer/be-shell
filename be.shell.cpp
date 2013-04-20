@@ -332,16 +332,30 @@ BE::Shell::rBuildMenu(const QDomElement &node, QWidget *widget)
                     QFont fnt = act->font();
                     fnt.setBold(true);
                     act->setFont(fnt);
-                }
-                else if (!type.isEmpty())
-                    BE::Shell::buildMenu(type, widget, "submenu");
-                else
-                {
-                    QMenu *newMenu = MENU_FUNC(addMenu(e.attribute("label", LABEL_ERROR)));
-                    QString icn = e.attribute("icon");
-                    if (!icn.isEmpty())
-                        newMenu->setIcon(BE::Plugged::themeIcon(icn));
-                    rBuildMenu(e, newMenu);
+                } else {
+                    QString preExec;
+                    if (!type.isEmpty()) {
+                        preExec = e.attribute("preExec");
+                        if (preExec.isEmpty())
+                            BE::Shell::buildMenu(type, widget, "submenu");
+                    }
+                    if (type.isEmpty() || !preExec.isEmpty()) {
+                        QMenu *newMenu = MENU_FUNC(addMenu(e.attribute("label", LABEL_ERROR)));
+                        QString icn = e.attribute("icon");
+                        if (!icn.isEmpty())
+                            newMenu->setIcon(BE::Plugged::themeIcon(icn));
+                        if (preExec.isEmpty()) {
+                            rBuildMenu(e, newMenu);
+                        } else {
+                            newMenu->setProperty("PreExec", preExec);
+                            newMenu->setProperty("SubMenu", type);
+                            uint preExecTimeout = e.attribute("preExecTimeout").toUInt();
+                            if (!preExecTimeout)
+                                preExecTimeout = 250;
+                            newMenu->setProperty("PreExecTimeout", preExecTimeout);
+                            connect(newMenu, SIGNAL(aboutToShow()), SLOT(populateMenu()));
+                        }
+                    }
                 }
             }
             else if (e.tagName() == "action")
@@ -1009,6 +1023,24 @@ BE::Shell::name(BE::Plugged *p, const QString &string)
         return false;
     p->myName = string;
     return true;
+}
+
+
+void
+BE::Shell::populateMenu()
+{
+    QMenu *menu = qobject_cast<QMenu*>(sender());
+    if (!menu)
+        return;
+    const QString preExec = menu->property("PreExec").toString();
+    if (preExec.isEmpty())
+        return;
+    const uint preExecTimeout = menu->property("PreExecTimeout").toUInt();
+    QProcess proc(this);
+    proc.start(preExec);
+    proc.waitForFinished(preExecTimeout);
+    menu->clear();
+    BE::Shell::buildMenu(menu->property("SubMenu").toString(), menu, "submenu");
 }
 
 void

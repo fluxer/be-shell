@@ -118,6 +118,7 @@ private slots:
     void editConfig();
     void editThemeSheet();
     void launchRunner();
+    void populateMenu();
     void populateScreenMenu();
     void populateWindowList();
     void setActiveWindow();
