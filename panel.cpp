@@ -123,17 +123,14 @@ public:
 
             r[p->position()] |= p->rect().translated(p->mapToGlobal(QPoint(0,0)));
         }
-        // NOTICE WORKAROUND
-        // sttuts are to be passed in logical screen dimensions, but all WMs -including KWin- have
-        // invocation of displaySize() "somewhere" (Client::strutRect()) which need temporarily
-        // compensation by one more "bug" (in be.shell) by "fixing" bottom strut widths.
-        // r[BE::Panel::Bottom].height() -> QApplication::desktop()->height() - r[BE::Panel::Bottom].top()
-        const int bottomWidth = r[BE::Panel::Bottom].height() ? QApplication::desktop()->height() - r[BE::Panel::Bottom].top() : 0;
-        KWindowSystem::setExtendedStrut(winId(), r[BE::Panel::Left].width(), r[BE::Panel::Left].top(), r[BE::Panel::Left].bottom(),
-                                                 r[BE::Panel::Right].width(), r[BE::Panel::Right].top(), r[BE::Panel::Right].bottom(),
-                                                 r[BE::Panel::Top].height(), r[BE::Panel::Top].left(), r[BE::Panel::Top].right(),
+        // NOTICE struts have to be issued in root window coordinates!
+        const QSize desk = QApplication::desktop()->size();
+        const int bottomWidth = r[BE::Panel::Bottom].height() ? desk.height() - r[BE::Panel::Bottom].top() : 0;
+        const int rightWidth = r[BE::Panel::Right].width() ? desk.width() - r[BE::Panel::Right].left() : 0;
+        KWindowSystem::setExtendedStrut(winId(), r[BE::Panel::Left].right() + 1, r[BE::Panel::Left].top(), r[BE::Panel::Left].bottom(),
+                                                 rightWidth, r[BE::Panel::Right].top(), r[BE::Panel::Right].bottom(),
+                                                 r[BE::Panel::Top].bottom() + 1, r[BE::Panel::Top].left(), r[BE::Panel::Top].right(),
                                                  bottomWidth, r[BE::Panel::Bottom].left(), r[BE::Panel::Bottom].right());
-//         KWindowSystem::setStrut( winId(), r[BE::Panel::Left].width(), r[BE::Panel::Right].width(), r[BE::Panel::Top].height(), r[BE::Panel::Bottom].height());
     }
 private:
     typedef QList< QPointer<BE::Panel> > PanelList;
