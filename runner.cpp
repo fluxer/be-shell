@@ -175,6 +175,91 @@ public:
     bool flat;
 
 };
+
+class RunPopupDelegate : public RunDelegate
+{
+public:
+    RunPopupDelegate( QObject *parent = 0 ) : RunDelegate(parent) {}
+
+    void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const
+    {
+        if (!option.rect.isValid())
+            return;
+        if (option.state & QStyle::State_MouseOver)
+            { QFont fnt = painter->font(); fnt.setBold(true); painter->setFont(fnt); }
+        const QPalette &pal = option.palette;
+        const QRect &rect = option.rect;
+        const bool executable = index.data(Executable).toBool();
+        int iconSize = option.decorationSize.width();
+        if ( !executable )
+        {
+            iconSize = 22;
+            if ( option.state & QStyle::State_Selected )
+            {
+                painter->fillRect( rect, pal.color(QPalette::Highlight) );
+                painter->setPen( pal.color(QPalette::HighlightedText) );
+            }
+            else
+            {
+                const int level = index.data(TreeLevel).toInt();
+                const float f = sqrt(level);
+                const QColor &bg = pal.color(QPalette::WindowText);
+                const QColor &fg = pal.color(QPalette::Window);
+#define CHAN(_chan_) (fg._chan_()*f + bg._chan_()*(5-f))/5
+                QColor hd_bg(CHAN(red), CHAN(green), CHAN(blue));
+#undef CHAN
+                painter->fillRect( rect, hd_bg );
+                painter->setPen( fg );
+            }
+        }
+        else if ( (option.state & QStyle::State_HasFocus) && !index.data(Triggered).toBool() )
+        {
+            painter->fillRect( rect, pal.color(QPalette::Highlight) );
+            painter->setPen( pal.color(QPalette::HighlightedText) );
+        }
+        else
+            painter->setPen( pal.color(QPalette::WindowText) );
+
+
+        const int textFlags = Qt::AlignVCenter | Qt::TextSingleLine | Qt::TextShowMnemonic;
+        QRect textRect(rect);
+        QPixmap iconPix(index.data(Qt::DecorationRole).value<QIcon>().pixmap( iconSize, iconSize ));
+
+        QRect iconRect(iconPix.rect());
+        iconRect.moveCenter(rect.center());
+        iconRect.moveLeft(rect.left());
+        textRect.setLeft(iconRect.right() + 8);
+
+        if (executable)
+        {
+            painter->drawText(textRect, textFlags | Qt::AlignLeft, index.data().toString(), &textRect);
+            const QString genName = index.data(GenericName).toString();
+            if (!genName.isEmpty())
+            {
+                textRect.setLeft(textRect.right() + 4);
+                textRect.setRight(rect.right() - 8);
+                QColor c = painter->pen().color();
+                c.setAlpha(c.alpha()/3+16);
+                painter->setPen( c );
+                if ( option.state & QStyle::State_MouseOver )
+                    { QFont fnt = painter->font(); fnt.setBold(false); painter->setFont(fnt); }
+                painter->drawText(textRect, textFlags | Qt::AlignRight, genName);
+            }
+        }
+        else
+        {
+            painter->drawText(textRect, textFlags | Qt::AlignLeft, index.data().toString(), &textRect);
+            iconRect.moveRight(textRect.left() - 8);
+        }
+
+        if (!iconPix.isNull())
+            painter->drawPixmap( iconRect.x(), iconRect.y(), iconPix);
+
+        if ( option.state & QStyle::State_MouseOver )
+            { QFont fnt = painter->font(); fnt.setBold(false); painter->setFont(fnt); }
+    }
+
+};
 } // namespace
 
 void
@@ -201,7 +286,7 @@ BE::Run::installPathCompleter()
     m_shell->setCompleter(m_binCompleter);
 }
 
-BE::Run::Run( QObject *parent ) : QDialog(0, Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint),
+BE::Run::Run( QObject *) : QDialog(0, Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint),
 m_currentHistoryEntry(-1), m_visibleIcons(10000), m_flat(false), iScheduledResort(false), mySettingsDirty(false), m_triggeredItem(0L), myOutput(0L)
 {
     m_hideTimer = new QTimer(this);
@@ -250,7 +335,9 @@ m_currentHistoryEntry(-1), m_visibleIcons(10000), m_flat(false), iScheduledResor
     m_tree->setForegroundRole(QPalette::WindowText);
     vp->setForegroundRole(QPalette::WindowText);
 
-    m_tree->setItemDelegate( delegate = new BE::RunDelegate(this) );
+    delegate[0] = new BE::RunDelegate(this);
+    delegate[1] = new BE::RunPopupDelegate(this);
+    m_tree->setItemDelegate(delegate[0]);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(m_shell);
@@ -274,6 +361,8 @@ m_currentHistoryEntry(-1), m_visibleIcons(10000), m_flat(false), iScheduledResor
 void
 BE::Run::hide()
 {
+    if (m_isPopup)
+        m_tree->setItemDelegate(delegate[0]);
     m_isPopup = false;
     QDialog::hide();
     if ( iScheduledResort )
@@ -440,6 +529,8 @@ BE::Run::timerEvent( QTimerEvent *te)
 void
 BE::Run::showAsDialog()
 {
+    if (m_isPopup)
+        m_tree->setItemDelegate(delegate[0]);
     QRect r = QApplication::desktop()->availableGeometry();
     const int w = qMax(r.width()/3, 480);
     const int h = qMax(r.height()/4, 360);
@@ -465,6 +556,7 @@ void BE::Run::togglePopup(int x, int y)
         { hide(); return; }
 
     setWindowFlags(Qt::Popup);
+    m_tree->setItemDelegate(delegate[1]);
     QRect r = QApplication::desktop()->availableGeometry();
     const int h = qMax(r.height()/2, 400);
     const int w = h/2;
@@ -1045,7 +1137,7 @@ void BE::Run::filter( const QString &string )
                               m_tree->invisibleRootItem(), inc, favorites);
 
     const bool wasFlat = m_flat;
-    delegate->flat = m_flat = (m_visibleIcons < 30);
+    delegate[0]->flat = delegate[1]->flat = m_flat = (m_visibleIcons < 30);
 
     if ( m_flat )
     {

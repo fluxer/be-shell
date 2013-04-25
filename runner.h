@@ -99,7 +99,7 @@ private:
     QTreeWidgetItem *m_slideItem;
     QAbstractItemView::ScrollHint m_Slidehint;
     QTreeWidgetItem *m_triggeredItem;
-    RunDelegate *delegate;
+    RunDelegate *delegate[2];
     QTime focusOut;
     QList<QProcess *>myIOProcs;
     QTextBrowser *myOutput;
