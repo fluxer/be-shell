@@ -48,6 +48,7 @@ public:
     {
         setObjectName("RescueDialog");
         setWindowFlags(windowFlags()|Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
+        setProperty("KStyleFeatureRequest", property("KStyleFeatureRequest").toUInt() | 1); // "Shadowed"
         countDown = timeout;
         setModal(countDown);
         if (!countDown) {
