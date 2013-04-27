@@ -1,0 +1,79 @@
+
+BE:Watched
+----------
+
+BE::Watched is a generic inode/dbus -> process/dbus wrapper.
+It listens to file updates or DBus signals of random services and in return lauches a process or calls a dbus function.
+
+To edit the configuration run
+
+    be.watched edit
+
+This will open the configuration in your preferred text editor.
+NOTICE that BE::Watched listens to changes to that file and reconfigures itself automatically.
+
+Explanatory config example:
+---------------------------
+
+# The comma separated list of filewatch configurations
+Files=Test1,Test2
+# The comma separated list of dbus signal hooks
+DBusSignals=Test3,Test4
+
+# The first filewatch configuration
+[Test1]
+File=/foo/bar # an absolute path to the file to watch - NO SHELL ALIASES (like "~" or "$HOME")
+Exec=xterm # if /foo/bar gets touched (or removed/readded) BE::Watched will launch an xterm
+
+# The second filewatch configuration
+[Test2]
+File=/foo/bar
+# lets make touching that file toggling the compositor, shall we? =)
+DBus=session,org.kde.KWin,/Compositor,org.kde.kwin.Compositing,toggleCompositing
+
+# "session" or "system" specify the Bus to listen to (system contains eg. Udisks/2, Upower, Networkmanager etc.)
+# "org.kde.KWin" is the service to address (the list you get when typing "qdbus")
+# "/Compositor" is the path inside the service ("qdbus org.kde.KWin" prints a list)
+# "org.kde.kwin.Compositing" is the interface, ie. the function "prefix"
+#            (watch it closely because there can be several in one path)
+# "toggleCompositing" is the dbus member to call
+#
+# BE::Shell users BE AWARE that the comma instead of the semicolon is correct!
+#                                  QSettings does not parse beyond semicolons.
+
+
+
+# The first dbus hook, it's now getting more complex
+[Test3]
+# first, bus, service, path and interface determining the dbus target - you know that from above
+Bus=session
+Service=org.freedesktop.ScreenSaver
+Path=/ScreenSaver
+Interface=org.freedesktop.ScreenSaver
+# Next is the Signal to listen to
+Signal=ActiveChanged
+# Now comes the Signature - this is IMPORTANT - if it does not match the real thing, nothing is gonna happen
+Signature=b # this one means "boolean" because the screensaver emits true or false
+# For the dbus types see here: http://dbus.freedesktop.org/doc/dbus-specification.html#type-system
+# The most important ones are "b", "i", "u", "d", "s" (bool, integer, unsigned integer, double, string)
+Exec=kdialog -passivepopup "ScreenSaver active: %1" 0
+
+# This will get you a notification about the screensaver state when it toggles.
+# Notice the "%1" - it is replaced by the first (and in this case only) signal variable
+
+# The second dbus hook, you're almost done
+[Test4]
+Bus=session
+Service=org.kde.KWin
+Path=/Compositor
+Interface=org.kde.kwin.Compositing
+Signal=compositingToggled
+Signature=b
+# The above listens to the compositor
+DBus=session,org.kde.yakuake,/yakuake/MainWindow_1,org.qtproject.Qt.QWidget,setVisible,%1
+# and toggles yakuake with the compositor
+# (after the function follows a list of arguments and "%1" is replaced by the Signal value)
+
+==================================================================================================
+
+
