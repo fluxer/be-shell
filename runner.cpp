@@ -688,7 +688,7 @@ void BE::Run::execute( const QString &exec/*Line*/ )
         }
         if (bc_abuse)
         {
-            myIOProcs.last()->write(QString(exec.mid(1) + '\n').toLocal8Bit());
+            myIOProcs.last()->write(QString("scale=8;" + exec.mid(1) + '\n').toLocal8Bit());
             myIOProcs.last()->closeWriteChannel();
             myIOProcs.last()->readAll();
         }
