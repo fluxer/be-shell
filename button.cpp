@@ -38,6 +38,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QtDBus>
+#include <QStyleOptionToolButton>
 #include <QTimerEvent>
 #include <QWheelEvent>
 
@@ -266,7 +267,10 @@ BE::Button::requestAttention(int count)
 void
 BE::Button::resizeEvent(QResizeEvent */*re*/)
 {
-    int s = qMin(width(),height());
+    QStyleOptionToolButton opt;
+    initStyleOption(&opt);
+    const QSize sz(2*size() - style()->sizeFromContents(QStyle::CT_ToolButton, &opt, size(), this));
+    int s = qMin(sz.width(),sz.height());
     setIconSize(QSize(s,s));
 }
 
