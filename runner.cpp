@@ -378,16 +378,8 @@ BE::Run::hide()
 void
 BE::Run::configure( KConfigGroup *grp )
 {
-    if (grp->readEntry("ARGB", false))
-    {
-        setAttribute(Qt::WA_TranslucentBackground, true);
-        setWindowOpacity(1.0);
-    }
-    else
-    {
-        setAttribute(Qt::WA_TranslucentBackground, false);
-        setWindowOpacity(0.9);
-    }
+    setAttribute(Qt::WA_TranslucentBackground, grp->readEntry("ARGB", false));
+    setWindowOpacity(grp->readEntry("Opacity", 90)/100.0);
 
     static const uint zero = 0;
     static Atom BlurAtom = XInternAtom(QX11Info::display(), "_KDE_NET_WM_BLUR_BEHIND_REGION", False);
