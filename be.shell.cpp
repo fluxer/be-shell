@@ -1254,7 +1254,9 @@ BE::Shell::setActiveWindow()
     QAction *act = qobject_cast<QAction*>(sender());
     if (!act) return;
     WId win = act->data().toUInt();
-    KWindowSystem::activateWindow(win);
+//     KWindowSystem::unminimizeWindow(win); // sometimes activation can fail, at least show.
+//     KWindowSystem::activateWindow(win);
+    KWindowSystem::forceActiveWindow(win);
 //     KWindowSystem::raiseWindow(win);
 }
 
