@@ -1093,6 +1093,19 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
     }
     else
     {
+        if (file.endsWith(".bwp", Qt::CaseInsensitive)) {
+            QUrl url(file + "/base.jpg");
+            url.setScheme("tar");
+            QString base(KStandardDirs::locateLocal("tmp", "be.shell/base.jpg"));
+            if ( !KIO::NetAccess::download(url, base, this) )
+                return; // failed download
+            url = QUrl(file + "/tile.png");
+            url.setScheme("tar");
+            QString tile(KStandardDirs::locateLocal("tmp", "be.shell/tile.png"));
+            if ( !KIO::NetAccess::download(url, tile, this) )
+                return; // failed download
+            file = base + ':' + tile;
+        }
 
         // first check whether we already have this file loaded somewhere...
         bool canCopy = false;
@@ -1379,14 +1392,15 @@ BE::Desk::dragEnterEvent( QDragEnterEvent *de )
     if FIRST_URL
         if (url.isLocalFile())
         {
-            if ( QImageReader(url.path()).canRead() )
+            if ( url.path().endsWith(".bwp", Qt::CaseInsensitive) || QImageReader(url.path()).canRead() )
                 de->accept();
         }
         else
         {
             QString file = url.fileName();
             if (file.endsWith(".jpg", Qt::CaseInsensitive) || file.endsWith(".jpeg", Qt::CaseInsensitive) ||
-                file.endsWith(".png", Qt::CaseInsensitive) || file.endsWith(".bmp", Qt::CaseInsensitive))
+                file.endsWith(".png", Qt::CaseInsensitive) || file.endsWith(".bmp", Qt::CaseInsensitive) ||
+                file.endsWith(".bwp", Qt::CaseInsensitive))
                 de->accept();
         }
     }}
