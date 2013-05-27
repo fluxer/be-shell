@@ -57,6 +57,7 @@ BE::Button::Button( QWidget *parent, const QString &plugName ) : QToolButton(par
 , myRenderTarget(0)
 , myMenuWatcher(0)
 {
+    window()->setAttribute(Qt::WA_AlwaysShowToolTips);
     myBuffer[0] = myBuffer[1] = 0;
     new BE::ButtonAdaptor(this);
     setShortcut(QKeySequence());

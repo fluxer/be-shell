@@ -125,7 +125,6 @@ private:
 BE::Session::Session( QWidget *parent ) : Button(parent)
 {
     setObjectName("SessionButton");
-    window()->setAttribute(Qt::WA_AlwaysShowToolTips);
 
     setIcon(QPixmap::fromImage(QImage(KUser().faceIconPath())));
 

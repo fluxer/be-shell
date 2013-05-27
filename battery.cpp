@@ -89,7 +89,6 @@ bool BE::Battery::event(QEvent *e)
 
 void BE::Battery::collectDevices()
 {
-    window()->setAttribute(Qt::WA_AlwaysShowToolTips);
     foreach( Solid::Device device, Solid::Device::listFromType(Solid::DeviceInterface::AcAdapter))
         addDevice(device.udi());
     foreach( Solid::Device device, Solid::Device::listFromType(Solid::DeviceInterface::Battery))
