@@ -290,6 +290,12 @@ void
 BE::Panel::configure( KConfigGroup *grp )
 {
     myConfigMenuEntry->setTitle(name());
+    myConfigMenuEntry->menuAction()->setVisible(!grp->readEntry("Frozen", false));
+    bool vis = false;
+    foreach (QAction *a, configSubMenu->actions())
+        if ((vis = a->isVisible()))
+            break;
+    configSubMenu->menuAction()->setVisible(vis);
 
     bool updateGeometry = false;
     const QString oldId = myForcedId;
@@ -467,6 +473,8 @@ BE::Panel::mousePressEvent(QMouseEvent *me)
         me->ignore();
         return;
     }
+    if (!myConfigMenuEntry->menuAction()->isVisible())
+        return;
     if (myMoveResizeMode == Qt::BlankCursor && BE::Shell::touchMode())
     {   // just a regular slide - let's see whether the user pushes the panel back
         if (me->button() == Qt::LeftButton)
