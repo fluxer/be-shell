@@ -25,6 +25,7 @@ class QFileSystemWatcher;
 
 #include "be.plugged.h"
 
+#include <QElapsedTimer>
 #include <QToolButton>
 
 namespace BE {
@@ -67,6 +68,7 @@ private:
     bool imNotReallyCrossed, iClickedForTouchInterface;
     QPixmap *myBuffer[2], *myRenderTarget;
     QFileSystemWatcher *myMenuWatcher;
+    QElapsedTimer myRecursionGuard;
 };
 
 }

@@ -268,11 +268,15 @@ BE::Button::requestAttention(int count)
 void
 BE::Button::resizeEvent(QResizeEvent */*re*/)
 {
+    if (myRecursionGuard.isValid() && myRecursionGuard.elapsed() < 30) {
+        return; // this can happen because setIconSize can trigger a delayed resize
+    }
     QStyleOptionToolButton opt;
     initStyleOption(&opt);
     const QSize sz(2*size() - style()->sizeFromContents(QStyle::CT_ToolButton, &opt, size(), this));
     int s = qMin(sz.width(),sz.height());
     setIconSize(QSize(s,s));
+    myRecursionGuard.start();
 }
 
 void
