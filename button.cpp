@@ -84,6 +84,7 @@ BE::Button::configure( KConfigGroup *grp )
     bool connected = false;
 
     setText(grp->readEntry("Label", QString()));
+    setToolTip(grp->readEntry("ToolTip", QString()));
     myIcon = grp->readEntry("Icon", QString());
     setToolButtonStyle((Qt::ToolButtonStyle)grp->readEntry("Mode", text().isEmpty() ? (int)Qt::ToolButtonIconOnly : (int)Qt::ToolButtonTextOnly));
     setPopupMode(InstantPopup);
