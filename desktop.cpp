@@ -941,21 +941,24 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     QImage tile;
 
     QString iFile = file;
-    if (mode == Composed || (mode < 0 && file.contains(':'))) {
+    if (iFile.endsWith(".bwp", Qt::CaseInsensitive)) {
+        iFile = KStandardDirs::locateLocal("tmp", "be.shell/base.jpg") + ':' + KStandardDirs::locateLocal("tmp", "be.shell/tile.png");
+    }
+
+    if (mode == Composed || (mode < 0 && iFile.contains(':'))) {
         mode = Composed;
-        tile = QImage(file.section(':', 1, 1, QString::SectionSkipEmpty));
+        tile = QImage(iFile.section(':', 1, 1, QString::SectionSkipEmpty));
         if ( tile.isNull() )
             return ret;
         tile = tile.convertToFormat(QImage::Format_ARGB32);
-        iFile = file.section(':', 0, 0, QString::SectionSkipEmpty);
+        iFile = iFile.section(':', 0, 0, QString::SectionSkipEmpty);
     }
 
     QImage img( iFile );
     if ( img.isNull() )
         return ret;
 
-    if (wp->file != file)
-    {
+    if (wp->file != file) {
         wp->file = file;
         wp->aspect = -1.0;
     }
@@ -1104,7 +1107,6 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
             QString tile(KStandardDirs::locateLocal("tmp", "be.shell/tile.png"));
             if ( !KIO::NetAccess::download(url, tile, this) )
                 return; // failed download
-            file = base + ':' + tile;
         }
 
         // first check whether we already have this file loaded somewhere...
