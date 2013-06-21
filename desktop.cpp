@@ -780,6 +780,7 @@ BE::Desk::configure( KConfigGroup *grp )
     if (i != myShadowOpacity)
     {
         // wipe cache
+        myShadowCache.clear();
         needUpdate = true;
     }
 
