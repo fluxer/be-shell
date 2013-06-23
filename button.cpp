@@ -275,7 +275,7 @@ BE::Button::resizeEvent(QResizeEvent */*re*/)
     QStyleOptionToolButton opt;
     initStyleOption(&opt);
     const QSize sz(2*size() - style()->sizeFromContents(QStyle::CT_ToolButton, &opt, size(), this));
-    int s = qMin(sz.width(),sz.height());
+    int s = orientation() == Qt::Horizontal ? sz.height() : sz.width();
     setIconSize(QSize(s,s));
     myRecursionGuard.start();
 }
