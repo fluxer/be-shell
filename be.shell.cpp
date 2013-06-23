@@ -1321,46 +1321,42 @@ QVariant shadowBorder(const QString &string, bool *ok)
 {
     QVariant value;
     QString s(string);
-    if (s.contains("rgba("))
-    {
+    if (s.contains("rgba(")) {
         int open = s.indexOf("rgba(");
-        int close = s.lastIndexOf(")", open);
+        int close = s.indexOf(")", open);
         QString tmp = s.mid(open, close-open);
         tmp.remove(" ");
         s.replace(s.mid(open, close-open), tmp);
     }
     const QStringList &col(s.split(" ", QString::SkipEmptyParts));
-    if (col.count() > 1)
-    {
+    if (col.count() > 1) {
 #define REQUIRE(_OPTS_) _OPTS_; if (!*ok) return QVariant()
         int penWidth = 0;
         QColor penColor;
-        foreach (QString opt, col)
-        {
-            if (opt.endsWith("px"))
-            {
+        foreach (QString opt, col) {
+            if (opt.endsWith("px")) {
                 REQUIRE(penWidth = qRound(opt.left(opt.length()-2).toFloat(ok)));
-            }
-            else if (opt.startsWith("rgba("))
-            {
+            } else if (opt.startsWith("rgba(")) {
                 int r, g, b, a;
                 QStringList rgba(opt.mid(5, opt.length()-6 ).split(",", QString::SkipEmptyParts));
-                if (rgba.count() == 4)
-                {
+                if (rgba.count() == 4) {
                     REQUIRE(r = rgba.at(0).toInt(ok));
                     REQUIRE(g = rgba.at(1).toInt(ok));
                     REQUIRE(b = rgba.at(2).toInt(ok));
                     REQUIRE(a = rgba.at(3).toInt(ok));
-                }
-                else
+                } else {
                     return QVariant();
+                }
                 penColor = QColor(r, g, b, a);
-            }
-            else
-            {
+            } else {
                 penColor.setAllowX11ColorNames(true);
                 penColor.setNamedColor(opt);
-                REQUIRE(*ok = penColor.isValid());
+                *ok = penColor.isValid();
+                if (!*ok)
+                    penWidth = opt.toInt(ok);
+                // sth. that's neither an integer nor a color nor explicit px size nor rgba...
+                if (!*ok)
+                    return QVariant();
             }
         }
 #undef REQUIRE
