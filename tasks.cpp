@@ -23,10 +23,12 @@
 #include <QDragEnterEvent>
 #include <QDragLeaveEvent>
 #include <QDropEvent>
+#include <QEasingCurve>
 #include <QElapsedTimer>
 #include <QLabel>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QPropertyAnimation>
 #include <QStyle>
 #include <QStyleOptionToolButton>
 #include <QTime>
@@ -760,7 +762,7 @@ BE::Task::update(const unsigned long *properties)
 
     if (props[0] & NET::WMIcon && iconName().isEmpty()) // if an icon was set, this is a sticky one
     {
-        QIcon icn = BE::Plugged::themeIcon(exe().isEmpty() ? myGroup : exe(), false);
+        QIcon icn = BE::Plugged::themeIcon(exe().isEmpty() ? myGroup : exe(), false, parentWidget());
         if (icn.isNull() && id)
             icn.addPixmap( KWindowSystem::icon(id) );
         if (!icn.isNull())
@@ -819,7 +821,6 @@ BE::Tasks::addWindow( WId id )
         return 0;
     if (info.state() & NET::SkipTaskbar)
         return 0;
-
     if (!myWindows.contains(id))
         myWindows << id;
     if (iStackNow || hasStickies)
@@ -846,6 +847,7 @@ BE::Tasks::addWindow( WId id )
     newTask->setToolButtonStyle(myButtonMode);
     layout()->addWidget(newTask);
     myTasks << newTask;
+    newTask->hide();
     updateVisibility(newTask);
     return newTask;
 }
@@ -920,7 +922,12 @@ BE::Tasks::removeWindow( WId id )
 //                 else
                 if (!(*it)->isSticky())
                 {
-                    delete *it;
+                    QPropertyAnimation *ani = new QPropertyAnimation(*it, "iconSize", *it);
+                    ani->setDuration(300);
+                    ani->setEasingCurve(QEasingCurve::OutCubic);
+                    ani->setEndValue(QSize(0,0));
+                    connect (ani, SIGNAL(finished()), *it, SLOT(deleteLater()));
+                    ani->start();
                     myTasks.erase(it);
                 }
             }
@@ -957,7 +964,7 @@ BE::Tasks::updateWindowProperties(WId id, const unsigned long *properties)
         if (info.state() & NET::SkipTaskbar)
             removeWindow( id );
         else if (!myWindows.contains(id))
-            addWindow( id );
+            QTimer::singleShot(300, this, SLOT(checkSanity()) ); // addWindow( id ); -- eg. yakuake set state to 0 on hiding...
         return;
     }
     if (properties[1] & NET::WM2WindowClass || properties[0] & NET::WMPid)
@@ -1048,7 +1055,20 @@ BE::Tasks::updateVisibility(Task *t)
         vis = t->isOnCurrentDesktop();
     if (vis && iIgnoreVisible)
         vis = t->isMinimized();
-    t->setVisible(vis);
+    if (vis == t->isVisible())
+        return;
+    QPropertyAnimation *ani = new QPropertyAnimation(t, "iconSize", t);
+    ani->setDuration(300);
+    ani->setEasingCurve(QEasingCurve::OutCubic);
+    if (vis) {
+        QMetaObject::invokeMethod(t, "show", Qt::QueuedConnection);
+        ani->setStartValue(QSize(0,0));
+        ani->setEndValue(t->iconSize());
+    } else {
+        ani->setEndValue(QSize(0,0));
+        connect (ani, SIGNAL(finished()), t, SLOT(hide()));
+    }
+    ani->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void
