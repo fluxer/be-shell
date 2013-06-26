@@ -101,7 +101,7 @@ fi
 
 if [[ "$MODE" =~ "tomorrow" ]]; then
     # resolves $text $code $temp and $date
-    eval "`echo "$DATA" | sed -e '/yweather:condition/d; s/^[^ ]*//g; s%\s*/>%%g; s/" /"; /g'`"
+    eval "`echo "$DATA" | sed -e '/yweather:condition/d; 1,/yweather:forecast/!d; s/^[^ ]*//g; s%\s*/>%%g; s/" /"; /g'`"
 
     TEXT="$(l10n $code $text)"
     ICON="$(icon $code)"
@@ -111,6 +111,26 @@ if [[ "$MODE" =~ "tomorrow" ]]; then
         REPLY="${REPLY}<hr>"
     fi
     REPLY="${REPLY}<div>`date -d "$date" +%A`</div><div><img src=\"${ICON}\" width=\"${ICON_SIZE}\"/><span style=\"font-size:${MID_TEXT}px;\">${low}°-${high}°</span></div><div align=\"${TEXT_ALIGN}\" style=\"font-size:${SMALL_TEXT}px\">${TEXT}</div></td>"
+fi
+
+if [[ "$MODE" =~ "week" ]]; then
+    for ((i=0;i<5;++i)); do
+        # resolves $text $code $temp and $date
+        eval "`echo "$DATA" | sed -e '/yweather:condition/d;'$i',/yweather:forecast/!d; s/^[^ ]*//g; s%\s*/>%%g; s/" /"; /g'`"
+
+        TEXT="$(l10n $code $text)"
+        ICON="$(icon $code)"
+
+        REPLY="${REPLY}<td>"
+        if $NEED_HR; then
+            REPLY="${REPLY}<hr>"
+        fi
+        if [ "$5" = "v" ]; then
+            REPLY="${REPLY}</tr><tr>"
+            NEED_HR=true
+        fi
+        REPLY="${REPLY}<div>`date -d "$date" +%A`</div><div><img src=\"${ICON}\" width=\"${ICON_SIZE}\"/><span style=\"font-size:${MID_TEXT}px;\">${low}°-${high}°</span></div><div align=\"${TEXT_ALIGN}\" style=\"font-size:${SMALL_TEXT}px\">${TEXT}</div></td>"
+    done
 fi
 
 REPLY="${REPLY}</tr></table>"
