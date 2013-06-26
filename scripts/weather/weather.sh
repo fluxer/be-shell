@@ -114,9 +114,9 @@ if [[ "$MODE" =~ "tomorrow" ]]; then
 fi
 
 if [[ "$MODE" =~ "week" ]]; then
-    for ((i=0;i<5;++i)); do
+    for ((i=3;i<8;++i)); do
         # resolves $text $code $temp and $date
-        eval "`echo "$DATA" | sed -e '/yweather:condition/d;'$i',/yweather:forecast/!d; s/^[^ ]*//g; s%\s*/>%%g; s/" /"; /g'`"
+        eval "`echo "$DATA" | sed -e '/yweather:forecast/!d;'$i',6d; s/^[^ ]*//g; s%\s*/>%%g; s/" /"; /g'`"
 
         TEXT="$(l10n $code $text)"
         ICON="$(icon $code)"
