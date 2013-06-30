@@ -1032,7 +1032,7 @@ BE::Shell::populateMenu()
     QMenu *menu = qobject_cast<QMenu*>(sender());
     if (!menu)
         return;
-    const QString preExec = menu->property("PreExec").toString();
+    const QString preExec = menu->property("PreExec").toString().replace("$HOME", QDir::home().path());
     if (preExec.isEmpty())
         return;
     const uint preExecTimeout = menu->property("PreExecTimeout").toUInt();
