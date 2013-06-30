@@ -548,6 +548,12 @@ void BE::Run::togglePopup(int x, int y)
     if (isVisible() /*&& isOnCurrentDesktop*/)
         { hide(); return; }
 
+    if (x < 0 || y < 0) {
+        const QPoint cursor(QCursor::pos());
+        if (x < 0) x = cursor.x() - 16;
+        if (y < 0) y = cursor.y() + 8;
+    }
+
     setWindowFlags(Qt::Popup);
     m_tree->setItemDelegate(delegate[1]);
     QRect r = QApplication::desktop()->availableGeometry();
