@@ -535,7 +535,7 @@ BE::Run::showAsDialog()
     KWindowSystem::setState(winId(), NET::Sticky | NET::SkipTaskbar | NET::SkipPager | NET::StaysOnTop );
     show();
     m_shell->setFocus(Qt::OtherFocusReason);
-    activateWindow();
+    KWindowSystem::forceActiveWindow(winId());
     raise();
     m_isPopup = false;
 }
@@ -567,7 +567,7 @@ void BE::Run::togglePopup(int x, int y)
     KWindowSystem::setOnDesktop(winId(), KWindowSystem::currentDesktop());
     show();
     m_shell->setFocus(Qt::OtherFocusReason);
-    activateWindow();
+    KWindowSystem::forceActiveWindow(winId());
     raise();
     m_isPopup = true;
 }
