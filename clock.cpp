@@ -34,23 +34,24 @@
 #include <QMouseEvent>
 #include <QTimerEvent>
 
-#define updateTime() setText( QDateTime::currentDateTime().addSecs(myTzSecOffset).toString(myPattern) );
-
 BE::Clock::Clock(QWidget *parent, const QString &pattern ) : QLabel(parent), BE::Plugged(parent)
 {
     setObjectName("Clock");
     setAlignment( Qt::AlignCenter );
     myPattern = pattern;
     myTzSecOffset = 0;
+    myCountDown = -1;
 
     myConfigMenu = new QMenu(this);
     myConfigMenu->setSeparatorsCollapsible(false);
-    myConfigMenu->addSeparator()->setText("Configure Clock");
-    myConfigMenu->addAction("Change pattern...", this, SLOT(configPattern()));
-    myConfigMenu->addAction("Set Time...", this, SLOT(configTime()));
+    myConfigMenu->addSeparator()->setText(i18n("Configure Clock"));
+    myConfigMenu->addAction(i18n("Change pattern..."), this, SLOT(configPattern()));
+    myConfigMenu->addAction(i18n("Set Time..."), this, SLOT(configTime()));
     myConfigMenu->addSeparator();
+    myConfigMenu->addAction(i18n("CountDown..."), this, SLOT(startCountDown()));
+//     myConfigMenu->addSeparator();
 //     myConfigMenu->addAction("Reminders...", this, SLOT(configReminder()));
-    
+
     myTimer = startTimer(1000); // check every second
     updateTime();
 }
@@ -124,8 +125,9 @@ BE::Clock::event(QEvent *ev)
 {
     if (ev->type() == QEvent::Timer)
     {
-        if (static_cast<QTimerEvent*>(ev)->timerId() == myTimer)
-        {
+        if (static_cast<QTimerEvent*>(ev)->timerId() == myTimer) {
+            if (myCountDown > -1)
+                --myCountDown;
             updateTime();
             return true;
         }
@@ -151,4 +153,27 @@ BE::Clock::mousePressEvent(QMouseEvent *ev)
     }
     else if( ev->button() == Qt::RightButton )
         myConfigMenu->exec(QCursor::pos());
+}
+
+void
+BE::Clock::startCountDown()
+{
+    bool ok;
+    const double d = QInputDialog::getDouble(this, i18n("Start Count Down"), i18n("<h3>Fun fact:</h3>The countdown was invented by <b>Fritz Lang</b><br/>for the 1928 movie <b>Frau im Mond</b><br/>to raise suspense for the rocket launch scene<h3>Enter minutes:</h3>"), 5, 0, 60, 2, &ok, Qt::Dialog|Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint );
+    if (ok) {
+        myCountDown = 60*(int(d) + (d - (int(d))));
+        updateTime();
+    }
+}
+
+void
+BE::Clock::updateTime() {
+    if (myCountDown > -1) {
+        QDateTime dt(QDateTime::currentDateTime());
+        const int h = myCountDown/60;
+        dt.setTime(QTime(h, myCountDown - 60*h));
+        setText( dt.toString(myPattern) );
+    }
+    else
+        setText( QDateTime::currentDateTime().addSecs(myTzSecOffset).toString(myPattern) );
 }

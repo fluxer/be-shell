@@ -44,9 +44,11 @@ protected:
 private slots:
     void configTime();
     void configPattern();
+    void startCountDown();
+    void updateTime();
 private:
     QString myPattern;
-    int myTimer;
+    int myTimer, myCountDown;
     qint64 myTzSecOffset;
     QMenu *myConfigMenu;
 };
