@@ -26,6 +26,7 @@
 #include <KDE/KPopupFrame>
 #include <KDE/KDatePicker>
 #include <KDE/KCMultiDialog>
+#include <KDE/KSystemTimeZones>
 
 #include <QDateTime>
 #include <QInputDialog>
@@ -33,13 +34,14 @@
 #include <QMouseEvent>
 #include <QTimerEvent>
 
-#define updateTime() setText( QDateTime::currentDateTime().toString(myPattern) );
+#define updateTime() setText( QDateTime::currentDateTime().addSecs(myTzSecOffset).toString(myPattern) );
 
 BE::Clock::Clock(QWidget *parent, const QString &pattern ) : QLabel(parent), BE::Plugged(parent)
 {
     setObjectName("Clock");
     setAlignment( Qt::AlignCenter );
     myPattern = pattern;
+    myTzSecOffset = 0;
 
     myConfigMenu = new QMenu(this);
     myConfigMenu->setSeparatorsCollapsible(false);
@@ -56,9 +58,16 @@ BE::Clock::Clock(QWidget *parent, const QString &pattern ) : QLabel(parent), BE:
 void
 BE::Clock::configure( KConfigGroup *grp )
 {
-    QString s = myPattern;
+    const QString s = myPattern;
     myPattern = grp->readEntry("Pattern", "hh:mm\nddd, MMM d");
-    if ( s != myPattern )
+
+    const QDateTime cdt = QDateTime::currentDateTime();
+    const QString homeZone = grp->readEntry( "TimeZone", KSystemTimeZones::local().name() );
+    const QDateTime hcdt = KSystemTimeZones::local().convert(KSystemTimeZones::zone(homeZone), cdt);
+    const qint64 offset = myTzSecOffset;
+    myTzSecOffset = cdt.secsTo(hcdt);
+
+    if ( s != myPattern || myTzSecOffset != offset)
         updateTime();
 }
 

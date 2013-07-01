@@ -47,6 +47,7 @@ private slots:
 private:
     QString myPattern;
     int myTimer;
+    qint64 myTzSecOffset;
     QMenu *myConfigMenu;
 };
 
