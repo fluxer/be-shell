@@ -34,6 +34,7 @@ class Clock : public QLabel, public Plugged
 {
     Q_OBJECT
 public:
+    enum Precision { Days = 0, Hours, Minutes, Seconds, Unknown  };
     Clock(QWidget *parent = 0, const QString &pattern = "ddd/hh:mm");
     void configure( KConfigGroup *grp );
     void saveSettings( KConfigGroup *grp );
@@ -49,6 +50,7 @@ private slots:
 private:
     QString myPattern;
     int myTimer, myCountDown;
+    Precision myPrecision;
     qint64 myTzSecOffset;
     QMenu *myConfigMenu;
 };
