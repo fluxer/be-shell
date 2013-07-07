@@ -1117,13 +1117,13 @@ BE::Panel::desktopResized()
     default:
     case Top:
         setFixedSize( screen.width()*myLength/100, mySize );
-        move(screen.x() + screen.width()*myOffset/100, off );
+        move(screen.x() + screen.width()*myOffset/100, screen.y() + off );
         break;
     case Right:
         off = screen.width() - mySize;
     case Left:
         setFixedSize( mySize, screen.height()*myLength/100 );
-        move(off, screen.y() + screen.height()*myOffset/100);
+        move(screen.x() + off, screen.y() + screen.height()*myOffset/100);
         break;
     }
     if (myMoveResizeMode == Qt::BlankCursor)
