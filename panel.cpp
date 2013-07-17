@@ -495,7 +495,10 @@ BE::Panel::mousePressEvent(QMouseEvent *me)
         myConfigMenuEntry->exec(QCursor::pos());
     else
         QFrame::mousePressEvent(me);
-    me->accept();
+    if (me->button() == Qt::LeftButton || me->button() == Qt::RightButton)
+        me->accept();
+    else
+        me->ignore();
 }
 
 void
