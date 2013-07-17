@@ -1,0 +1,26 @@
+BE::Shell is a simple desktop shell on KDE technology (namely KIO and Solid) for the rest of us.
+
+The focus is on control and understanding.
+
+Therefore the very first thing you get after you succeeded Installation is the void.
+
+read here: (really - the installation process is not fully automated; you're shall understand your setup)
+https://sourceforge.net/p/be-shell/wiki/Installation/
+
+Ok, you do get a desktop window and if you figure how to use your right mouse button, you're ready
+to start constructing your desktop (that means: "with an editor", so better attach your keyboard)
+
+To get a usable desktop shell - /your/ desktop shell - you'll have to edit the Configuration
+(or borrow someone elses, maybe you found the example folder)
+
+...and here: (well, in case you're interestend in anything beyond the void)
+https://sourceforge.net/p/be-shell/wiki/Config%20reference/
+
+Once you have laid out your desktop, you maybe want to control it's look via Qss Theming
+
+...and finally here: (to have your artistical dreams come true)
+https://sourceforge.net/p/be-shell/wiki/Theming/
+
+That's it.
+Have Fun
+
