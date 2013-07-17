@@ -185,6 +185,7 @@ private:
 
     QCache<int, Shadow> myShadowCache;
     int myShadowOpacity;
+    QColor myHaloColor;
 
     struct WpSettings {
         QMenu *mode, *align, *aspect;

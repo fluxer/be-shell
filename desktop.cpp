@@ -775,12 +775,19 @@ BE::Desk::configure( KConfigGroup *grp )
             setWallpaper( wp->file, 0, d );
     }
 
+    QColor c = myHaloColor;
+    myHaloColor = grp->readEntry("HaloColor", QColor() );
+    if (c != myHaloColor) {
+        myShadowCache.clear(); // wipe cache
+        needUpdate = true;
+    }
+
     i = myShadowOpacity;
     myShadowOpacity = grp->readEntry("ShadowOpacity", 25 );
-    if (i != myShadowOpacity)
-    {
-        // wipe cache
-        myShadowCache.clear();
+    if (myHaloColor.isValid())
+        myShadowOpacity = 10*sqrt(myShadowOpacity);
+    if (i != myShadowOpacity) {
+        myShadowCache.clear(); // wipe cache
         needUpdate = true;
     }
 
@@ -873,6 +880,7 @@ BE::Desk::saveSettings( KConfigGroup *grp )
     if (myScreen != QApplication::desktop()->primaryScreen())
         grp->writeEntry( "Screen", myScreen );
     grp->writeEntry( "ShadowOpacity", myShadowOpacity );
+    grp->writeEntry( "HaloColor", myHaloColor );
     grp->writeEntry( "ShowIcons", myIcons.areShown );
     grp->writeEntry( "Wallpaper", myWallpaper.file );
     grp->writeEntry( "WallpaperDefaultAlign", (int)myWallpaperDefaultAlign );
@@ -1206,16 +1214,31 @@ BE::Desk::shadow(int r)
     QPainter p;
 
     int size = 2*r+19;
+    QColor c(myHaloColor);
+    c.setAlpha(alpha);
     QPixmap shadowBlob(size,size);
     shadowBlob.fill(Qt::transparent);
+
     float d = size/2.0f;
     QRadialGradient rg(d, d, d);
-    rg.setFocalPoint(d, r+7);
-    rg.setColorAt( float(r)/(r+9.0f), QColor(0,0,0,alpha) );
-    rg.setColorAt( 1, QColor(0,0,0,0) );
-
     p.begin(&shadowBlob);
     p.setPen(Qt::NoPen);
+    if (myHaloColor.isValid()) {
+        rg.setFocalPoint(d, r+7);
+        rg.setColorAt( 0, QColor(255,255,255,alpha/2) );
+        rg.setColorAt( 0.5, QColor(255,255,255,0) );
+        p.setBrush(rg);
+        p.drawRect(shadowBlob.rect());
+        rg.setStops(QGradientStops());
+        rg.setColorAt( 0, c );
+        c.setAlpha(0);
+        rg.setColorAt( 1, c );
+    } else {
+        rg.setColorAt( float(r)/(r+9.0f), c );
+        c.setAlpha(0);
+        rg.setColorAt( 1, c );
+    }
+
     p.setBrush(rg);
     p.drawRect(shadowBlob.rect());
     if (r) {
