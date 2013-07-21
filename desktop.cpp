@@ -1223,18 +1223,19 @@ BE::Desk::shadow(int r)
     QRadialGradient rg(d, d, d);
     p.begin(&shadowBlob);
     p.setPen(Qt::NoPen);
+    const float focus = float(r)/(r+9.0f);
     if (myHaloColor.isValid()) {
         rg.setFocalPoint(d, r+7);
-        rg.setColorAt( 0, QColor(255,255,255,alpha/2) );
-        rg.setColorAt( 0.5, QColor(255,255,255,0) );
+        rg.setColorAt( focus, QColor(255,255,255,alpha/2) );
+        rg.setColorAt( focus + (1.0f - focus)/2.0f, QColor(255,255,255,0) );
         p.setBrush(rg);
         p.drawRect(shadowBlob.rect());
         rg.setStops(QGradientStops());
-        rg.setColorAt( 0, c );
+        rg.setColorAt( focus, c );
         c.setAlpha(0);
         rg.setColorAt( 1, c );
     } else {
-        rg.setColorAt( float(r)/(r+9.0f), c );
+        rg.setColorAt( focus, c );
         c.setAlpha(0);
         rg.setColorAt( 1, c );
     }
