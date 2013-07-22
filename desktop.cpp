@@ -1224,8 +1224,10 @@ BE::Desk::shadow(int r)
     p.begin(&shadowBlob);
     p.setPen(Qt::NoPen);
     const float focus = float(r)/(r+9.0f);
+    int dy[2];
     if (myHaloColor.isValid()) {
-        rg.setFocalPoint(d, r+7);
+        dy[0] = dy[1] = 9;
+        rg.setFocalPoint(d, d);
         rg.setColorAt( focus, QColor(255,255,255,alpha/2) );
         rg.setColorAt( focus + (1.0f - focus)/2.0f, QColor(255,255,255,0) );
         p.setBrush(rg);
@@ -1235,6 +1237,9 @@ BE::Desk::shadow(int r)
         c.setAlpha(0);
         rg.setColorAt( 1, c );
     } else {
+        dy[0] = 6;
+        dy[1] = 12;
+        rg.setFocalPoint(d, r+7);
         rg.setColorAt( focus, c );
         c.setAlpha(0);
         rg.setColorAt( 1, c );
@@ -1251,10 +1256,10 @@ BE::Desk::shadow(int r)
 
     p.end();
 
-    s->topLeft = shadowBlob.copy(0,0,r+9,r+6);
-    s->topRight = shadowBlob.copy(r+10,0,r+9,r+6);
-    s->bottomLeft = shadowBlob.copy(0,r+7,r+9,r+12);
-    s->bottomRight = shadowBlob.copy(r+10,r+7,r+9,r+12);
+    s->topLeft = shadowBlob.copy(0,0,r+9,r+dy[0]);
+    s->topRight = shadowBlob.copy(r+10,0,r+9,r+dy[0]);
+    s->bottomLeft = shadowBlob.copy(0,r+dy[0]+1,r+9,r+dy[1]);
+    s->bottomRight = shadowBlob.copy(r+10,r+dy[0]+1,r+9,r+dy[1]);
 
 #define DUMP_SHADOW(_T_, _W_, _H_)\
 s->_T_ = QPixmap(_W_,_H_);\
@@ -1263,13 +1268,13 @@ p.begin(&s->_T_);\
 p.drawTiledPixmap(s->_T_.rect(), buffer);\
 p.end()
 
-    QPixmap buffer = shadowBlob.copy(r+10,0,1,r+6);
-    DUMP_SHADOW(top, 32, r+6);
-    buffer = shadowBlob.copy(r+10,r+7,1,r+12);
-    DUMP_SHADOW(bottom, 32, r+12);
-    buffer = shadowBlob.copy(0,r+7,r+9,1);
+    QPixmap buffer = shadowBlob.copy(r+10,0,1,r+dy[0]);
+    DUMP_SHADOW(top, 32, r+dy[0]);
+    buffer = shadowBlob.copy(r+10,r+dy[0]+1,1,r+dy[1]);
+    DUMP_SHADOW(bottom, 32, r+dy[1]);
+    buffer = shadowBlob.copy(0,r+dy[0]+1,r+9,1);
     DUMP_SHADOW(left, r+9, 32);
-    buffer = shadowBlob.copy(r+10,r+7,r+9,1);
+    buffer = shadowBlob.copy(r+10,r+dy[0]+1,r+9,1);
     DUMP_SHADOW(right, r+9, 32);
 //     buffer = shadowBlob.copy(r+9,r+9,1,1);
 //     DUMP_SHADOW(center, 32, 32); // ? usage?
