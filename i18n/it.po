@@ -1,0 +1,535 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: BE::Shell\n"
+"Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
+"POT-Creation-Date: 2013-07-22 20:03+0200\n"
+"PO-Revision-Date: 2013-01-23 21:49+0100\n"
+"Last-Translator: Maurizio <maurizio.paglia@poste.it>\n"
+"Language-Team: Maurizio Paglia <maurizio@mauriziopaglia.it>\n"
+"Language: Italiano\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Bookmarks: -1,16,-1,-1,23,-1,-1,-1,-1,-1\n"
+
+#: be.run.cpp:40
+msgid "BE::run"
+msgstr "BE::run"
+
+#: be.run.cpp:44
+msgid "Runner for BE::shell"
+msgstr "Runner di BE::Shell"
+
+#: be.run.cpp:48 be.shell.cpp:1523
+msgid "(c) 2009"
+msgstr "(c) 2009"
+
+#: be.run.cpp:51
+msgid "Some text..."
+msgstr "Del testo..."
+
+#: be.shell.cpp:105
+msgid "Shell"
+msgstr "Shell"
+
+#: be.shell.cpp:106
+msgid "Themes"
+msgstr "Temi"
+
+#: be.shell.cpp:107
+msgid "Screen"
+msgstr "Schermo"
+
+#: be.shell.cpp:117
+msgid "Config"
+msgstr "Configura"
+
+#: be.shell.cpp:118
+msgid "Edit..."
+msgstr "Scrivi..."
+
+#: be.shell.cpp:119
+msgid "Reload"
+msgstr "Ricarica"
+
+#: be.shell.cpp:128
+msgid "Plugins"
+msgstr "Plugins"
+
+#: be.shell.cpp:130
+msgid "Windows"
+msgstr "Finestre"
+
+#: be.shell.cpp:577
+msgid "{>} Continue process"
+msgstr ""
+
+#: be.shell.cpp:577
+msgid "{=} Pause process"
+msgstr ""
+
+#: be.shell.cpp:590
+msgid "To desktop"
+msgstr "Al desktop"
+
+#: be.shell.cpp:592
+msgid "This desktop"
+msgstr "Questo desktop"
+
+#: be.shell.cpp:600
+msgid "%1 desktop %1"
+msgstr "%1 desktop %1"
+
+#: be.shell.cpp:834
+msgid ""
+"<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1><h2>SIGSTOP is "
+"not for noobs!</h2>You just stopped a process, what will freeze it.<br>The "
+"process can be re-activtated by sending it SIGCONT (contact the kill "
+"manpage)<br>What you <b>must understand</b> is that neither the "
+"Windowmanager, nor the display server (X11) are stopped.<br><h3>This has "
+"serious implications</h3>All - and I mean <b>all</b> input events are still "
+"delivered to the process and will be executed immediately when the process "
+"continues!<br><h3>Example:</h3>If you paused konsole and then happily "
+"typed<br><pre>rm -rf ~/* ~/.*</pre><br>into it, there will be no immediate "
+"output or reaction.<br><b>BUT:</b> The moment the process continues, konsole "
+"will <b>delete all your personal data</b> by that command.<h2>Sum up</h2>Do "
+"not do \"funny\" things with a process because it seems inreactive.<br>Best "
+"minimize the window and do not touch it before you continued to play it."
+"<h1>You have been warned!</h1>"
+msgstr ""
+
+#: be.shell.cpp:856
+msgid "SIGSTOP is not for fools!"
+msgstr ""
+
+#: be.shell.cpp:1065
+msgid "All screens"
+msgstr "Tutti gli schermi"
+
+#: be.shell.cpp:1065
+msgid "Screen %1"
+msgstr "Schermo %1"
+
+#: be.shell.cpp:1490
+msgid "Edit current..."
+msgstr "Modifica l'attuale..."
+
+#: be.shell.cpp:1507
+msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
+msgstr "Purtroppo BE::Shell si è interrotta<h2>Vuoi riavviarla?</h2>"
+
+#: be.shell.cpp:1508
+msgid "Sorry, BE::Shell just crashed"
+msgstr "Purtroppo BE::Shell si è appena interrotta"
+
+#: be.shell.cpp:1509
+msgid "Restart"
+msgstr "Riavvia"
+
+#: be.shell.cpp:1510
+msgid "Quit"
+msgstr "Spegni"
+
+#: be.shell.cpp:1522
+msgid "BE::shell"
+msgstr "BE::shell"
+
+#: be.shell.cpp:1522
+msgid "A lightweight Desktop shell for KDE4"
+msgstr "Una shell agile e leggera per KDE"
+
+#: be.shell.cpp:1523
+msgid "Some about text..."
+msgstr "Riguardo il testo..."
+
+#: be.shell.cpp:1532
+msgid "Send all your private data to the empire!"
+msgstr ""
+
+#: clock.cpp:50
+msgid "Configure Clock"
+msgstr ""
+
+#: clock.cpp:51
+msgid "Change pattern..."
+msgstr ""
+
+#: clock.cpp:52
+msgid "Set Time..."
+msgstr ""
+
+#: clock.cpp:54
+msgid "CountDown..."
+msgstr ""
+
+#: clock.cpp:126
+msgid "Setup Clock pattern"
+msgstr "Regola il formato dell'orologio"
+
+#: clock.cpp:204
+msgid "Start Count Down"
+msgstr ""
+
+#: clock.cpp:204
+msgid ""
+"<h3>Fun fact:</h3>The countdown was invented by <b>Fritz Lang</b><br/>for "
+"the 1928 movie <b>Frau im Mond</b><br/>to raise suspense for the rocket "
+"launch scene<h3>Enter minutes:</h3>"
+msgstr ""
+
+#: desktop.cpp:256
+msgid "Set Round Corners"
+msgstr "Imposta gli angoli arrotondati"
+
+#: desktop.cpp:300
+msgid "Select Desktops"
+msgstr "Seleziona il desktop"
+
+#: desktop.cpp:303
+msgid "(ctrl: All, alt: Current, shift: force Scale & Crop)"
+msgstr "(ctrl: Tutti, alt: Corrente, shift: forza Scala & Ritaglia)"
+
+#: desktop.cpp:310
+msgid "Set myWallpaper on:"
+msgstr "Imposta lo sfondo su:"
+
+#: desktop.cpp:312
+msgid "All Desktops"
+msgstr "Tutti i desktop"
+
+#: desktop.cpp:315
+msgid "Current Desktop"
+msgstr "Desktop corrente"
+
+#: desktop.cpp:318
+msgid "Individual Desktops"
+msgstr "Desktop individuali"
+
+#: desktop.cpp:324
+msgid "Desktop %1"
+msgstr "Desktop %1"
+
+#: desktop.cpp:538
+msgid "Desktop"
+msgstr "Desktop"
+
+#: desktop.cpp:539
+msgid "Wallpaper"
+msgstr "Sfondo"
+
+#: desktop.cpp:540
+msgid "Select..."
+msgstr "Seleziona..."
+
+#: desktop.cpp:541
+msgid "Mode"
+msgstr "Modo"
+
+#: desktop.cpp:542
+msgid "Plain"
+msgstr "Piano"
+
+#: desktop.cpp:543
+msgid "Tile #"
+msgstr "Motivo #"
+
+#: desktop.cpp:544
+msgid "Tile || "
+msgstr "Motivo ||"
+
+#: desktop.cpp:545
+msgid "Tile = "
+msgstr "Motivo ="
+
+#: desktop.cpp:546
+msgid "Stretch (drop aspect)"
+msgstr "Stira (perdi proporzioni)"
+
+#: desktop.cpp:547
+msgid "Maximal (keep aspect)"
+msgstr "Massimizza (mantieni proporzioni)"
+
+#: desktop.cpp:548
+msgid "Scale && Crop (tm)"
+msgstr "Scala && Ritaglia (tm)"
+
+#: desktop.cpp:553
+msgid "Alignment"
+msgstr "Allineamento"
+
+#: desktop.cpp:554
+msgid "Left"
+msgstr "Sinistra"
+
+#: desktop.cpp:555 desktop.cpp:559
+msgid "Center"
+msgstr "Centro"
+
+#: desktop.cpp:556
+msgid "Right"
+msgstr "Destra"
+
+#: desktop.cpp:558
+msgid "Top"
+msgstr "In alto"
+
+#: desktop.cpp:560
+msgid "Bottom"
+msgstr "In basso"
+
+#: desktop.cpp:565
+msgid "Aspect"
+msgstr "Aspetto"
+
+#: desktop.cpp:566
+msgid "Original"
+msgstr "Originale"
+
+#: desktop.cpp:567
+msgid "1:1"
+msgstr "1:1"
+
+#: desktop.cpp:568
+msgid "5:4"
+msgstr "5:4"
+
+#: desktop.cpp:569
+msgid "4:3"
+msgstr "4:3"
+
+#: desktop.cpp:570
+msgid "Photo / VistaVision / \"3:2\""
+msgstr "Foto / VistaVision / \"3:2\""
+
+#: desktop.cpp:571
+msgid "14:9"
+msgstr "14:9"
+
+#: desktop.cpp:572
+msgid "16:10"
+msgstr "16:10"
+
+#: desktop.cpp:573
+msgid "16:9"
+msgstr "16:9"
+
+#: desktop.cpp:574
+msgid "Movie"
+msgstr "Film"
+
+#: desktop.cpp:575
+msgid "2:1"
+msgstr "2:1"
+
+#: desktop.cpp:576
+msgid "Cinemascope"
+msgstr "Cinemascope"
+
+#: desktop.cpp:577
+msgid "Panavision"
+msgstr "Panavision"
+
+#: desktop.cpp:578
+msgid "Cinemascope 55"
+msgstr "Cinemascope 55"
+
+#: desktop.cpp:583
+msgid "Settings"
+msgstr "Impostazioni"
+
+#: desktop.cpp:588
+msgid "System settings"
+msgstr "Impostazioni di sistema"
+
+#: desktop.cpp:590
+msgid "Active screen edges"
+msgstr "Angoli attivi dello schermo"
+
+#: desktop.cpp:591
+msgid "Virtual Desktops"
+msgstr "Desktop virtuali"
+
+#: desktop.cpp:592
+msgid "Window behaviour"
+msgstr "Comportamento delle finestre"
+
+#: desktop.cpp:593
+msgid "Window switching"
+msgstr "Cambio finestre"
+
+#: desktop.cpp:595
+msgid "Screen locking"
+msgstr "Blocca schermo"
+
+#: desktop.cpp:596
+msgid "Desktop FX"
+msgstr "Desktop FX"
+
+#: desktop.cpp:597
+msgid "Monitor"
+msgstr "Monitor"
+
+#: desktop.cpp:599 desktop.cpp:610 trash.cpp:67
+msgid "Trashcan"
+msgstr "Cestino"
+
+#: desktop.cpp:602
+msgid "Rounded corners..."
+msgstr "Angoli arrotondati..."
+
+#: desktop.cpp:604
+msgid "Icons"
+msgstr "Icone"
+
+#: i18n/rc.cpp:1 rc.cpp:1
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Maurizio Paglia"
+
+#: i18n/rc.cpp:2 rc.cpp:2
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "maurizio@mauriziopaglia.it"
+
+#: infocenter.cpp:317
+msgid "%1 file"
+msgid_plural "%1 files"
+msgstr[0] "%1 file"
+msgstr[1] "%1 files"
+
+#: infocenter.cpp:319
+msgid "%1 folder"
+msgid_plural "%1 folders"
+msgstr[0] "%1 cartella"
+msgstr[1] "%1 cartelle"
+
+#: infocenter.cpp:495
+msgid "<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>"
+msgstr "<html>Ultimo messaggio:<p>%1</p><p align=\"right\">da %2</p></html>"
+
+#: infocenter.cpp:604
+msgid "You've got Mail!"
+msgstr "E' arrivata posta!"
+
+#: infocenter.cpp:605
+msgid "KMail holds %1 unread mails for you"
+msgstr "KMail ha %1 messaggi da leggere per te"
+
+#: mediatray.cpp:168
+msgid "Disc"
+msgstr ""
+
+#: mediatray.cpp:220
+msgid "Blank Disc"
+msgstr "Disco vuoto"
+
+#: panel.cpp:233
+msgid "Visible"
+msgstr "Visibile"
+
+#: panel.cpp:237
+msgid "Move & Resize"
+msgstr "Sposta e ridimensiona"
+
+#: runner.cpp:1343
+msgid "Favorites"
+msgstr "Favoriti"
+
+#: session.cpp:64 session.cpp:110
+msgid "Delay %1"
+msgstr "Ritardo %1"
+
+#: session.cpp:110
+msgid "How many minutes to wait for the %1?"
+msgstr "Quanti minuti di attesa per %1?"
+
+#: session.cpp:134
+msgid "Lock screen"
+msgstr "Blocca schermo"
+
+#: session.cpp:135 session.cpp:289
+msgid "Fall asleep"
+msgstr "Sospendi"
+
+#: session.cpp:136
+msgid "Lock && sleep"
+msgstr "Blocca && sospendi"
+
+#: session.cpp:138 session.cpp:261
+msgid "Logout"
+msgstr "Logout"
+
+#: session.cpp:139 session.cpp:357 session.cpp:383
+msgid "New session ..."
+msgstr "Nuova sessione..."
+
+#: session.cpp:144 session.cpp:269
+msgid "Reboot"
+msgstr "Riavvia"
+
+#: session.cpp:145 session.cpp:305
+msgid "Power Off"
+msgstr "Spegni"
+
+#: session.cpp:155
+msgid "Icon only"
+msgstr "Solo icone"
+
+#: session.cpp:156
+msgid "Text only"
+msgstr "Solo testo"
+
+#: session.cpp:157
+msgid "Text next to icon"
+msgstr "Testo a fianco delle icone"
+
+#: session.cpp:158
+msgid "Text under icon"
+msgstr "Testo sotto alle icone"
+
+#: session.cpp:297
+msgid "Lock screen & fall asleep"
+msgstr "Blocca schermo & sospendi"
+
+#: session.cpp:369
+msgid "%1 @ %2 on %3"
+msgstr "%1 @ %2 su %3"
+
+#: session.cpp:377
+msgid "Sessions"
+msgstr "Sessioni"
+
+#: systray.cpp:574
+msgid "Nasty"
+msgstr "Antipatico"
+
+#: systray.cpp:574
+msgid "Unthemed"
+msgstr "Senza tema"
+
+#: trash.cpp:68
+msgid "Open"
+msgstr "Apri"
+
+#: trash.cpp:69
+msgid "Empty..."
+msgstr "Vuoto..."
+
+#: trash.cpp:128
+msgctxt "@info"
+msgid "Do you really want to empty the trash? All items will be deleted."
+msgstr "Vuoi veramente vuotare il cestino? Tutto il contenuto sarà cancellato."
+
+#: trash.cpp:211
+msgid "%1 trashed items"
+msgstr "%1 elementi cancellati"
+
+#: trash.cpp:216
+msgid "Trash is empty"
+msgstr "Il cestino è vuoto"
