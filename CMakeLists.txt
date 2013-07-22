@@ -47,6 +47,8 @@ target_link_libraries(be.shell ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS} ${KDE4_KFILE_
 
 install(TARGETS be.shell DESTINATION ${BIN_INSTALL_DIR} )
 
+add_subdirectory(i18n)
+
 
 # PROJECT( be.run )
 # set(be.run_SRCS be.run.cpp runner.cpp)

@@ -1,6 +1,6 @@
 #!/bin/sh
 BASEDIR="`pwd`"    # root of translatable sources
-PROJECT="be-shell"    # project name
+PROJECT="be.shell"    # project name
 BUGADDR="https://sourceforge.net/p/be-shell/tickets/"    # MSGID-Bugs
 WDIR="`pwd`/i18n"     # working dir
 

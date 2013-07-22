@@ -1,0 +1,536 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Thomas Lübking <thomas.luebking@web.de>, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
+"POT-Creation-Date: 2013-07-22 20:03+0200\n"
+"PO-Revision-Date: 2013-07-22 20:03+0200\n"
+"Last-Translator: Thomas Lübking <thomas.luebking@web.de>\n"
+"Language-Team: American English <kde-i18n-doc@kde.org>\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 1.5\n"
+
+#: be.run.cpp:40
+msgid "BE::run"
+msgstr ""
+
+#: be.run.cpp:44
+msgid "Runner for BE::shell"
+msgstr ""
+
+#: be.run.cpp:48 be.shell.cpp:1523
+msgid "(c) 2009"
+msgstr ""
+
+#: be.run.cpp:51
+msgid "Some text..."
+msgstr ""
+
+#: be.shell.cpp:105
+msgid "Shell"
+msgstr ""
+
+#: be.shell.cpp:106
+msgid "Themes"
+msgstr ""
+
+#: be.shell.cpp:107
+msgid "Screen"
+msgstr ""
+
+#: be.shell.cpp:117
+msgid "Config"
+msgstr ""
+
+#: be.shell.cpp:118
+msgid "Edit..."
+msgstr ""
+
+#: be.shell.cpp:119
+msgid "Reload"
+msgstr ""
+
+#: be.shell.cpp:128
+msgid "Plugins"
+msgstr ""
+
+#: be.shell.cpp:130
+msgid "Windows"
+msgstr ""
+
+#: be.shell.cpp:577
+msgid "{>} Continue process"
+msgstr ""
+
+#: be.shell.cpp:577
+msgid "{=} Pause process"
+msgstr ""
+
+#: be.shell.cpp:590
+msgid "To desktop"
+msgstr ""
+
+#: be.shell.cpp:592
+msgid "This desktop"
+msgstr ""
+
+#: be.shell.cpp:600
+msgid "%1 desktop %1"
+msgstr ""
+
+#: be.shell.cpp:834
+msgid ""
+"<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1><h2>SIGSTOP is "
+"not for noobs!</h2>You just stopped a process, what will freeze it.<br>The "
+"process can be re-activtated by sending it SIGCONT (contact the kill "
+"manpage)<br>What you <b>must understand</b> is that neither the "
+"Windowmanager, nor the display server (X11) are stopped.<br><h3>This has "
+"serious implications</h3>All - and I mean <b>all</b> input events are still "
+"delivered to the process and will be executed immediately when the process "
+"continues!<br><h3>Example:</h3>If you paused konsole and then happily "
+"typed<br><pre>rm -rf ~/* ~/.*</pre><br>into it, there will be no immediate "
+"output or reaction.<br><b>BUT:</b> The moment the process continues, konsole "
+"will <b>delete all your personal data</b> by that command.<h2>Sum up</h2>Do "
+"not do \"funny\" things with a process because it seems inreactive.<br>Best "
+"minimize the window and do not touch it before you continued to play it."
+"<h1>You have been warned!</h1>"
+msgstr ""
+
+#: be.shell.cpp:856
+msgid "SIGSTOP is not for fools!"
+msgstr ""
+
+#: be.shell.cpp:1065
+msgid "All screens"
+msgstr ""
+
+#: be.shell.cpp:1065
+msgid "Screen %1"
+msgstr ""
+
+#: be.shell.cpp:1490
+msgid "Edit current..."
+msgstr ""
+
+#: be.shell.cpp:1507
+msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
+msgstr ""
+
+#: be.shell.cpp:1508
+msgid "Sorry, BE::Shell just crashed"
+msgstr ""
+
+#: be.shell.cpp:1509
+msgid "Restart"
+msgstr "Neu starten"
+
+#: be.shell.cpp:1510
+msgid "Quit"
+msgstr "Beenden"
+
+#: be.shell.cpp:1522
+msgid "BE::shell"
+msgstr ""
+
+#: be.shell.cpp:1522
+msgid "A lightweight Desktop shell for KDE4"
+msgstr ""
+
+#: be.shell.cpp:1523
+msgid "Some about text..."
+msgstr ""
+
+#: be.shell.cpp:1532
+msgid "Send all your private data to the empire!"
+msgstr "Alle Deine privaten Daten ans Imperium schicken!"
+
+#: clock.cpp:50
+msgid "Configure Clock"
+msgstr "Uhr konfigurieren"
+
+#: clock.cpp:51
+msgid "Change pattern..."
+msgstr ""
+
+#: clock.cpp:52
+msgid "Set Time..."
+msgstr "Zeit einstellen ..."
+
+#: clock.cpp:54
+msgid "CountDown..."
+msgstr ""
+
+#: clock.cpp:126
+msgid "Setup Clock pattern"
+msgstr "Uhranzeige konfigurieren"
+
+#: clock.cpp:204
+msgid "Start Count Down"
+msgstr "Countdown starten"
+
+#: clock.cpp:204
+msgid ""
+"<h3>Fun fact:</h3>The countdown was invented by <b>Fritz Lang</b><br/>for "
+"the 1928 movie <b>Frau im Mond</b><br/>to raise suspense for the rocket "
+"launch scene<h3>Enter minutes:</h3>"
+msgstr ""
+
+#: desktop.cpp:256
+msgid "Set Round Corners"
+msgstr ""
+
+#: desktop.cpp:300
+msgid "Select Desktops"
+msgstr ""
+
+#: desktop.cpp:303
+msgid "(ctrl: All, alt: Current, shift: force Scale & Crop)"
+msgstr ""
+
+#: desktop.cpp:310
+msgid "Set myWallpaper on:"
+msgstr ""
+
+#: desktop.cpp:312
+msgid "All Desktops"
+msgstr ""
+
+#: desktop.cpp:315
+msgid "Current Desktop"
+msgstr ""
+
+#: desktop.cpp:318
+msgid "Individual Desktops"
+msgstr ""
+
+#: desktop.cpp:324
+msgid "Desktop %1"
+msgstr ""
+
+#: desktop.cpp:538
+msgid "Desktop"
+msgstr ""
+
+#: desktop.cpp:539
+msgid "Wallpaper"
+msgstr ""
+
+#: desktop.cpp:540
+msgid "Select..."
+msgstr "Auswählen ..."
+
+#: desktop.cpp:541
+msgid "Mode"
+msgstr "Modus"
+
+#: desktop.cpp:542
+msgid "Plain"
+msgstr "Original"
+
+#: desktop.cpp:543
+msgid "Tile #"
+msgstr "Kacheln #"
+
+#: desktop.cpp:544
+msgid "Tile || "
+msgstr "Kacheln ||"
+
+#: desktop.cpp:545
+msgid "Tile = "
+msgstr "Kacheln ="
+
+#: desktop.cpp:546
+msgid "Stretch (drop aspect)"
+msgstr "Strecken (Verhältnis ignorieren)"
+
+#: desktop.cpp:547
+msgid "Maximal (keep aspect)"
+msgstr "Maximal (Verhältnis erhalten)"
+
+#: desktop.cpp:548
+msgid "Scale && Crop (tm)"
+msgstr ""
+
+#: desktop.cpp:553
+msgid "Alignment"
+msgstr "Ausrichtung"
+
+#: desktop.cpp:554
+msgid "Left"
+msgstr "Links"
+
+#: desktop.cpp:555 desktop.cpp:559
+msgid "Center"
+msgstr "Mitte"
+
+#: desktop.cpp:556
+msgid "Right"
+msgstr "Rechts"
+
+#: desktop.cpp:558
+msgid "Top"
+msgstr "Oben"
+
+#: desktop.cpp:560
+msgid "Bottom"
+msgstr "Unten"
+
+#: desktop.cpp:565
+msgid "Aspect"
+msgstr "Verhältnis"
+
+#: desktop.cpp:566
+msgid "Original"
+msgstr ""
+
+#: desktop.cpp:567
+msgid "1:1"
+msgstr ""
+
+#: desktop.cpp:568
+msgid "5:4"
+msgstr ""
+
+#: desktop.cpp:569
+msgid "4:3"
+msgstr ""
+
+#: desktop.cpp:570
+msgid "Photo / VistaVision / \"3:2\""
+msgstr ""
+
+#: desktop.cpp:571
+msgid "14:9"
+msgstr ""
+
+#: desktop.cpp:572
+msgid "16:10"
+msgstr ""
+
+#: desktop.cpp:573
+msgid "16:9"
+msgstr ""
+
+#: desktop.cpp:574
+msgid "Movie"
+msgstr ""
+
+#: desktop.cpp:575
+msgid "2:1"
+msgstr ""
+
+#: desktop.cpp:576
+msgid "Cinemascope"
+msgstr ""
+
+#: desktop.cpp:577
+msgid "Panavision"
+msgstr ""
+
+#: desktop.cpp:578
+msgid "Cinemascope 55"
+msgstr ""
+
+#: desktop.cpp:583
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: desktop.cpp:588
+msgid "System settings"
+msgstr "Systemeinstellungen"
+
+#: desktop.cpp:590
+msgid "Active screen edges"
+msgstr "Aktive Desktopkanten"
+
+#: desktop.cpp:591
+msgid "Virtual Desktops"
+msgstr "Virtuelle Desktops"
+
+#: desktop.cpp:592
+msgid "Window behaviour"
+msgstr "Fensterverhalten"
+
+#: desktop.cpp:593
+msgid "Window switching"
+msgstr "Fensterwechsel"
+
+#: desktop.cpp:595
+msgid "Screen locking"
+msgstr "Bildschirmschoner"
+
+#: desktop.cpp:596
+msgid "Desktop FX"
+msgstr ""
+
+#: desktop.cpp:597
+msgid "Monitor"
+msgstr ""
+
+#: desktop.cpp:599 desktop.cpp:610 trash.cpp:67
+msgid "Trashcan"
+msgstr "Mülleimer"
+
+#: desktop.cpp:602
+msgid "Rounded corners..."
+msgstr ""
+
+#: desktop.cpp:604
+msgid "Icons"
+msgstr ""
+
+#: i18n/rc.cpp:1 rc.cpp:1
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr ""
+
+#: i18n/rc.cpp:2 rc.cpp:2
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr ""
+
+#: infocenter.cpp:317
+msgid "%1 file"
+msgid_plural "%1 files"
+msgstr[0] ""
+msgstr[1] ""
+
+#: infocenter.cpp:319
+msgid "%1 folder"
+msgid_plural "%1 folders"
+msgstr[0] ""
+msgstr[1] ""
+
+#: infocenter.cpp:495
+msgid "<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>"
+msgstr ""
+
+#: infocenter.cpp:604
+msgid "You've got Mail!"
+msgstr ""
+
+#: infocenter.cpp:605
+msgid "KMail holds %1 unread mails for you"
+msgstr ""
+
+#: mediatray.cpp:168
+msgid "Disc"
+msgstr "Disk"
+
+#: mediatray.cpp:220
+msgid "Blank Disc"
+msgstr "Leere Disk"
+
+#: panel.cpp:233
+msgid "Visible"
+msgstr "Sichtbar"
+
+#: panel.cpp:237
+msgid "Move & Resize"
+msgstr "Position & Größe ändern"
+
+#: runner.cpp:1343
+msgid "Favorites"
+msgstr "Favoriten"
+
+#: session.cpp:64 session.cpp:110
+msgid "Delay %1"
+msgstr "Verzögere"
+
+#: session.cpp:110
+msgid "How many minutes to wait for the %1?"
+msgstr "Wie lange auf %1 warten?"
+
+#: session.cpp:134
+msgid "Lock screen"
+msgstr "Bildschirm sperren"
+
+#: session.cpp:135 session.cpp:289
+msgid "Fall asleep"
+msgstr "Einschlafen"
+
+#: session.cpp:136
+msgid "Lock && sleep"
+msgstr "Absperren && Einschlafen"
+
+#: session.cpp:138 session.cpp:261
+msgid "Logout"
+msgstr "Abmelden"
+
+#: session.cpp:139 session.cpp:357 session.cpp:383
+msgid "New session ..."
+msgstr "Neue Sitzung ..."
+
+#: session.cpp:144 session.cpp:269
+msgid "Reboot"
+msgstr "Neu starten"
+
+#: session.cpp:145 session.cpp:305
+msgid "Power Off"
+msgstr "Ausschalten"
+
+#: session.cpp:155
+msgid "Icon only"
+msgstr ""
+
+#: session.cpp:156
+msgid "Text only"
+msgstr ""
+
+#: session.cpp:157
+msgid "Text next to icon"
+msgstr ""
+
+#: session.cpp:158
+msgid "Text under icon"
+msgstr ""
+
+#: session.cpp:297
+msgid "Lock screen & fall asleep"
+msgstr ""
+
+#: session.cpp:369
+msgid "%1 @ %2 on %3"
+msgstr ""
+
+#: session.cpp:377
+msgid "Sessions"
+msgstr "Sitzungen"
+
+#: systray.cpp:574
+msgid "Nasty"
+msgstr "Nervig"
+
+#: systray.cpp:574
+msgid "Unthemed"
+msgstr ""
+
+#: trash.cpp:68
+msgid "Open"
+msgstr "Öffnen"
+
+#: trash.cpp:69
+msgid "Empty..."
+msgstr "Ausleeren..."
+
+#: trash.cpp:128
+msgctxt "@info"
+msgid "Do you really want to empty the trash? All items will be deleted."
+msgstr ""
+"Wollen Sie den Mülleimer tatsächlich leeren? Alle Elemente werden endgültig "
+"gelöscht."
+
+#: trash.cpp:211
+msgid "%1 trashed items"
+msgstr "%1 Dinge im Müll"
+
+#: trash.cpp:216
+msgid "Trash is empty"
+msgstr "Kein Müll."
