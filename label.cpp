@@ -244,12 +244,11 @@ BE::Label::poll()
     if ( myDBus )
     {
         myReplyIsPending = true;
-        QDBusPendingCall *pending(0);
+        QDBusPendingCallWatcher *watcher;
         if ( myDBusArgs )
-            *pending = myDBus->asyncCallWithArgumentList( myCommand, *myDBusArgs );
+            watcher = new QDBusPendingCallWatcher(myDBus->asyncCallWithArgumentList( myCommand, *myDBusArgs ), this);
         else
-            *pending = myDBus->asyncCall( myCommand );
-        QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(*pending, this);
+            watcher = new QDBusPendingCallWatcher(myDBus->asyncCall( myCommand ), this);
         connect( watcher, SIGNAL(finished(QDBusPendingCallWatcher*)), SLOT(updateContents()) );
         return;
     }
