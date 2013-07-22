@@ -1,10 +1,15 @@
 #!/bin/sh
-BASE="${1%%:*}"
-TILE="${1##*:}"
-if [ "$BASE" = "$TILE" ]; then
-    WALLPAPER="`realpath $BASE`"
+NONE="`echo $1 | tr -s '[:upper:]' '[:lower:]'`"
+if [ "$NONE" != "none" ]; then
+    BASE="${1%%:*}"
+    TILE="${1##*:}"
+    if [ "$BASE" = "$TILE" ]; then
+        WALLPAPER="`realpath $BASE`"
+    else
+        WALLPAPER="`realpath $BASE`:`realpath $TILE`"
+    fi
 else
-    WALLPAPER="`realpath $BASE`:`realpath $TILE`"
+    WALLPAPER="none"
 fi
 if [ -z "$2" ]; then
     qdbus org.kde.be.shell /Desktop setWallpaper "$WALLPAPER"

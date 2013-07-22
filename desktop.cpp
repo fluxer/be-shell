@@ -1065,12 +1065,14 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
 {
     if (file.isEmpty())
         return; // "none" is ok - [empty] is not but might result from skipped dialog
-    KUrl url(file);
-    if (!url.isLocalFile())
-    {
-        file = KGlobal::dirs()->locateLocal("data","be.shell/myWallpaper");
-        if ( !KIO::NetAccess::download(url, file, this) )
-            return; // failed download
+    if (file.compare("none", Qt::CaseInsensitive)) {
+        KUrl url(file);
+        if (!url.isLocalFile())
+        {
+            file = KGlobal::dirs()->locateLocal("data","be.shell/myWallpaper");
+            if ( !KIO::NetAccess::download(url, file, this) )
+                return; // failed download
+        }
     }
     QList<int> desks;
     if (KWindowSystem::numberOfDesktops() == 1)
@@ -1097,14 +1099,11 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
 
     Wallpaper &wp = (desktop < 0) ? myWallpaper : myWallpapers[desktop];
 
-    if ( file == "none" )
-    {
+    if (!file.compare("none", Qt::CaseInsensitive)) {
         wp.pix = QPixmap();
         wp.file = file;
         wp.aspect = -1.0;
-    }
-    else
-    {
+    } else {
         if (file.endsWith(".bwp", Qt::CaseInsensitive)) {
             QUrl url(file + "/base.jpg");
             url.setScheme("tar");
