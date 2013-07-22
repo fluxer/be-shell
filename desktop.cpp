@@ -1250,7 +1250,7 @@ BE::Desk::shadow(int r)
         p.setRenderHint(QPainter::Antialiasing);
         p.setCompositionMode(QPainter::CompositionMode_DestinationOut);
         p.setBrush(Qt::white);
-        p.drawEllipse(shadowBlob.rect().adjusted(10,7,-10,-13));
+        p.drawEllipse(shadowBlob.rect().adjusted(10,dy[0]+1,-10,-(dy[1]+1)));
     }
 
     p.end();
