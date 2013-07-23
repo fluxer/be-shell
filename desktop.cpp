@@ -784,8 +784,6 @@ BE::Desk::configure( KConfigGroup *grp )
 
     i = myShadowOpacity;
     myShadowOpacity = grp->readEntry("ShadowOpacity", 25 );
-    if (myHaloColor.isValid())
-        myShadowOpacity = 10*sqrt(myShadowOpacity);
     if (i != myShadowOpacity) {
         myShadowCache.clear(); // wipe cache
         needUpdate = true;
@@ -1207,7 +1205,8 @@ BE::Desk::shadow(int r)
 
     s = new Shadow;
 
-    const int alpha = myShadowOpacity*255/100;
+    int alpha = myHaloColor.isValid() ? 10*sqrt(myShadowOpacity) : myShadowOpacity;
+    alpha = alpha*255/100;
     Q_ASSERT(alpha>0);
 
     QPainter p;
