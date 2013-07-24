@@ -1,0 +1,552 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# marguerite <marguerite@opensuse.org>, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
+"POT-Creation-Date: 2013-07-22 20:03+0200\n"
+"PO-Revision-Date: 2013-07-24 20:54+0800\n"
+"Last-Translator: marguerite <marguerite@opensuse.org>\n"
+"Language-Team: Chinese Traditional <opensuse-zh@opensuse.org>\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 1.5\n"
+
+#: be.run.cpp:40
+msgid "BE::run"
+msgstr "Be::run"
+
+#: be.run.cpp:44
+msgid "Runner for BE::shell"
+msgstr "BE:shell 的執行器"
+
+#: be.run.cpp:48 be.shell.cpp:1523
+msgid "(c) 2009"
+msgstr "(c) 2009"
+
+#: be.run.cpp:51
+msgid "Some text..."
+msgstr "一些文字..."
+
+#: be.shell.cpp:105
+msgid "Shell"
+msgstr "Shell"
+
+#: be.shell.cpp:106
+msgid "Themes"
+msgstr "主題"
+
+#: be.shell.cpp:107
+msgid "Screen"
+msgstr "螢幕"
+
+#: be.shell.cpp:117
+msgid "Config"
+msgstr "設定"
+
+#: be.shell.cpp:118
+msgid "Edit..."
+msgstr "編輯..."
+
+#: be.shell.cpp:119
+msgid "Reload"
+msgstr "重載"
+
+#: be.shell.cpp:128
+msgid "Plugins"
+msgstr "外挂"
+
+#: be.shell.cpp:130
+msgid "Windows"
+msgstr "窗口"
+
+#: be.shell.cpp:577
+msgid "{>} Continue process"
+msgstr "{>} 繼續行程"
+
+#: be.shell.cpp:577
+msgid "{=} Pause process"
+msgstr "{=} 暫停行程"
+
+#: be.shell.cpp:590
+msgid "To desktop"
+msgstr "前往桌面"
+
+#: be.shell.cpp:592
+msgid "This desktop"
+msgstr "此桌面"
+
+#: be.shell.cpp:600
+msgid "%1 desktop %1"
+msgstr "%1 桌面 %1"
+
+#: be.shell.cpp:834
+msgid ""
+"<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1><h2>SIGSTOP is "
+"not for noobs!</h2>You just stopped a process, what will freeze it.<br>The "
+"process can be re-activtated by sending it SIGCONT (contact the kill "
+"manpage)<br>What you <b>must understand</b> is that neither the "
+"Windowmanager, nor the display server (X11) are stopped.<br><h3>This has "
+"serious implications</h3>All - and I mean <b>all</b> input events are still "
+"delivered to the process and will be executed immediately when the process "
+"continues!<br><h3>Example:</h3>If you paused konsole and then happily "
+"typed<br><pre>rm -rf ~/* ~/.*</pre><br>into it, there will be no immediate "
+"output or reaction.<br><b>BUT:</b> The moment the process continues, konsole "
+"will <b>delete all your personal data</b> by that command.<h2>Sum up</h2>Do "
+"not do \"funny\" things with a process because it seems inreactive.<br>Best "
+"minimize the window and do not touch it before you continued to play it."
+"<h1>You have been warned!</h1>"
+msgstr ""
+"<h1>警告</h1><h2>請先讀我！</h2><h1>真心的！</h1><h2>SIGSTOP 不是"
+"給菜鳥使的！</h2>您只是停止了一個行程，它將定住。<br>"
+"可發送 SIGCONT 重新啟用該行程 (參考 kill "
+"手冊頁)<br>您<b>必須明白</b>"
+"窗口管理員，或顯示伺服器 (X11) 都沒有停止。<br><h3>這有着嚴重的影響"
+"</h3>全部 - 我的意思是<b>全部</b>輸入事件仍將傳遞給行程，當行程繼續時"
+"將立即執行！"
+"<br><h3>示例：</h3>若您暫停了 konsole 並愉快地輸入了"
+"<br><pre>rm -rf ~/* ~/.*</pre><br>，它不會有即時的輸出或反應。"
+"<br><b>但是：</b>行程繼續的那一刻，konsole "
+"將執行該命令並<b>刪除您的全部個人資料</b>。<h2>總結</h2>不要"
+"覺得行程沒有響應就做點「有趣」的事。<br>最好最小化視窗，不要碰它，直到"
+"它說你可以繼續使用我了爲止。"
+"<h1>我已經警告過你了！</h1>"
+
+#: be.shell.cpp:856
+msgid "SIGSTOP is not for fools!"
+msgstr "SIGSTOP 不是給菜鳥使的！"
+
+#: be.shell.cpp:1065
+msgid "All screens"
+msgstr "全部螢幕"
+
+#: be.shell.cpp:1065
+msgid "Screen %1"
+msgstr "螢幕 %1"
+
+#: be.shell.cpp:1490
+msgid "Edit current..."
+msgstr "編輯當前..."
+
+#: be.shell.cpp:1507
+msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
+msgstr "對不住，BE::Shell 剛崩潰了<h2>您想要重新開機嗎？</h2>"
+
+#: be.shell.cpp:1508
+msgid "Sorry, BE::Shell just crashed"
+msgstr "對不住，BE:Shell 剛崩潰了"
+
+#: be.shell.cpp:1509
+msgid "Restart"
+msgstr "重新開機"
+
+#: be.shell.cpp:1510
+msgid "Quit"
+msgstr "退出"
+
+#: be.shell.cpp:1522
+msgid "BE::shell"
+msgstr "BE::shell"
+
+#: be.shell.cpp:1522
+msgid "A lightweight Desktop shell for KDE4"
+msgstr "一個用於 KDE4 的輕量級桌面 shell"
+
+#: be.shell.cpp:1523
+msgid "Some about text..."
+msgstr "一些關於文字..."
+
+#: be.shell.cpp:1532
+msgid "Send all your private data to the empire!"
+msgstr "請幫助我們改進，同意將您的私人數據發送給 BE::Shell 專案！"
+
+#: clock.cpp:50
+msgid "Configure Clock"
+msgstr "設定時鐘"
+
+#: clock.cpp:51
+msgid "Change pattern..."
+msgstr "修改模式..."
+
+#: clock.cpp:52
+msgid "Set Time..."
+msgstr "設定時間..."
+
+#: clock.cpp:54
+msgid "CountDown..."
+msgstr "倒計時..."
+
+#: clock.cpp:126
+msgid "Setup Clock pattern"
+msgstr "設定時鐘模式"
+
+#: clock.cpp:204
+msgid "Start Count Down"
+msgstr "開始倒計時"
+
+#: clock.cpp:204
+msgid ""
+"<h3>Fun fact:</h3>The countdown was invented by <b>Fritz Lang</b><br/>for "
+"the 1928 movie <b>Frau im Mond</b><br/>to raise suspense for the rocket "
+"launch scene<h3>Enter minutes:</h3>"
+msgstr ""
+"<h3>酷來歷：</h3>倒計時是由 <b>Fritz Lang</b> 爲 1928 年的電影 <b>Frau im Mond</b> "
+"發明的，目的是爲火箭發射鏡頭增加懸念。<h3>輸入分鐘：</h3>"
+
+#: desktop.cpp:256
+msgid "Set Round Corners"
+msgstr "設定圓角"
+
+#: desktop.cpp:300
+msgid "Select Desktops"
+msgstr "選擇桌面"
+
+#: desktop.cpp:303
+msgid "(ctrl: All, alt: Current, shift: force Scale & Crop)"
+msgstr "(ctrl: 全部, alt: 當前, shift: 強制放大並裁剪)"
+
+#: desktop.cpp:310
+msgid "Set myWallpaper on:"
+msgstr "設定我的牆紙於："
+
+#: desktop.cpp:312
+msgid "All Desktops"
+msgstr "全部桌面"
+
+#: desktop.cpp:315
+msgid "Current Desktop"
+msgstr "當前桌面"
+
+#: desktop.cpp:318
+msgid "Individual Desktops"
+msgstr "單一桌面"
+
+#: desktop.cpp:324
+msgid "Desktop %1"
+msgstr "桌面 %1"
+
+#: desktop.cpp:538
+msgid "Desktop"
+msgstr "桌面"
+
+#: desktop.cpp:539
+msgid "Wallpaper"
+msgstr "牆紙"
+
+#: desktop.cpp:540
+msgid "Select..."
+msgstr "選擇..."
+
+#: desktop.cpp:541
+msgid "Mode"
+msgstr "模式"
+
+#: desktop.cpp:542
+msgid "Plain"
+msgstr "普通"
+
+#: desktop.cpp:543
+msgid "Tile #"
+msgstr "平鋪 #"
+
+#: desktop.cpp:544
+msgid "Tile || "
+msgstr "平鋪 || "
+
+#: desktop.cpp:545
+msgid "Tile = "
+msgstr "平鋪 = "
+
+#: desktop.cpp:546
+msgid "Stretch (drop aspect)"
+msgstr "拉伸 (放棄比例)"
+
+#: desktop.cpp:547
+msgid "Maximal (keep aspect)"
+msgstr "最大 (保持比例)"
+
+#: desktop.cpp:548
+msgid "Scale && Crop (tm)"
+msgstr "放大和裁剪 (tm)"
+
+#: desktop.cpp:553
+msgid "Alignment"
+msgstr "對齊"
+
+#: desktop.cpp:554
+msgid "Left"
+msgstr "左"
+
+#: desktop.cpp:555 desktop.cpp:559
+msgid "Center"
+msgstr "中"
+
+#: desktop.cpp:556
+msgid "Right"
+msgstr "右"
+
+#: desktop.cpp:558
+msgid "Top"
+msgstr "上"
+
+#: desktop.cpp:560
+msgid "Bottom"
+msgstr "下"
+
+#: desktop.cpp:565
+msgid "Aspect"
+msgstr "比例"
+
+#: desktop.cpp:566
+msgid "Original"
+msgstr "原始"
+
+#: desktop.cpp:567
+msgid "1:1"
+msgstr "1:1"
+
+#: desktop.cpp:568
+msgid "5:4"
+msgstr "5:4"
+
+#: desktop.cpp:569
+msgid "4:3"
+msgstr "4:3"
+
+#: desktop.cpp:570
+msgid "Photo / VistaVision / \"3:2\""
+msgstr "相片 / VistaVision / \"3:2\""
+
+#: desktop.cpp:571
+msgid "14:9"
+msgstr "14:9"
+
+#: desktop.cpp:572
+msgid "16:10"
+msgstr "16:10"
+
+#: desktop.cpp:573
+msgid "16:9"
+msgstr "16:9"
+
+#: desktop.cpp:574
+msgid "Movie"
+msgstr "電影"
+
+#: desktop.cpp:575
+msgid "2:1"
+msgstr "2:1"
+
+#: desktop.cpp:576
+msgid "Cinemascope"
+msgstr "寬銀幕"
+
+#: desktop.cpp:577
+msgid "Panavision"
+msgstr "Panavision"
+
+#: desktop.cpp:578
+msgid "Cinemascope 55"
+msgstr "寬銀幕 55"
+
+#: desktop.cpp:583
+msgid "Settings"
+msgstr "設定"
+
+#: desktop.cpp:588
+msgid "System settings"
+msgstr "系統設定"
+
+#: desktop.cpp:590
+msgid "Active screen edges"
+msgstr "活動螢幕邊緣"
+
+#: desktop.cpp:591
+msgid "Virtual Desktops"
+msgstr "虛擬桌面"
+
+#: desktop.cpp:592
+msgid "Window behaviour"
+msgstr "視窗行爲"
+
+#: desktop.cpp:593
+msgid "Window switching"
+msgstr "視窗切換"
+
+#: desktop.cpp:595
+msgid "Screen locking"
+msgstr "螢幕鎖定"
+
+#: desktop.cpp:596
+msgid "Desktop FX"
+msgstr "桌面 FX"
+
+#: desktop.cpp:597
+msgid "Monitor"
+msgstr "監視器"
+
+#: desktop.cpp:599 desktop.cpp:610 trash.cpp:67
+msgid "Trashcan"
+msgstr "回收站"
+
+#: desktop.cpp:602
+msgid "Rounded corners..."
+msgstr "圓角..."
+
+#: desktop.cpp:604
+msgid "Icons"
+msgstr "圖示"
+
+#: i18n/rc.cpp:1 rc.cpp:1
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "您的名字"
+
+#: i18n/rc.cpp:2 rc.cpp:2
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "您的郵件"
+
+#: infocenter.cpp:317
+msgid "%1 file"
+msgid_plural "%1 files"
+msgstr[0] "%1 個檔案"
+msgstr[1] "%1 個檔案"
+
+#: infocenter.cpp:319
+msgid "%1 folder"
+msgid_plural "%1 folders"
+msgstr[0] "%1 個資料夾"
+msgstr[1] "%1 個資料夾"
+
+#: infocenter.cpp:495
+msgid "<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>"
+msgstr "<html>最後訊息：<p>%1</p><p align=\"right\">來自 %2</p></html>"
+
+#: infocenter.cpp:604
+msgid "You've got Mail!"
+msgstr "您有新郵件請注意查收"
+
+#: infocenter.cpp:605
+msgid "KMail holds %1 unread mails for you"
+msgstr "您的 KMail 中有 %1 封未讀郵件"
+
+#: mediatray.cpp:168
+msgid "Disc"
+msgstr "磁碟"
+
+#: mediatray.cpp:220
+msgid "Blank Disc"
+msgstr "空白磁碟"
+
+#: panel.cpp:233
+msgid "Visible"
+msgstr "可見"
+
+#: panel.cpp:237
+msgid "Move & Resize"
+msgstr "移動並縮放"
+
+#: runner.cpp:1343
+msgid "Favorites"
+msgstr "收藏"
+
+#: session.cpp:64 session.cpp:110
+msgid "Delay %1"
+msgstr "推遲 %1"
+
+#: session.cpp:110
+msgid "How many minutes to wait for the %1?"
+msgstr "在 %1 前等待幾分鐘？"
+
+#: session.cpp:134
+msgid "Lock screen"
+msgstr "鎖定螢幕"
+
+#: session.cpp:135 session.cpp:289
+msgid "Fall asleep"
+msgstr "睡眠"
+
+#: session.cpp:136
+msgid "Lock && sleep"
+msgstr "鎖定並睡眠"
+
+#: session.cpp:138 session.cpp:261
+msgid "Logout"
+msgstr "登出"
+
+#: session.cpp:139 session.cpp:357 session.cpp:383
+msgid "New session ..."
+msgstr "新會話..."
+
+#: session.cpp:144 session.cpp:269
+msgid "Reboot"
+msgstr "重新開機"
+
+#: session.cpp:145 session.cpp:305
+msgid "Power Off"
+msgstr "關機"
+
+#: session.cpp:155
+msgid "Icon only"
+msgstr "僅圖示"
+
+#: session.cpp:156
+msgid "Text only"
+msgstr "僅文字"
+
+#: session.cpp:157
+msgid "Text next to icon"
+msgstr "文字位於圖示旁"
+
+#: session.cpp:158
+msgid "Text under icon"
+msgstr "文字位於圖示下"
+
+#: session.cpp:297
+msgid "Lock screen & fall asleep"
+msgstr "鎖定螢幕並睡眠"
+
+#: session.cpp:369
+msgid "%1 @ %2 on %3"
+msgstr "%1 @ %2  於 %3"
+
+#: session.cpp:377
+msgid "Sessions"
+msgstr "會話"
+
+#: systray.cpp:574
+msgid "Nasty"
+msgstr "好醜"
+
+#: systray.cpp:574
+msgid "Unthemed"
+msgstr "無裝飾"
+
+#: trash.cpp:68
+msgid "Open"
+msgstr "開啟"
+
+#: trash.cpp:69
+msgid "Empty..."
+msgstr "清空..."
+
+#: trash.cpp:128
+msgctxt "@info"
+msgid "Do you really want to empty the trash? All items will be deleted."
+msgstr "您真的想要清空回收站嗎？將刪除全部的項目。"
+
+#: trash.cpp:211
+msgid "%1 trashed items"
+msgstr "%1 個已回收的項目"
+
+#: trash.cpp:216
+msgid "Trash is empty"
+msgstr "回收站爲空"
+
+
