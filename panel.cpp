@@ -228,7 +228,7 @@ BE::Panel::Panel( QWidget *parent ) : QFrame( parent, Qt::FramelessWindowHint)
     iAmNested = bool(dynamic_cast<Panel*>(parent));
 
     if (!configSubMenu)
-        configSubMenu = ((QMenu*)configMenu())->addMenu("Panels");
+        configSubMenu = ((QMenu*)configMenu())->addMenu(i18n("Panels"));
     myConfigMenuEntry = configSubMenu->addMenu(name());
     myVisibility = myConfigMenuEntry->addAction( i18n("Visible"), this, SLOT(setAndSaveVisible(bool)) );
     myVisibility->setCheckable(true);

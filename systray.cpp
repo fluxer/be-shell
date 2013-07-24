@@ -334,11 +334,11 @@ BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent), nas
     }
     s_instance = this;
     setObjectName("SystemTray");
-    myConfigMenu = configMenu()->addMenu("SystemTray");
-    QAction *act = myConfigMenu->addAction( "Show nasty ones" );
+    myConfigMenu = configMenu()->addMenu(i18n("SystemTray"));
+    QAction *act = myConfigMenu->addAction(i18n("Show nasty ones"));
     act->setCheckable(true);
     connect(act, SIGNAL(toggled(bool)), this, SLOT(toggleNastyOnes(bool)));
-    myConfigMenu->addAction( "Configure...", this, SLOT(configureIcons()) );
+    myConfigMenu->addAction(i18n("Configure..."), this, SLOT(configureIcons()) );
     healthTimer = new QTimer(this);
     healthTimer->setSingleShot(true);
     connect (healthTimer, SIGNAL(timeout()), this, SLOT(selfCheck()));

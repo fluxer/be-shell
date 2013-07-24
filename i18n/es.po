@@ -1,12 +1,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-#
+# 
 # Samuel Azcona <samuaz@gmail.com>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-22 20:03+0200\n"
+"POT-Creation-Date: 2013-07-24 23:12+0200\n"
 "PO-Revision-Date: 2013-07-23 18:51-0600\n"
 "Last-Translator: Samuel Azcona <samuaz@gmail.com>\n"
 "Language-Team: Spanish <kde-i18n-doc@kde.org>\n"
@@ -103,23 +103,19 @@ msgid ""
 "<h1>You have been warned!</h1>"
 msgstr ""
 "<h1>ADVERTENCIA</h1><h2>lea esto primero!</h2><h1>Seriously!</h1><h2>SIGSTOP "
-"no "
-"es para novatos!</h2>Solo detuviste un proceso, que va a congelarse.<br>El "
-"proceso puede ser re-activado enviando SIGCONT (contacta la pagina del "
-"manual) "
-"<br>Lo que hay <b>que entender</b> es que ni el gestor de ventanas, ni el "
-"servidor de pantalla (X11) se detienen.<br><h3>Esto tiene"
-"consecuencias graves</h3>en todo - y me refiero a todo <b>todo</b> los "
-"eventos de entrada continúan"
-"enviándose al proceso y serán ejecutados inmediatamente cuando el proceso "
-"continue!<br><h3>Ejemplo:</h3>si tu pausas konsole y luego felizmente "
-"escribes<br><pre>rm -rf ~/* ~/.*</pre><br>en ella, no habrá una reacción "
-"inmediata <br><b>PERO:</b> en el momento en que el proceso continue, konsole "
-"<b>borrara todos tus datos personales</b> por ese comando.<h2>Resumiendo</h2>"
-"No"
-"hagas cosas\"divertidas\" con un proceso porque parezca inactivo.<br>Mejor "
-"minimiza la ventana y no la toques hasta que este activa nuevamente."
-"<h1>Tu has sido advertido!</h1>"
+"no es para novatos!</h2>Solo detuviste un proceso, que va a congelarse."
+"<br>El proceso puede ser re-activado enviando SIGCONT (contacta la pagina "
+"del manual) <br>Lo que hay <b>que entender</b> es que ni el gestor de "
+"ventanas, ni el servidor de pantalla (X11) se detienen.<br><h3>Esto "
+"tieneconsecuencias graves</h3>en todo - y me refiero a todo <b>todo</b> los "
+"eventos de entrada continúanenviándose al proceso y serán ejecutados "
+"inmediatamente cuando el proceso continue!<br><h3>Ejemplo:</h3>si tu pausas "
+"konsole y luego felizmente escribes<br><pre>rm -rf ~/* ~/.*</pre><br>en "
+"ella, no habrá una reacción inmediata <br><b>PERO:</b> en el momento en que "
+"el proceso continue, konsole <b>borrara todos tus datos personales</b> por "
+"ese comando.<h2>Resumiendo</h2>Nohagas cosas\"divertidas\" con un proceso "
+"porque parezca inactivo.<br>Mejor minimiza la ventana y no la toques hasta "
+"que este activa nuevamente.<h1>Tu has sido advertido!</h1>"
 
 #: be.shell.cpp:856
 msgid "SIGSTOP is not for fools!"
@@ -140,8 +136,8 @@ msgstr "Editar actual"
 #: be.shell.cpp:1507
 msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
 msgstr ""
-"Lo siento, BE::Shell se ha cerrado inesperadamente<h2>Quieres reiniciarlo?<"
-"/h2>"
+"Lo siento, BE::Shell se ha cerrado inesperadamente<h2>Quieres reiniciarlo?</"
+"h2>"
 
 #: be.shell.cpp:1508
 msgid "Sorry, BE::Shell just crashed"
@@ -201,10 +197,9 @@ msgid ""
 "the 1928 movie <b>Frau im Mond</b><br/>to raise suspense for the rocket "
 "launch scene<h3>Enter minutes:</h3>"
 msgstr ""
-"<h3>Dato curioso:</h3>La cuenta atrás fue inventada por <b>Fritz Lang</b><br/>"
-"para"
-"la película de 1928 <b>Frau im Mond</b><br/> para elevar el suspenso en la "
-"escena del lanzamiento del cohete<h3>Ingresa minutos:</h3>"
+"<h3>Dato curioso:</h3>La cuenta atrás fue inventada por <b>Fritz Lang</b><br/"
+">parala película de 1928 <b>Frau im Mond</b><br/> para elevar el suspenso en "
+"la escena del lanzamiento del cohete<h3>Ingresa minutos:</h3>"
 
 #: desktop.cpp:256
 msgid "Set Round Corners"
@@ -452,6 +447,10 @@ msgstr "Disco"
 msgid "Blank Disc"
 msgstr "Disco en Blanco"
 
+#: panel.cpp:231
+msgid "Panels"
+msgstr ""
+
 #: panel.cpp:233
 msgid "Visible"
 msgstr "Visible"
@@ -527,6 +526,19 @@ msgstr "%1 @ %2 en %3"
 #: session.cpp:377
 msgid "Sessions"
 msgstr "Sesiones"
+
+#: systray.cpp:337
+msgid "SystemTray"
+msgstr ""
+
+#: systray.cpp:338
+msgid "Show nasty ones"
+msgstr ""
+
+#: systray.cpp:341
+#, fuzzy
+msgid "Configure..."
+msgstr "Configurar Reloj"
 
 #: systray.cpp:574
 msgid "Nasty"

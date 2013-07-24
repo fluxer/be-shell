@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-22 20:03+0200\n"
+"POT-Creation-Date: 2013-07-24 23:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -429,6 +429,10 @@ msgstr ""
 msgid "Blank Disc"
 msgstr ""
 
+#: panel.cpp:231
+msgid "Panels"
+msgstr ""
+
 #: panel.cpp:233
 msgid "Visible"
 msgstr ""
@@ -503,6 +507,18 @@ msgstr ""
 
 #: session.cpp:377
 msgid "Sessions"
+msgstr ""
+
+#: systray.cpp:337
+msgid "SystemTray"
+msgstr ""
+
+#: systray.cpp:338
+msgid "Show nasty ones"
+msgstr ""
+
+#: systray.cpp:341
+msgid "Configure..."
 msgstr ""
 
 #: systray.cpp:574

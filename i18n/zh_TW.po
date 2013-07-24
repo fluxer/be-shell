@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-22 20:03+0200\n"
+"POT-Creation-Date: 2013-07-24 23:12+0200\n"
 "PO-Revision-Date: 2013-07-24 20:54+0800\n"
 "Last-Translator: marguerite <marguerite@opensuse.org>\n"
 "Language-Team: Chinese Traditional <opensuse-zh@opensuse.org>\n"
@@ -102,20 +102,15 @@ msgid ""
 "minimize the window and do not touch it before you continued to play it."
 "<h1>You have been warned!</h1>"
 msgstr ""
-"<h1>警告</h1><h2>請先讀我！</h2><h1>真心的！</h1><h2>SIGSTOP 不是"
-"給菜鳥使的！</h2>您只是停止了一個行程，它將定住。<br>"
-"可發送 SIGCONT 重新啟用該行程 (參考 kill "
-"手冊頁)<br>您<b>必須明白</b>"
-"窗口管理員，或顯示伺服器 (X11) 都沒有停止。<br><h3>這有着嚴重的影響"
-"</h3>全部 - 我的意思是<b>全部</b>輸入事件仍將傳遞給行程，當行程繼續時"
-"將立即執行！"
-"<br><h3>示例：</h3>若您暫停了 konsole 並愉快地輸入了"
-"<br><pre>rm -rf ~/* ~/.*</pre><br>，它不會有即時的輸出或反應。"
-"<br><b>但是：</b>行程繼續的那一刻，konsole "
-"將執行該命令並<b>刪除您的全部個人資料</b>。<h2>總結</h2>不要"
-"覺得行程沒有響應就做點「有趣」的事。<br>最好最小化視窗，不要碰它，直到"
-"它說你可以繼續使用我了爲止。"
-"<h1>我已經警告過你了！</h1>"
+"<h1>警告</h1><h2>請先讀我！</h2><h1>真心的！</h1><h2>SIGSTOP 不是給菜鳥使的！"
+"</h2>您只是停止了一個行程，它將定住。<br>可發送 SIGCONT 重新啟用該行程 (參考 "
+"kill 手冊頁)<br>您<b>必須明白</b>窗口管理員，或顯示伺服器 (X11) 都沒有停止。"
+"<br><h3>這有着嚴重的影響</h3>全部 - 我的意思是<b>全部</b>輸入事件仍將傳遞給行"
+"程，當行程繼續時將立即執行！<br><h3>示例：</h3>若您暫停了 konsole 並愉快地輸"
+"入了<br><pre>rm -rf ~/* ~/.*</pre><br>，它不會有即時的輸出或反應。<br><b>但"
+"是：</b>行程繼續的那一刻，konsole 將執行該命令並<b>刪除您的全部個人資料</b>。"
+"<h2>總結</h2>不要覺得行程沒有響應就做點「有趣」的事。<br>最好最小化視窗，不要"
+"碰它，直到它說你可以繼續使用我了爲止。<h1>我已經警告過你了！</h1>"
 
 #: be.shell.cpp:856
 msgid "SIGSTOP is not for fools!"
@@ -195,8 +190,8 @@ msgid ""
 "the 1928 movie <b>Frau im Mond</b><br/>to raise suspense for the rocket "
 "launch scene<h3>Enter minutes:</h3>"
 msgstr ""
-"<h3>酷來歷：</h3>倒計時是由 <b>Fritz Lang</b> 爲 1928 年的電影 <b>Frau im Mond</b> "
-"發明的，目的是爲火箭發射鏡頭增加懸念。<h3>輸入分鐘：</h3>"
+"<h3>酷來歷：</h3>倒計時是由 <b>Fritz Lang</b> 爲 1928 年的電影 <b>Frau im "
+"Mond</b> 發明的，目的是爲火箭發射鏡頭增加懸念。<h3>輸入分鐘：</h3>"
 
 #: desktop.cpp:256
 msgid "Set Round Corners"
@@ -444,6 +439,10 @@ msgstr "磁碟"
 msgid "Blank Disc"
 msgstr "空白磁碟"
 
+#: panel.cpp:231
+msgid "Panels"
+msgstr ""
+
 #: panel.cpp:233
 msgid "Visible"
 msgstr "可見"
@@ -520,6 +519,19 @@ msgstr "%1 @ %2  於 %3"
 msgid "Sessions"
 msgstr "會話"
 
+#: systray.cpp:337
+msgid "SystemTray"
+msgstr ""
+
+#: systray.cpp:338
+msgid "Show nasty ones"
+msgstr ""
+
+#: systray.cpp:341
+#, fuzzy
+msgid "Configure..."
+msgstr "設定時鐘"
+
 #: systray.cpp:574
 msgid "Nasty"
 msgstr "好醜"
@@ -548,5 +560,3 @@ msgstr "%1 個已回收的項目"
 #: trash.cpp:216
 msgid "Trash is empty"
 msgstr "回收站爲空"
-
-
