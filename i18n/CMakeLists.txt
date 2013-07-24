@@ -7,6 +7,8 @@ IF(NOT GETTEXT_MSGFMT_EXECUTABLE)
 ------")
 ELSE(NOT GETTEXT_MSGFMT_EXECUTABLE)
 
+# this comment only exists to re-trigger builds
+
         SET(catalogname be.shell)
 
         ADD_CUSTOM_TARGET(translations ALL)
