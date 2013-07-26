@@ -105,8 +105,8 @@ void
 BE::Clock::configPattern()
 {
     bool ok;
-    
-    const char *helpText =
+
+    static const QString helpText = i18n(
     "<html><b>Date:</b>"
     "<dl>"
     "<dt>d dd / M MM</dt><dd>day/month (e.g. 5 or 05)</dd>"
@@ -121,8 +121,8 @@ BE::Clock::configPattern()
     "<b>Format strings:</b>"
     "<dt>\\n</dt><dd>Line break</dd>"
     "<dt>\\t</dt><dd>Tabulator</dd>"
-    "</dl></html>";
-    
+    "</dl></html>");
+
     QString text = QInputDialog::getText(this, i18n("Setup Clock pattern"), helpText, QLineEdit::Normal, myPattern, &ok);
     if ( ok && !text.isEmpty() )
         { myPattern = text; updateTime(); }

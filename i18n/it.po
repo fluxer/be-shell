@@ -1,22 +1,22 @@
-# SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+# , 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: BE::Shell\n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-24 23:12+0200\n"
-"PO-Revision-Date: 2013-01-23 21:49+0100\n"
-"Last-Translator: Maurizio <maurizio.paglia@poste.it>\n"
-"Language-Team: Maurizio Paglia <maurizio@mauriziopaglia.it>\n"
+"POT-Creation-Date: 2013-07-26 20:54+0200\n"
+"PO-Revision-Date: 2013-07-25 13:58+0200\n"
+"Last-Translator: \n"
+"Language-Team: Italian <kde-i18n-it@kde.org>\n"
 "Language: Italiano\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-Bookmarks: -1,16,-1,-1,23,-1,-1,-1,-1,-1\n"
+"X-Generator: Lokalize 1.5\n"
 
 #: be.run.cpp:40
 msgid "BE::run"
@@ -26,7 +26,7 @@ msgstr "BE::run"
 msgid "Runner for BE::shell"
 msgstr "Runner di BE::Shell"
 
-#: be.run.cpp:48 be.shell.cpp:1523
+#: be.run.cpp:48 be.shell.cpp:1521
 msgid "(c) 2009"
 msgstr "(c) 2009"
 
@@ -34,59 +34,93 @@ msgstr "(c) 2009"
 msgid "Some text..."
 msgstr "Del testo..."
 
-#: be.shell.cpp:105
+#: be.shell.cpp:103
 msgid "Shell"
 msgstr "Shell"
 
-#: be.shell.cpp:106
+#: be.shell.cpp:104
 msgid "Themes"
 msgstr "Temi"
 
-#: be.shell.cpp:107
+#: be.shell.cpp:105
 msgid "Screen"
 msgstr "Schermo"
 
-#: be.shell.cpp:117
+#: be.shell.cpp:115
 msgid "Config"
 msgstr "Configura"
 
-#: be.shell.cpp:118
+#: be.shell.cpp:116
 msgid "Edit..."
 msgstr "Scrivi..."
 
-#: be.shell.cpp:119
+#: be.shell.cpp:117
 msgid "Reload"
 msgstr "Ricarica"
 
-#: be.shell.cpp:128
+#: be.shell.cpp:126
 msgid "Plugins"
 msgstr "Plugins"
 
-#: be.shell.cpp:130
+#: be.shell.cpp:128
 msgid "Windows"
 msgstr "Finestre"
 
-#: be.shell.cpp:577
+#: be.shell.cpp:575
 msgid "{>} Continue process"
-msgstr ""
+msgstr "{>} Continua processo"
 
-#: be.shell.cpp:577
+#: be.shell.cpp:575
 msgid "{=} Pause process"
+msgstr "{=} Metti il processo in pausa"
+
+#: be.shell.cpp:582
+msgid "Close"
 msgstr ""
 
-#: be.shell.cpp:590
+#: be.shell.cpp:585
+#, fuzzy
+msgid "On all desktops"
+msgstr "Tutti i desktop"
+
+#: be.shell.cpp:588
 msgid "To desktop"
 msgstr "Al desktop"
 
-#: be.shell.cpp:592
+#: be.shell.cpp:590
 msgid "This desktop"
 msgstr "Questo desktop"
 
-#: be.shell.cpp:600
+#: be.shell.cpp:598
 msgid "%1 desktop %1"
 msgstr "%1 desktop %1"
 
-#: be.shell.cpp:834
+#: be.shell.cpp:604
+#, fuzzy
+msgid "FullScreen"
+msgstr "Schermo"
+
+#: be.shell.cpp:605
+msgid "Maximized"
+msgstr ""
+
+#: be.shell.cpp:606
+msgid "Minimized"
+msgstr ""
+
+#: be.shell.cpp:608
+msgid "Shaded"
+msgstr ""
+
+#: be.shell.cpp:610
+msgid "Above other windows"
+msgstr ""
+
+#: be.shell.cpp:611
+msgid "Below other windows"
+msgstr ""
+
+#: be.shell.cpp:832
 msgid ""
 "<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1><h2>SIGSTOP is "
 "not for noobs!</h2>You just stopped a process, what will freeze it.<br>The "
@@ -103,69 +137,94 @@ msgid ""
 "minimize the window and do not touch it before you continued to play it."
 "<h1>You have been warned!</h1>"
 msgstr ""
+"<h1>ATTENZIONE</h1><h2>Leggere prima quanto segue!</h2><h1>Seriamente!</"
+"h1><h2>SIGSTOP non è per i pivelli!</h2>Hai appena fermato un processo, "
+"congelandolo.<br>Il processo può essere riattivato tramite SIGCONT (consulta "
+"la pagina man per kill)<br>Quello che <b>devi comprendere</b> è che nè il "
+"Windowmanager, nè il display server (X11) sono stati stoppati.<br><h3>Questo "
+"ha implicazioni serie</h3> Tutti - e intendo <b>tutti</b> gli eventi di "
+"input sono ancora inviati al processo e saranno eseguiti non appena verrà "
+"riesumato!<br><h3>Esempio:</h3>se metti in pausa konsole per poi digitarci "
+"<br><pre>rm -rf ~/* ~/.*</pre></br> non ci sarà alcun output sul "
+"momento<br><b>TUTTAVIA.</b> Nell'istante in cui il processo riprende, "
+"konsole <b>cancellerà tutti i tuoi dati personali</b> con quel comando."
+"<h2>Riassumendo</h2> Non giocare con un processo perchè sembra inattivo."
+"<br>Meglio minimizzarne la finestra prima di farsi venire strane idee. "
+"<h1>Sei stato avvisato!</h1>"
 
-#: be.shell.cpp:856
+#: be.shell.cpp:854
 msgid "SIGSTOP is not for fools!"
-msgstr ""
+msgstr "SIGSTOP non è per pivelli"
 
-#: be.shell.cpp:1065
+#: be.shell.cpp:1063
 msgid "All screens"
 msgstr "Tutti gli schermi"
 
-#: be.shell.cpp:1065
+#: be.shell.cpp:1063
 msgid "Screen %1"
 msgstr "Schermo %1"
 
-#: be.shell.cpp:1490
+#: be.shell.cpp:1488
 msgid "Edit current..."
 msgstr "Modifica l'attuale..."
 
-#: be.shell.cpp:1507
+#: be.shell.cpp:1505
 msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
 msgstr "Purtroppo BE::Shell si è interrotta<h2>Vuoi riavviarla?</h2>"
 
-#: be.shell.cpp:1508
+#: be.shell.cpp:1506
 msgid "Sorry, BE::Shell just crashed"
 msgstr "Purtroppo BE::Shell si è appena interrotta"
 
-#: be.shell.cpp:1509
+#: be.shell.cpp:1507
 msgid "Restart"
 msgstr "Riavvia"
 
-#: be.shell.cpp:1510
+#: be.shell.cpp:1508
 msgid "Quit"
 msgstr "Spegni"
 
-#: be.shell.cpp:1522
+#: be.shell.cpp:1520
 msgid "BE::shell"
 msgstr "BE::shell"
 
-#: be.shell.cpp:1522
+#: be.shell.cpp:1520
 msgid "A lightweight Desktop shell for KDE4"
 msgstr "Una shell agile e leggera per KDE"
 
-#: be.shell.cpp:1523
+#: be.shell.cpp:1521
 msgid "Some about text..."
 msgstr "Riguardo il testo..."
 
-#: be.shell.cpp:1532
+#: be.shell.cpp:1530
 msgid "Send all your private data to the empire!"
-msgstr ""
+msgstr "Manda tutti i tuoi dati personali all'impero!"
 
 #: clock.cpp:50
 msgid "Configure Clock"
-msgstr ""
+msgstr "Configura orologio"
 
 #: clock.cpp:51
 msgid "Change pattern..."
-msgstr ""
+msgstr "Cambia schema..."
 
 #: clock.cpp:52
 msgid "Set Time..."
-msgstr ""
+msgstr "Setta l'ora"
 
 #: clock.cpp:54
 msgid "CountDown..."
+msgstr "Conto alla rovescia"
+
+#: clock.cpp:110
+msgid ""
+"<html><b>Date:</b><dl><dt>d dd / M MM</dt><dd>day/month (e.g. 5 or 05)</"
+"dd><dt>ddd dddd / MMM MMMM</dt><dd>short or long day/month name ('Dec' "
+"'December')</dd><dt>yy yyyy</dt><dd>year (09 2009)</dd></dl><dl><b>Time:</"
+"b><dt>h hh / m mm / s ss</dt><dd>hour/minute/second (w/o w leading '0')</"
+"dd><dt>AP/ap</dt><dd>'AM'|'PM' / 'am'|'pm'</dd><dt>H HH</dt><dd>hour, 24h "
+"ignoring AM/PM</dd></dl><dl><b>Format strings:</b><dt>\\n</dt><dd>Line "
+"break</dd><dt>\\t</dt><dd>Tabulator</dd></dl></html>"
 msgstr ""
 
 #: clock.cpp:126
@@ -174,7 +233,7 @@ msgstr "Regola il formato dell'orologio"
 
 #: clock.cpp:204
 msgid "Start Count Down"
-msgstr ""
+msgstr "Inizia conto alla rovescia"
 
 #: clock.cpp:204
 msgid ""
@@ -182,6 +241,9 @@ msgid ""
 "the 1928 movie <b>Frau im Mond</b><br/>to raise suspense for the rocket "
 "launch scene<h3>Enter minutes:</h3>"
 msgstr ""
+"<h3>Fatto divertente:</h3>Il conto alla rovescia fu inventato da <b>Fritz "
+"Lang</b><br/>Per il film del 1928 <b>Frau im Mond</b><br/>per accrescere la "
+"suspense nella scena del lancio del missile<h3>Inserisci i minuti:</h3>"
 
 #: desktop.cpp:256
 msgid "Set Round Corners"
@@ -390,12 +452,12 @@ msgstr "Icone"
 #: i18n/rc.cpp:1 rc.cpp:1
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Maurizio Paglia"
+msgstr "Maurizio Paglia, Johannes Kahl"
 
 #: i18n/rc.cpp:2 rc.cpp:2
 msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
-msgstr "maurizio@mauriziopaglia.it"
+msgstr "maurizio@mauriziopaglia.it, sk1nnybstard@gmail.com"
 
 #: infocenter.cpp:317
 msgid "%1 file"
@@ -423,7 +485,7 @@ msgstr "KMail ha %1 messaggi da leggere per te"
 
 #: mediatray.cpp:168
 msgid "Disc"
-msgstr ""
+msgstr "Disco"
 
 #: mediatray.cpp:220
 msgid "Blank Disc"
@@ -431,7 +493,7 @@ msgstr "Disco vuoto"
 
 #: panel.cpp:231
 msgid "Panels"
-msgstr ""
+msgstr "Pannelli"
 
 #: panel.cpp:233
 msgid "Visible"
@@ -467,7 +529,7 @@ msgstr "Blocca && sospendi"
 
 #: session.cpp:138 session.cpp:261
 msgid "Logout"
-msgstr "Logout"
+msgstr "Chiudi sessione"
 
 #: session.cpp:139 session.cpp:357 session.cpp:383
 msgid "New session ..."
@@ -497,6 +559,17 @@ msgstr "Testo a fianco delle icone"
 msgid "Text under icon"
 msgstr "Testo sotto alle icone"
 
+#: session.cpp:165
+msgid "Show full name"
+msgstr ""
+
+#: session.cpp:191
+msgid ""
+"<html><b>%1<b><hr/><table><tr><td>%2</td><td align=\"right\">(%3)</td></"
+"tr><tr><td>Home:</td><td align=\"right\">%4</td></tr><tr><td>Shell:</td><td "
+"align=\"right\">%5</td></tr></table></html>"
+msgstr ""
+
 #: session.cpp:297
 msgid "Lock screen & fall asleep"
 msgstr "Blocca schermo & sospendi"
@@ -511,20 +584,19 @@ msgstr "Sessioni"
 
 #: systray.cpp:337
 msgid "SystemTray"
-msgstr ""
+msgstr "Vassoio di sistema"
 
 #: systray.cpp:338
 msgid "Show nasty ones"
-msgstr ""
+msgstr "Mostra inutili"
 
 #: systray.cpp:341
-#, fuzzy
 msgid "Configure..."
 msgstr "Configura"
 
 #: systray.cpp:574
 msgid "Nasty"
-msgstr "Antipatico"
+msgstr "Inutile"
 
 #: systray.cpp:574
 msgid "Unthemed"

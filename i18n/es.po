@@ -1,13 +1,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# 
+#
 # Samuel Azcona <samuaz@gmail.com>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-24 23:12+0200\n"
-"PO-Revision-Date: 2013-07-23 18:51-0600\n"
+"POT-Creation-Date: 2013-07-26 20:54+0200\n"
+"PO-Revision-Date: 2013-07-25 17:30-0600\n"
 "Last-Translator: Samuel Azcona <samuaz@gmail.com>\n"
 "Language-Team: Spanish <kde-i18n-doc@kde.org>\n"
 "Language: es\n"
@@ -25,7 +25,7 @@ msgstr "BE::run"
 msgid "Runner for BE::shell"
 msgstr "Runner para BE::shell"
 
-#: be.run.cpp:48 be.shell.cpp:1523
+#: be.run.cpp:48 be.shell.cpp:1521
 msgid "(c) 2009"
 msgstr "(c) 2009"
 
@@ -33,59 +33,93 @@ msgstr "(c) 2009"
 msgid "Some text..."
 msgstr "Algún texto"
 
-#: be.shell.cpp:105
+#: be.shell.cpp:103
 msgid "Shell"
 msgstr "Shell"
 
-#: be.shell.cpp:106
+#: be.shell.cpp:104
 msgid "Themes"
 msgstr "Temas"
 
-#: be.shell.cpp:107
+#: be.shell.cpp:105
 msgid "Screen"
 msgstr "Pantalla"
 
-#: be.shell.cpp:117
+#: be.shell.cpp:115
 msgid "Config"
 msgstr "Configuración"
 
-#: be.shell.cpp:118
+#: be.shell.cpp:116
 msgid "Edit..."
 msgstr "Editar"
 
-#: be.shell.cpp:119
+#: be.shell.cpp:117
 msgid "Reload"
 msgstr "Recargar"
 
-#: be.shell.cpp:128
+#: be.shell.cpp:126
 msgid "Plugins"
 msgstr "Complementos"
 
-#: be.shell.cpp:130
+#: be.shell.cpp:128
 msgid "Windows"
 msgstr "Ventanas"
 
-#: be.shell.cpp:577
+#: be.shell.cpp:575
 msgid "{>} Continue process"
-msgstr "Continuar el proceso"
+msgstr "Reactivar Proceso"
 
-#: be.shell.cpp:577
+#: be.shell.cpp:575
 msgid "{=} Pause process"
-msgstr "Pausar el proceso"
+msgstr "Pausar Proceso"
 
-#: be.shell.cpp:590
+#: be.shell.cpp:582
+msgid "Close"
+msgstr ""
+
+#: be.shell.cpp:585
+#, fuzzy
+msgid "On all desktops"
+msgstr "Todos los Escritorios"
+
+#: be.shell.cpp:588
 msgid "To desktop"
 msgstr "Al escritorio"
 
-#: be.shell.cpp:592
+#: be.shell.cpp:590
 msgid "This desktop"
 msgstr "Este Escritorio"
 
-#: be.shell.cpp:600
+#: be.shell.cpp:598
 msgid "%1 desktop %1"
 msgstr "%1 escritorio %1"
 
-#: be.shell.cpp:834
+#: be.shell.cpp:604
+#, fuzzy
+msgid "FullScreen"
+msgstr "Pantalla"
+
+#: be.shell.cpp:605
+msgid "Maximized"
+msgstr ""
+
+#: be.shell.cpp:606
+msgid "Minimized"
+msgstr ""
+
+#: be.shell.cpp:608
+msgid "Shaded"
+msgstr ""
+
+#: be.shell.cpp:610
+msgid "Above other windows"
+msgstr ""
+
+#: be.shell.cpp:611
+msgid "Below other windows"
+msgstr ""
+
+#: be.shell.cpp:832
 msgid ""
 "<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1><h2>SIGSTOP is "
 "not for noobs!</h2>You just stopped a process, what will freeze it.<br>The "
@@ -117,53 +151,53 @@ msgstr ""
 "porque parezca inactivo.<br>Mejor minimiza la ventana y no la toques hasta "
 "que este activa nuevamente.<h1>Tu has sido advertido!</h1>"
 
-#: be.shell.cpp:856
+#: be.shell.cpp:854
 msgid "SIGSTOP is not for fools!"
 msgstr "SIGSTOP no es para tontos!"
 
-#: be.shell.cpp:1065
+#: be.shell.cpp:1063
 msgid "All screens"
 msgstr "Todas las pantallas"
 
-#: be.shell.cpp:1065
+#: be.shell.cpp:1063
 msgid "Screen %1"
 msgstr "Pantalla %1"
 
-#: be.shell.cpp:1490
+#: be.shell.cpp:1488
 msgid "Edit current..."
 msgstr "Editar actual"
 
-#: be.shell.cpp:1507
+#: be.shell.cpp:1505
 msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
 msgstr ""
 "Lo siento, BE::Shell se ha cerrado inesperadamente<h2>Quieres reiniciarlo?</"
 "h2>"
 
-#: be.shell.cpp:1508
+#: be.shell.cpp:1506
 msgid "Sorry, BE::Shell just crashed"
 msgstr "Los siento, BE::Shell se ha cerrado inesperadamente"
 
-#: be.shell.cpp:1509
+#: be.shell.cpp:1507
 msgid "Restart"
 msgstr "Reiniciar"
 
-#: be.shell.cpp:1510
+#: be.shell.cpp:1508
 msgid "Quit"
 msgstr "Salir"
 
-#: be.shell.cpp:1522
+#: be.shell.cpp:1520
 msgid "BE::shell"
 msgstr "Be::shell"
 
-#: be.shell.cpp:1522
+#: be.shell.cpp:1520
 msgid "A lightweight Desktop shell for KDE4"
 msgstr "Un shell de Escritorio ligero para KDE4"
 
-#: be.shell.cpp:1523
+#: be.shell.cpp:1521
 msgid "Some about text..."
 msgstr "Algún texto Acerca de..."
 
-#: be.shell.cpp:1532
+#: be.shell.cpp:1530
 msgid "Send all your private data to the empire!"
 msgstr "Enviar todos tus datos privados al imperio!"
 
@@ -183,6 +217,17 @@ msgstr "Establecer Hora..."
 msgid "CountDown..."
 msgstr "cuenta atrás..."
 
+#: clock.cpp:110
+msgid ""
+"<html><b>Date:</b><dl><dt>d dd / M MM</dt><dd>day/month (e.g. 5 or 05)</"
+"dd><dt>ddd dddd / MMM MMMM</dt><dd>short or long day/month name ('Dec' "
+"'December')</dd><dt>yy yyyy</dt><dd>year (09 2009)</dd></dl><dl><b>Time:</"
+"b><dt>h hh / m mm / s ss</dt><dd>hour/minute/second (w/o w leading '0')</"
+"dd><dt>AP/ap</dt><dd>'AM'|'PM' / 'am'|'pm'</dd><dt>H HH</dt><dd>hour, 24h "
+"ignoring AM/PM</dd></dl><dl><b>Format strings:</b><dt>\\n</dt><dd>Line "
+"break</dd><dt>\\t</dt><dd>Tabulator</dd></dl></html>"
+msgstr ""
+
 #: clock.cpp:126
 msgid "Setup Clock pattern"
 msgstr "Configurar formato del Reloj"
@@ -198,12 +243,12 @@ msgid ""
 "launch scene<h3>Enter minutes:</h3>"
 msgstr ""
 "<h3>Dato curioso:</h3>La cuenta atrás fue inventada por <b>Fritz Lang</b><br/"
-">parala película de 1928 <b>Frau im Mond</b><br/> para elevar el suspenso en "
-"la escena del lanzamiento del cohete<h3>Ingresa minutos:</h3>"
+">para la película de 1928 <b>Frau im Mond</b><br/> para elevar el suspenso "
+"en la escena del lanzamiento del cohete<h3>Ingresa minutos:</h3>"
 
 #: desktop.cpp:256
 msgid "Set Round Corners"
-msgstr "Establecer los bordes redondeados"
+msgstr "Bordes Redondeados"
 
 #: desktop.cpp:300
 msgid "Select Desktops"
@@ -211,7 +256,7 @@ msgstr "Seleccionar Escritorios"
 
 #: desktop.cpp:303
 msgid "(ctrl: All, alt: Current, shift: force Scale & Crop)"
-msgstr "(ctrl: Todo, alt: Actual, shift: Forzar Escalado & Cortar)"
+msgstr "(ctrl: Todo, alt: Actual, shift: Forzar Escalado y Cortar)"
 
 #: desktop.cpp:310
 msgid "Set myWallpaper on:"
@@ -255,15 +300,15 @@ msgstr "Plano"
 
 #: desktop.cpp:543
 msgid "Tile #"
-msgstr "Tile #"
+msgstr "Repetir #"
 
 #: desktop.cpp:544
 msgid "Tile || "
-msgstr "Tile || "
+msgstr "Repetir || "
 
 #: desktop.cpp:545
 msgid "Tile = "
-msgstr "Tile = "
+msgstr "Repetir = "
 
 #: desktop.cpp:546
 msgid "Stretch (drop aspect)"
@@ -275,7 +320,7 @@ msgstr "Máximo (Mantener Aspecto)"
 
 #: desktop.cpp:548
 msgid "Scale && Crop (tm)"
-msgstr "Escalar && Cortar (tm)"
+msgstr "Escalar y Cortar"
 
 #: desktop.cpp:553
 msgid "Alignment"
@@ -437,7 +482,7 @@ msgstr "Tienes Correo!"
 
 #: infocenter.cpp:605
 msgid "KMail holds %1 unread mails for you"
-msgstr "KMail tiene %1 correos no leídos para ti"
+msgstr "KMail tiene %1 correos no leídos"
 
 #: mediatray.cpp:168
 msgid "Disc"
@@ -449,7 +494,7 @@ msgstr "Disco en Blanco"
 
 #: panel.cpp:231
 msgid "Panels"
-msgstr ""
+msgstr "Paneles"
 
 #: panel.cpp:233
 msgid "Visible"
@@ -457,7 +502,7 @@ msgstr "Visible"
 
 #: panel.cpp:237
 msgid "Move & Resize"
-msgstr "Mover & re-dimensionar"
+msgstr "Mover y re-dimensionar"
 
 #: runner.cpp:1343
 msgid "Favorites"
@@ -481,7 +526,7 @@ msgstr "Dormir"
 
 #: session.cpp:136
 msgid "Lock && sleep"
-msgstr "Bloquear && dormir"
+msgstr "Bloquear y dormir"
 
 #: session.cpp:138 session.cpp:261
 msgid "Logout"
@@ -515,9 +560,20 @@ msgstr "Texto junto al icono"
 msgid "Text under icon"
 msgstr "Texto bajo el icono"
 
+#: session.cpp:165
+msgid "Show full name"
+msgstr ""
+
+#: session.cpp:191
+msgid ""
+"<html><b>%1<b><hr/><table><tr><td>%2</td><td align=\"right\">(%3)</td></"
+"tr><tr><td>Home:</td><td align=\"right\">%4</td></tr><tr><td>Shell:</td><td "
+"align=\"right\">%5</td></tr></table></html>"
+msgstr ""
+
 #: session.cpp:297
 msgid "Lock screen & fall asleep"
-msgstr "Bloquear pantalla & Dormir"
+msgstr "Bloquear pantalla y Dormir"
 
 #: session.cpp:369
 msgid "%1 @ %2 on %3"
@@ -529,24 +585,23 @@ msgstr "Sesiones"
 
 #: systray.cpp:337
 msgid "SystemTray"
-msgstr ""
+msgstr "Bandeja del Sistema"
 
 #: systray.cpp:338
 msgid "Show nasty ones"
-msgstr ""
+msgstr "Mostrar Ocultos"
 
 #: systray.cpp:341
-#, fuzzy
 msgid "Configure..."
-msgstr "Configurar Reloj"
+msgstr "Configurar..."
 
 #: systray.cpp:574
 msgid "Nasty"
-msgstr "Horrible"
+msgstr "Ocultar"
 
 #: systray.cpp:574
 msgid "Unthemed"
-msgstr "Sin Temas"
+msgstr "No Personalizar"
 
 #: trash.cpp:68
 msgid "Open"

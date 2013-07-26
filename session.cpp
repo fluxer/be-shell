@@ -162,7 +162,7 @@ BE::Session::Session( QWidget *parent ) : Button(parent)
         myConfigMenu->addAction(act);
     }
     myConfigMenu->addSeparator();
-    useFullName = myConfigMenu->addAction("Show full name");
+    useFullName = myConfigMenu->addAction(i18n("Show full name"));
     useFullName->setData(-1);
     useFullName->setCheckable(true);
     setShortcut(QKeySequence());
@@ -188,11 +188,11 @@ BE::Session::configure( KConfigGroup *grp )
         setText(user.property(KUser::FullName).toString());
     else
         setText(user.loginName());
-    QString tooltip("<html><b>%1<b><hr/>"
+    QString tooltip(i18n("<html><b>%1<b><hr/>"
                     "<table><tr><td>%2</td><td align=\"right\">(%3)</td></tr>"
                            "<tr><td>Home:</td><td align=\"right\">%4</td></tr>"
                            "<tr><td>Shell:</td><td align=\"right\">%5</td></tr>"
-                           "</table></html>");
+                           "</table></html>"));
     //     QStringList   groupNames () const
     //     bool   isSuperUser () const
     //     QVariant   property (UserProperty which) const

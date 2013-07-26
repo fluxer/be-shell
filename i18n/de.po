@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-24 23:12+0200\n"
+"POT-Creation-Date: 2013-07-26 20:54+0200\n"
 "PO-Revision-Date: 2013-07-22 20:03+0200\n"
 "Last-Translator: Thomas Lübking <thomas.luebking@web.de>\n"
 "Language-Team: American English <kde-i18n-doc@kde.org>\n"
@@ -25,7 +25,7 @@ msgstr ""
 msgid "Runner for BE::shell"
 msgstr ""
 
-#: be.run.cpp:48 be.shell.cpp:1523
+#: be.run.cpp:48 be.shell.cpp:1521
 msgid "(c) 2009"
 msgstr ""
 
@@ -33,59 +33,92 @@ msgstr ""
 msgid "Some text..."
 msgstr ""
 
-#: be.shell.cpp:105
+#: be.shell.cpp:103
 msgid "Shell"
 msgstr ""
 
-#: be.shell.cpp:106
+#: be.shell.cpp:104
 msgid "Themes"
 msgstr ""
 
-#: be.shell.cpp:107
+#: be.shell.cpp:105
 msgid "Screen"
 msgstr ""
 
-#: be.shell.cpp:117
+#: be.shell.cpp:115
 msgid "Config"
 msgstr ""
 
-#: be.shell.cpp:118
+#: be.shell.cpp:116
 msgid "Edit..."
 msgstr ""
 
-#: be.shell.cpp:119
+#: be.shell.cpp:117
 msgid "Reload"
 msgstr ""
 
-#: be.shell.cpp:128
+#: be.shell.cpp:126
 msgid "Plugins"
 msgstr ""
 
-#: be.shell.cpp:130
+#: be.shell.cpp:128
 msgid "Windows"
 msgstr ""
 
-#: be.shell.cpp:577
+#: be.shell.cpp:575
 msgid "{>} Continue process"
 msgstr ""
 
-#: be.shell.cpp:577
+#: be.shell.cpp:575
 msgid "{=} Pause process"
 msgstr ""
 
-#: be.shell.cpp:590
+#: be.shell.cpp:582
+msgid "Close"
+msgstr ""
+
+#: be.shell.cpp:585
+#, fuzzy
+msgid "On all desktops"
+msgstr "Virtuelle Desktops"
+
+#: be.shell.cpp:588
 msgid "To desktop"
 msgstr ""
 
-#: be.shell.cpp:592
+#: be.shell.cpp:590
 msgid "This desktop"
 msgstr ""
 
-#: be.shell.cpp:600
+#: be.shell.cpp:598
 msgid "%1 desktop %1"
 msgstr ""
 
-#: be.shell.cpp:834
+#: be.shell.cpp:604
+msgid "FullScreen"
+msgstr ""
+
+#: be.shell.cpp:605
+msgid "Maximized"
+msgstr ""
+
+#: be.shell.cpp:606
+msgid "Minimized"
+msgstr ""
+
+#: be.shell.cpp:608
+msgid "Shaded"
+msgstr ""
+
+#: be.shell.cpp:610
+msgid "Above other windows"
+msgstr ""
+
+#: be.shell.cpp:611
+msgid "Below other windows"
+msgstr ""
+
+#: be.shell.cpp:832
 msgid ""
 "<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1><h2>SIGSTOP is "
 "not for noobs!</h2>You just stopped a process, what will freeze it.<br>The "
@@ -103,51 +136,51 @@ msgid ""
 "<h1>You have been warned!</h1>"
 msgstr ""
 
-#: be.shell.cpp:856
+#: be.shell.cpp:854
 msgid "SIGSTOP is not for fools!"
 msgstr ""
 
-#: be.shell.cpp:1065
+#: be.shell.cpp:1063
 msgid "All screens"
 msgstr ""
 
-#: be.shell.cpp:1065
+#: be.shell.cpp:1063
 msgid "Screen %1"
 msgstr ""
 
-#: be.shell.cpp:1490
+#: be.shell.cpp:1488
 msgid "Edit current..."
 msgstr ""
 
-#: be.shell.cpp:1507
+#: be.shell.cpp:1505
 msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
 msgstr ""
 
-#: be.shell.cpp:1508
+#: be.shell.cpp:1506
 msgid "Sorry, BE::Shell just crashed"
 msgstr ""
 
-#: be.shell.cpp:1509
+#: be.shell.cpp:1507
 msgid "Restart"
 msgstr "Neu starten"
 
-#: be.shell.cpp:1510
+#: be.shell.cpp:1508
 msgid "Quit"
 msgstr "Beenden"
 
-#: be.shell.cpp:1522
+#: be.shell.cpp:1520
 msgid "BE::shell"
 msgstr ""
 
-#: be.shell.cpp:1522
+#: be.shell.cpp:1520
 msgid "A lightweight Desktop shell for KDE4"
 msgstr ""
 
-#: be.shell.cpp:1523
+#: be.shell.cpp:1521
 msgid "Some about text..."
 msgstr ""
 
-#: be.shell.cpp:1532
+#: be.shell.cpp:1530
 msgid "Send all your private data to the empire!"
 msgstr "Alle Deine privaten Daten ans Imperium schicken!"
 
@@ -165,6 +198,17 @@ msgstr "Zeit einstellen ..."
 
 #: clock.cpp:54
 msgid "CountDown..."
+msgstr ""
+
+#: clock.cpp:110
+msgid ""
+"<html><b>Date:</b><dl><dt>d dd / M MM</dt><dd>day/month (e.g. 5 or 05)</"
+"dd><dt>ddd dddd / MMM MMMM</dt><dd>short or long day/month name ('Dec' "
+"'December')</dd><dt>yy yyyy</dt><dd>year (09 2009)</dd></dl><dl><b>Time:</"
+"b><dt>h hh / m mm / s ss</dt><dd>hour/minute/second (w/o w leading '0')</"
+"dd><dt>AP/ap</dt><dd>'AM'|'PM' / 'am'|'pm'</dd><dt>H HH</dt><dd>hour, 24h "
+"ignoring AM/PM</dd></dl><dl><b>Format strings:</b><dt>\\n</dt><dd>Line "
+"break</dd><dt>\\t</dt><dd>Tabulator</dd></dl></html>"
 msgstr ""
 
 #: clock.cpp:126
@@ -494,6 +538,17 @@ msgstr ""
 
 #: session.cpp:158
 msgid "Text under icon"
+msgstr ""
+
+#: session.cpp:165
+msgid "Show full name"
+msgstr ""
+
+#: session.cpp:191
+msgid ""
+"<html><b>%1<b><hr/><table><tr><td>%2</td><td align=\"right\">(%3)</td></"
+"tr><tr><td>Home:</td><td align=\"right\">%4</td></tr><tr><td>Shell:</td><td "
+"align=\"right\">%5</td></tr></table></html>"
 msgstr ""
 
 #: session.cpp:297

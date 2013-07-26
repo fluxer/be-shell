@@ -514,7 +514,7 @@ BE::Shell::showBeMenu()
 }
 
 #define ADD_WINDOW_ACTION(_STRING_, _ACTION_, _STATE_) \
-act = instance->myContextMenu->addAction( i18n(_STRING_) ); \
+act = instance->myContextMenu->addAction( _STRING_ ); \
 act->setCheckable(_STATE_); \
 act->setChecked((info.state() & _STATE_) == _STATE_); \
 act->setData(_STATE_); \
@@ -579,10 +579,10 @@ BE::Shell::showWindowContextMenu(WId id, const QPoint &pos)
         instance->myContextMenu->addSeparator();
     }
 
-    ADD_WINDOW_ACTION("Close", NET::ActionClose, (NET::State)0);
+    ADD_WINDOW_ACTION(i18n("Close"), NET::ActionClose, (NET::State)0);
     instance->myContextMenu->addSeparator();
 
-    ADD_WINDOW_ACTION("On all desktops", NET::ActionStick, NET::Sticky);
+    ADD_WINDOW_ACTION(i18n("On all desktops"), NET::ActionStick, NET::Sticky);
     act->setEnabled(true); //hack
     act->setChecked(info.desktop() == NET::OnAllDesktops);
     QMenu *desktopMenu = instance->myContextMenu->addMenu(i18n("To desktop"));
@@ -601,14 +601,14 @@ BE::Shell::showWindowContextMenu(WId id, const QPoint &pos)
         act->setData(i);
     }
     instance->myContextMenu->addSeparator();
-    ADD_WINDOW_ACTION("FullScreen", NET::ActionFullScreen, NET::FullScreen);
-    ADD_WINDOW_ACTION("Maximized", NET::ActionMax, NET::Max);
-    ADD_WINDOW_ACTION("Minimized", NET::ActionMinimize, NET::Hidden);
+    ADD_WINDOW_ACTION(i18n("FullScreen"), NET::ActionFullScreen, NET::FullScreen);
+    ADD_WINDOW_ACTION(i18n("Maximized"), NET::ActionMax, NET::Max);
+    ADD_WINDOW_ACTION(i18n("Minimized"), NET::ActionMinimize, NET::Hidden);
     act->setChecked(isMinimized(info.state(), info.mappingState())); //hack
-    ADD_WINDOW_ACTION("Shaded", NET::ActionShade, NET::Shaded);
+    ADD_WINDOW_ACTION(i18n("Shaded"), NET::ActionShade, NET::Shaded);
     instance->myContextMenu->addSeparator();
-    ADD_WINDOW_ACTION("Above other windows", (NET::Action)0, NET::KeepAbove);
-    ADD_WINDOW_ACTION("Below other windows", (NET::Action)0, NET::KeepBelow);
+    ADD_WINDOW_ACTION(i18n("Above other windows"), (NET::Action)0, NET::KeepAbove);
+    ADD_WINDOW_ACTION(i18n("Below other windows"), (NET::Action)0, NET::KeepBelow);
     instance->myContextMenu->addSeparator();
     instance->myContextMenu->exec(pos);
 

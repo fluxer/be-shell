@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-24 23:12+0200\n"
+"POT-Creation-Date: 2013-07-26 20:54+0200\n"
 "PO-Revision-Date: 2013-07-24 20:22+0800\n"
 "Last-Translator: marguerite <marguerite@opensuse.org>\n"
 "Language-Team: Chinese Simplified <opensuse-zh@opensuse.org>\n"
@@ -25,7 +25,7 @@ msgstr "Be::run"
 msgid "Runner for BE::shell"
 msgstr "BE:shell 的运行器"
 
-#: be.run.cpp:48 be.shell.cpp:1523
+#: be.run.cpp:48 be.shell.cpp:1521
 msgid "(c) 2009"
 msgstr "(c) 2009"
 
@@ -33,59 +33,93 @@ msgstr "(c) 2009"
 msgid "Some text..."
 msgstr "一些文本..."
 
-#: be.shell.cpp:105
+#: be.shell.cpp:103
 msgid "Shell"
 msgstr "Shell"
 
-#: be.shell.cpp:106
+#: be.shell.cpp:104
 msgid "Themes"
 msgstr "主题"
 
-#: be.shell.cpp:107
+#: be.shell.cpp:105
 msgid "Screen"
 msgstr "屏幕"
 
-#: be.shell.cpp:117
+#: be.shell.cpp:115
 msgid "Config"
 msgstr "配置"
 
-#: be.shell.cpp:118
+#: be.shell.cpp:116
 msgid "Edit..."
 msgstr "编辑..."
 
-#: be.shell.cpp:119
+#: be.shell.cpp:117
 msgid "Reload"
 msgstr "重载"
 
-#: be.shell.cpp:128
+#: be.shell.cpp:126
 msgid "Plugins"
 msgstr "插件"
 
-#: be.shell.cpp:130
+#: be.shell.cpp:128
 msgid "Windows"
 msgstr "窗口"
 
-#: be.shell.cpp:577
+#: be.shell.cpp:575
 msgid "{>} Continue process"
 msgstr "{>} 继续进程"
 
-#: be.shell.cpp:577
+#: be.shell.cpp:575
 msgid "{=} Pause process"
 msgstr "{=} 暂停进程"
 
-#: be.shell.cpp:590
+#: be.shell.cpp:582
+msgid "Close"
+msgstr ""
+
+#: be.shell.cpp:585
+#, fuzzy
+msgid "On all desktops"
+msgstr "全部桌面"
+
+#: be.shell.cpp:588
 msgid "To desktop"
 msgstr "前往桌面"
 
-#: be.shell.cpp:592
+#: be.shell.cpp:590
 msgid "This desktop"
 msgstr "此桌面"
 
-#: be.shell.cpp:600
+#: be.shell.cpp:598
 msgid "%1 desktop %1"
 msgstr "%1 桌面 %1"
 
-#: be.shell.cpp:834
+#: be.shell.cpp:604
+#, fuzzy
+msgid "FullScreen"
+msgstr "屏幕"
+
+#: be.shell.cpp:605
+msgid "Maximized"
+msgstr ""
+
+#: be.shell.cpp:606
+msgid "Minimized"
+msgstr ""
+
+#: be.shell.cpp:608
+msgid "Shaded"
+msgstr ""
+
+#: be.shell.cpp:610
+msgid "Above other windows"
+msgstr ""
+
+#: be.shell.cpp:611
+msgid "Below other windows"
+msgstr ""
+
+#: be.shell.cpp:832
 msgid ""
 "<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1><h2>SIGSTOP is "
 "not for noobs!</h2>You just stopped a process, what will freeze it.<br>The "
@@ -112,51 +146,51 @@ msgstr ""
 "<h2>总结</h2>不要觉得进程没有响应就做点犯二的事。<br>最好最小化窗口，不要碰"
 "它，直到它说你可以继续操弄我了为止。<h1>我已经警告过你了！</h1>"
 
-#: be.shell.cpp:856
+#: be.shell.cpp:854
 msgid "SIGSTOP is not for fools!"
 msgstr "SIGSTOP 不是给菜鸟使的！"
 
-#: be.shell.cpp:1065
+#: be.shell.cpp:1063
 msgid "All screens"
 msgstr "全部屏幕"
 
-#: be.shell.cpp:1065
+#: be.shell.cpp:1063
 msgid "Screen %1"
 msgstr "屏幕 %1"
 
-#: be.shell.cpp:1490
+#: be.shell.cpp:1488
 msgid "Edit current..."
 msgstr "编辑当前..."
 
-#: be.shell.cpp:1507
+#: be.shell.cpp:1505
 msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
 msgstr "对不住，BE::Shell 刚崩溃了<h2>您想要重启吗？</h2>"
 
-#: be.shell.cpp:1508
+#: be.shell.cpp:1506
 msgid "Sorry, BE::Shell just crashed"
 msgstr "对不住，BE:Shell 刚崩溃了"
 
-#: be.shell.cpp:1509
+#: be.shell.cpp:1507
 msgid "Restart"
 msgstr "重启"
 
-#: be.shell.cpp:1510
+#: be.shell.cpp:1508
 msgid "Quit"
 msgstr "退出"
 
-#: be.shell.cpp:1522
+#: be.shell.cpp:1520
 msgid "BE::shell"
 msgstr "BE::shell"
 
-#: be.shell.cpp:1522
+#: be.shell.cpp:1520
 msgid "A lightweight Desktop shell for KDE4"
 msgstr "一个用于 KDE4 的轻量级桌面 shell"
 
-#: be.shell.cpp:1523
+#: be.shell.cpp:1521
 msgid "Some about text..."
 msgstr "一些关于文字..."
 
-#: be.shell.cpp:1532
+#: be.shell.cpp:1530
 msgid "Send all your private data to the empire!"
 msgstr "组织需要您的全部私人数据，您愿意配合组织对您的考察吗？"
 
@@ -175,6 +209,17 @@ msgstr "设置时间..."
 #: clock.cpp:54
 msgid "CountDown..."
 msgstr "倒计时..."
+
+#: clock.cpp:110
+msgid ""
+"<html><b>Date:</b><dl><dt>d dd / M MM</dt><dd>day/month (e.g. 5 or 05)</"
+"dd><dt>ddd dddd / MMM MMMM</dt><dd>short or long day/month name ('Dec' "
+"'December')</dd><dt>yy yyyy</dt><dd>year (09 2009)</dd></dl><dl><b>Time:</"
+"b><dt>h hh / m mm / s ss</dt><dd>hour/minute/second (w/o w leading '0')</"
+"dd><dt>AP/ap</dt><dd>'AM'|'PM' / 'am'|'pm'</dd><dt>H HH</dt><dd>hour, 24h "
+"ignoring AM/PM</dd></dl><dl><b>Format strings:</b><dt>\\n</dt><dd>Line "
+"break</dd><dt>\\t</dt><dd>Tabulator</dd></dl></html>"
+msgstr ""
 
 #: clock.cpp:126
 msgid "Setup Clock pattern"
@@ -506,6 +551,17 @@ msgstr "文本位于图标旁"
 #: session.cpp:158
 msgid "Text under icon"
 msgstr "文本位于图标下"
+
+#: session.cpp:165
+msgid "Show full name"
+msgstr ""
+
+#: session.cpp:191
+msgid ""
+"<html><b>%1<b><hr/><table><tr><td>%2</td><td align=\"right\">(%3)</td></"
+"tr><tr><td>Home:</td><td align=\"right\">%4</td></tr><tr><td>Shell:</td><td "
+"align=\"right\">%5</td></tr></table></html>"
+msgstr ""
 
 #: session.cpp:297
 msgid "Lock screen & fall asleep"
