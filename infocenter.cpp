@@ -60,20 +60,20 @@ BE::InfoDialog::InfoDialog(QWidget *parent) : QDialog(parent, Qt::Dialog|Qt::Fra
 {
     setObjectName("InfoDialog");
     setProperty("KStyleFeatureRequest", property("KStyleFeatureRequest").toUInt() | 1); // "Shadowed"
-    setWindowTitle("Hermes");
+    setWindowTitle(i18nc("Title of the messenger dialog", "Hermes"));
     setSizeGripEnabled(true);
     QHBoxLayout *hbl = new QHBoxLayout;
     QVBoxLayout *vbl = new QVBoxLayout(this);
 
     /*hbl->addWidget(new QLabel("Notifications", this)); */
-    QToolButton *cb = new QToolButton(this); cb->setText("x"); cb->setToolTip("Close current message");
+    QToolButton *cb = new QToolButton(this); cb->setText("x"); cb->setToolTip(i18n("Close current message"));
     hbl->addStretch(); hbl->addWidget(cb);
     connect(cb, SIGNAL(clicked(bool)), this, SLOT(closeCurrent()));
 
     QScrollArea *sa = new QScrollArea(this); sa->setWidgetResizable(true);
     sa->setFrameStyle(QFrame::NoFrame);
     notes = new QToolBox;
-    notes->addItem( log = new QTextBrowser( notes ), "Job Log" );
+    notes->addItem( log = new QTextBrowser( notes ), i18n("Job Log") );
     sa->setWidget(notes);
 
     vbl->addWidget(sa);
@@ -149,7 +149,7 @@ BE::InfoDialog::insertJob(const QString &icon, QString title, int capabilities)
     if (!++jobId)
         jobId = 1;
     BE::Job *job = new BE::Job(jobId, title, capabilities, notes);
-    job->setObjectName(QString("Job %1").arg(jobId));
+    job->setObjectName(i18n("Job %1").arg(jobId));
     notes->addItem( job, KIcon(icon), title );
     QString path = QString("/JobViewServer/JobView_%1").arg(jobId);
     job->myPath = QDBusObjectPath(path);
@@ -486,7 +486,7 @@ BE::InfoCenter::notify( const QString &appName, uint replacesId, const QString &
                         const QStringList &actions, const QVariantMap &hints, int timeout )
 {
     qDebug() << "Got notified" << appName << replacesId << eventId << appIcon << summary << body << actions  << hints << timeout;
-    uint id = myInfoDialog->insertNote( replacesId, appIcon, "Message from " + appName +
+    uint id = myInfoDialog->insertNote( replacesId, appIcon, i18n("Message from %1").arg(appName) +
                                       " ( " + QDateTime::currentDateTime().toString(Qt::ISODate) + " )",
                                         "<html>" + body + "</html>");
     mySummaries[id] = summary.isEmpty() ? body.left(80).append("...") : summary;

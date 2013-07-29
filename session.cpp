@@ -150,7 +150,7 @@ BE::Session::Session( QWidget *parent ) : Button(parent)
     myConfigMenu = new QMenu(this);
     connect (myConfigMenu, SIGNAL(triggered(QAction*)), SLOT(updateSettings(QAction*)));
     myConfigMenu->setSeparatorsCollapsible(false);
-    myConfigMenu->addSeparator()->setText("Session Manager");
+    myConfigMenu->addSeparator()->setText(i18n("Session Manager"));
     QActionGroup *group = new QActionGroup(myConfigMenu);
     group->addAction(i18n("Icon only"))->setData(Qt::ToolButtonIconOnly);
     group->addAction(i18n("Text only"))->setData(Qt::ToolButtonTextOnly);

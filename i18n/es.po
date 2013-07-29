@@ -1,13 +1,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-#
+# 
 # Samuel Azcona <samuaz@gmail.com>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-26 20:54+0200\n"
-"PO-Revision-Date: 2013-07-25 17:30-0600\n"
+"POT-Creation-Date: 2013-07-29 19:44+0200\n"
+"PO-Revision-Date: 2013-07-27 20:34-0600\n"
 "Last-Translator: Samuel Azcona <samuaz@gmail.com>\n"
 "Language-Team: Spanish <kde-i18n-doc@kde.org>\n"
 "Language: es\n"
@@ -75,7 +75,7 @@ msgstr "Pausar Proceso"
 
 #: be.shell.cpp:582
 msgid "Close"
-msgstr ""
+msgstr "Cerrar"
 
 #: be.shell.cpp:585
 #, fuzzy
@@ -95,29 +95,28 @@ msgid "%1 desktop %1"
 msgstr "%1 escritorio %1"
 
 #: be.shell.cpp:604
-#, fuzzy
 msgid "FullScreen"
-msgstr "Pantalla"
+msgstr "Pantalla Completa"
 
 #: be.shell.cpp:605
 msgid "Maximized"
-msgstr ""
+msgstr "Maximizar"
 
 #: be.shell.cpp:606
 msgid "Minimized"
-msgstr ""
+msgstr "Minimizar"
 
 #: be.shell.cpp:608
 msgid "Shaded"
-msgstr ""
+msgstr "Enrollar"
 
 #: be.shell.cpp:610
 msgid "Above other windows"
-msgstr ""
+msgstr "Encima de las otras ventanas"
 
 #: be.shell.cpp:611
 msgid "Below other windows"
-msgstr ""
+msgstr "Abajo de las otras ventanas"
 
 #: be.shell.cpp:832
 msgid ""
@@ -227,6 +226,13 @@ msgid ""
 "ignoring AM/PM</dd></dl><dl><b>Format strings:</b><dt>\\n</dt><dd>Line "
 "break</dd><dt>\\t</dt><dd>Tabulator</dd></dl></html>"
 msgstr ""
+"<html><b>Fecha:</b><dl><dt>d dd / M MM</dt><dd>día/mes (ej. 5 o 05)</"
+"dd><dt>ddd dddd / MMM MMMM</dt><dd>Nombre de día/mes largo o corto ('Dic' "
+"'Diciembre')</dd><dt>yy yyyy</dt><dd>año (09 2009)</dd></dl><dl><b>Hora:</"
+"b><dt>h hh / m mm / s ss</dt><dd>hora/minuto/segundo (con/sin  '0')</"
+"dd><dt>AP/ap</dt><dd>'AM'|'PM' / 'am'|'pm'</dd><dt>H HH</dt><dd>hora, 24h "
+"ignorar AM/PM</dd></dl><dl><b>Formato:</b><dt>\\n</dt><dd>salto de linea</"
+"dd><dt>\\t</dt><dd>Tabulador</dd></dl></html>"
 
 #: clock.cpp:126
 msgid "Setup Clock pattern"
@@ -460,6 +466,23 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "Sus correos electrónicos"
 
+#: infocenter.cpp:63
+msgctxt "Title of the messenger dialog"
+msgid "Hermes"
+msgstr ""
+
+#: infocenter.cpp:69
+msgid "Close current message"
+msgstr ""
+
+#: infocenter.cpp:76
+msgid "Job Log"
+msgstr ""
+
+#: infocenter.cpp:152
+msgid "Job %1"
+msgstr ""
+
 #: infocenter.cpp:317
 msgid "%1 file"
 msgid_plural "%1 files"
@@ -471,6 +494,10 @@ msgid "%1 folder"
 msgid_plural "%1 folders"
 msgstr[0] "%1 carpeta"
 msgstr[1] ""
+
+#: infocenter.cpp:489
+msgid "Message from %1"
+msgstr ""
 
 #: infocenter.cpp:495
 msgid "<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>"
@@ -544,6 +571,11 @@ msgstr "Reiniciar"
 msgid "Power Off"
 msgstr "Apagar"
 
+#: session.cpp:153
+#, fuzzy
+msgid "Session Manager"
+msgstr "Sesiones"
+
 #: session.cpp:155
 msgid "Icon only"
 msgstr "Solo Iconos"
@@ -562,7 +594,7 @@ msgstr "Texto bajo el icono"
 
 #: session.cpp:165
 msgid "Show full name"
-msgstr ""
+msgstr "Mostrar nombre completo"
 
 #: session.cpp:191
 msgid ""
@@ -570,6 +602,9 @@ msgid ""
 "tr><tr><td>Home:</td><td align=\"right\">%4</td></tr><tr><td>Shell:</td><td "
 "align=\"right\">%5</td></tr></table></html>"
 msgstr ""
+"<html><b>%1<b><hr/><table><tr><td>%2</td><td align=\"right\">(%3)</td></"
+"tr><tr><td>Inicio:</td><td align=\"right\">%4</td></tr><tr><td>Shell:</"
+"td><td align=\"right\">%5</td></tr></table></html>"
 
 #: session.cpp:297
 msgid "Lock screen & fall asleep"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-26 20:54+0200\n"
+"POT-Creation-Date: 2013-07-29 19:44+0200\n"
 "PO-Revision-Date: 2013-07-22 20:03+0200\n"
 "Last-Translator: Thomas Lübking <thomas.luebking@web.de>\n"
 "Language-Team: American English <kde-i18n-doc@kde.org>\n"
@@ -440,6 +440,23 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr ""
 
+#: infocenter.cpp:63
+msgctxt "Title of the messenger dialog"
+msgid "Hermes"
+msgstr ""
+
+#: infocenter.cpp:69
+msgid "Close current message"
+msgstr ""
+
+#: infocenter.cpp:76
+msgid "Job Log"
+msgstr ""
+
+#: infocenter.cpp:152
+msgid "Job %1"
+msgstr ""
+
 #: infocenter.cpp:317
 msgid "%1 file"
 msgid_plural "%1 files"
@@ -451,6 +468,10 @@ msgid "%1 folder"
 msgid_plural "%1 folders"
 msgstr[0] ""
 msgstr[1] ""
+
+#: infocenter.cpp:489
+msgid "Message from %1"
+msgstr ""
 
 #: infocenter.cpp:495
 msgid "<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>"
@@ -523,6 +544,11 @@ msgstr "Neu starten"
 #: session.cpp:145 session.cpp:305
 msgid "Power Off"
 msgstr "Ausschalten"
+
+#: session.cpp:153
+#, fuzzy
+msgid "Session Manager"
+msgstr "Sitzungen"
 
 #: session.cpp:155
 msgid "Icon only"

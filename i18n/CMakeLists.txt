@@ -7,7 +7,7 @@ IF(NOT GETTEXT_MSGFMT_EXECUTABLE)
 ------")
 ELSE(NOT GETTEXT_MSGFMT_EXECUTABLE)
 
-# this comment only exists to re-trigger builds -
+# this comment only exists to re-trigger builds
 
         SET(catalogname be.shell)
 
