@@ -111,7 +111,8 @@ private:
         return ok ? m : -1;
     }
     void updateLabel() {
-        label->setText(QString("%1 in %2 %3").arg(rescueFrom).arg(countDown>60?countDown/60:countDown).arg(countDown>60?"min":"sec"));
+        label->setText(i18nc("Something like 'Shutdown in 5 sec'", "%1 in %2 %3").arg(rescueFrom).
+        arg(countDown>60?countDown/60:countDown).arg(countDown > 60 ? i18nc("Abbridge of minutes", "min") : i18nc("Abbridge of seconds", "sec")));
     }
     int countDownTimer;
     QLabel *label;

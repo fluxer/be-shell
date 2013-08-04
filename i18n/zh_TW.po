@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-07-29 19:44+0200\n"
+"POT-Creation-Date: 2013-08-04 18:19+0200\n"
 "PO-Revision-Date: 2013-07-24 20:54+0800\n"
 "Last-Translator: marguerite <marguerite@opensuse.org>\n"
 "Language-Team: Chinese Traditional <opensuse-zh@opensuse.org>\n"
@@ -452,48 +452,48 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "您的郵件"
 
-#: infocenter.cpp:63
+#: infocenter.cpp:70
 msgctxt "Title of the messenger dialog"
 msgid "Hermes"
 msgstr ""
 
-#: infocenter.cpp:69
+#: infocenter.cpp:76
 msgid "Close current message"
 msgstr ""
 
-#: infocenter.cpp:76
+#: infocenter.cpp:83
 msgid "Job Log"
 msgstr ""
 
-#: infocenter.cpp:152
+#: infocenter.cpp:159
 msgid "Job %1"
 msgstr ""
 
-#: infocenter.cpp:317
+#: infocenter.cpp:331
 msgid "%1 file"
 msgid_plural "%1 files"
 msgstr[0] "%1 個檔案"
 msgstr[1] "%1 個檔案"
 
-#: infocenter.cpp:319
+#: infocenter.cpp:333
 msgid "%1 folder"
 msgid_plural "%1 folders"
 msgstr[0] "%1 個資料夾"
 msgstr[1] "%1 個資料夾"
 
-#: infocenter.cpp:489
+#: infocenter.cpp:506
 msgid "Message from %1"
 msgstr ""
 
-#: infocenter.cpp:495
+#: infocenter.cpp:512
 msgid "<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>"
 msgstr "<html>最後訊息：<p>%1</p><p align=\"right\">來自 %2</p></html>"
 
-#: infocenter.cpp:604
+#: infocenter.cpp:621
 msgid "You've got Mail!"
 msgstr "您有新郵件請注意查收"
 
-#: infocenter.cpp:605
+#: infocenter.cpp:622
 msgid "KMail holds %1 unread mails for you"
 msgstr "您的 KMail 中有 %1 封未讀郵件"
 
@@ -517,7 +517,7 @@ msgstr "可見"
 msgid "Move & Resize"
 msgstr "移動並縮放"
 
-#: runner.cpp:1343
+#: runner.cpp:1355
 msgid "Favorites"
 msgstr "收藏"
 
@@ -529,75 +529,92 @@ msgstr "推遲 %1"
 msgid "How many minutes to wait for the %1?"
 msgstr "在 %1 前等待幾分鐘？"
 
-#: session.cpp:134
+#: session.cpp:114
+#, fuzzy
+msgctxt "Something like 'Shutdown in 5 sec'"
+msgid "%1 in %2 %3"
+msgstr "%1 @ %2  於 %3"
+
+#: session.cpp:115
+msgctxt "Abbridge of minutes"
+msgid "min"
+msgstr ""
+
+#: session.cpp:115
+#, fuzzy
+msgctxt "Abbridge of seconds"
+msgid "sec"
+msgstr "比例"
+
+#: session.cpp:135
 msgid "Lock screen"
 msgstr "鎖定螢幕"
 
-#: session.cpp:135 session.cpp:289
+#: session.cpp:136 session.cpp:290
 msgid "Fall asleep"
 msgstr "睡眠"
 
-#: session.cpp:136
+#: session.cpp:137
 msgid "Lock && sleep"
 msgstr "鎖定並睡眠"
 
-#: session.cpp:138 session.cpp:261
+#: session.cpp:139 session.cpp:262
 msgid "Logout"
 msgstr "登出"
 
-#: session.cpp:139 session.cpp:357 session.cpp:383
+#: session.cpp:140 session.cpp:358 session.cpp:384
 msgid "New session ..."
 msgstr "新會話..."
 
-#: session.cpp:144 session.cpp:269
+#: session.cpp:145 session.cpp:270
 msgid "Reboot"
 msgstr "重新開機"
 
-#: session.cpp:145 session.cpp:305
+#: session.cpp:146 session.cpp:306
 msgid "Power Off"
 msgstr "關機"
 
-#: session.cpp:153
+#: session.cpp:154
 #, fuzzy
 msgid "Session Manager"
 msgstr "會話"
 
-#: session.cpp:155
+#: session.cpp:156
 msgid "Icon only"
 msgstr "僅圖示"
 
-#: session.cpp:156
+#: session.cpp:157
 msgid "Text only"
 msgstr "僅文字"
 
-#: session.cpp:157
+#: session.cpp:158
 msgid "Text next to icon"
 msgstr "文字位於圖示旁"
 
-#: session.cpp:158
+#: session.cpp:159
 msgid "Text under icon"
 msgstr "文字位於圖示下"
 
-#: session.cpp:165
+#: session.cpp:166
 msgid "Show full name"
 msgstr ""
 
-#: session.cpp:191
+#: session.cpp:192
 msgid ""
 "<html><b>%1<b><hr/><table><tr><td>%2</td><td align=\"right\">(%3)</td></"
 "tr><tr><td>Home:</td><td align=\"right\">%4</td></tr><tr><td>Shell:</td><td "
 "align=\"right\">%5</td></tr></table></html>"
 msgstr ""
 
-#: session.cpp:297
+#: session.cpp:298
 msgid "Lock screen & fall asleep"
 msgstr "鎖定螢幕並睡眠"
 
-#: session.cpp:369
+#: session.cpp:370
 msgid "%1 @ %2 on %3"
 msgstr "%1 @ %2  於 %3"
 
-#: session.cpp:377
+#: session.cpp:378
 msgid "Sessions"
 msgstr "會話"
 
