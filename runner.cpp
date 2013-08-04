@@ -93,10 +93,22 @@ public:
             {
                 const int level = index.data(TreeLevel).toInt();
                 const float f = sqrt(level);
+#if 0
+                const QColor &bg = pal.color(QPalette::AlternateBase);
+#define VALUE(c) qMin(qMin(c.red(), c.green()), c.blue())
+                QColor fg = pal.color(QPalette::Window);
+                int fgv = VALUE(fg);
+                const int bgv = (bg.alpha() * VALUE(bg) + 255 * fgv) / (255 + bg.alpha());
+                if (qAbs(fgv-bgv) < qAbs(VALUE(pal.color(QPalette::WindowText))-bgv))
+                    fg = pal.color(QPalette::WindowText);
+                fg.setAlpha(255);
+#else
                 const QColor &bg = pal.color(QPalette::WindowText);
-                const QColor &fg = pal.color(QPalette::Window);
+                QColor fg = pal.color(QPalette::Window);
+                fg.setAlpha(255);
+#endif
 #define CHAN(_chan_) (fg._chan_()*f + bg._chan_()*(5-f))/5
-                QColor hd_bg(CHAN(red), CHAN(green), CHAN(blue));
+                QColor hd_bg(CHAN(red), CHAN(green), CHAN(blue), bg.alpha());
 #undef CHAN
                 painter->fillRect( rect, hd_bg );
                 painter->setPen( fg );
