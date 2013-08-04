@@ -37,13 +37,15 @@ class QToolButton;
 
 namespace BE {
 
+class Note;
+
 class InfoDialog : public QDialog
 {
     Q_OBJECT
 public:
     InfoDialog(QWidget *parent);
     QDBusObjectPath insertJob(const QString &icon, QString title, int capabilities);
-    uint insertNote(uint uid, const QString &icon, QString title, const QString &body);
+    uint insertNote(uint uid, const QString &icon, QString title, const QString &body, uint hash);
     virtual int openNotes() const;
     virtual QString requestedLabel() const { return " (i) "; };
 public slots:
@@ -58,7 +60,7 @@ private slots:
     void closeCurrent();
     void updateJobSummary();
 private:
-    QHash<uint, QLabel*> noteDict;
+    QHash<uint, Note*> noteDict;
     QTextBrowser *log;
     static uint jobId, noteId;
 };

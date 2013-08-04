@@ -47,6 +47,13 @@
 
 #include <QtDebug>
 
+class BE::Note : public QLabel
+{
+public:
+    Note(const QString &text, QWidget *parent = 0) : QLabel(text, parent), hash(0) {}
+    uint hash;
+};
+
 //     The reason the notification was closed.
 //     1 - The notification expired.
 //     2 - The notification was dismissed by the user.
@@ -99,7 +106,7 @@ BE::InfoDialog::closeCurrent()
     }
     else
     {
-        QHash<uint, QLabel*>::iterator i = noteDict.begin();
+        QHash<uint, Note*>::iterator i = noteDict.begin();
         while (i != noteDict.end())
         {
             if (i.value() == notes->currentWidget())
@@ -165,14 +172,23 @@ BE::InfoDialog::insertJob(const QString &icon, QString title, int capabilities)
 }
 
 uint
-BE::InfoDialog::insertNote(uint uid, const QString &icon, QString title, const QString &body)
+BE::InfoDialog::insertNote(uint uid, const QString &icon, QString title, const QString &body, uint hash)
 {
-    QLabel *note = 0;
+    Note *note = 0;
     if (uid)
         note = noteDict.value(uid, 0L);
-    if (!note)
-    {
-        note = new QLabel(body, this); note->setMargin(6);
+    if (!note) {
+        for (QHash<uint, Note*>::const_iterator it = noteDict.constBegin(),  end = noteDict.constEnd(); it != end; ++it) {
+            if ((*it)->hash == hash) {
+                note = const_cast<Note*>(*it);
+                break;
+            }
+        }
+    }
+    if (!note) {
+        note = new Note(body, this);
+        note->hash = hash;
+        note->setMargin(6);
         note->setWordWrap(true);
         note->setOpenExternalLinks(true);
         note->setFrameStyle( QFrame::StyledPanel|QFrame::Sunken );
@@ -182,9 +198,7 @@ BE::InfoDialog::insertNote(uint uid, const QString &icon, QString title, const Q
         noteDict.insert(uid, note);
         notes->addItem( note, KIcon(icon), title );
 
-    }
-    else
-    {
+    } else {
         int id = notes->indexOf(note);
         notes->setItemText(id, title);
         notes->setItemIcon(id, KIcon(icon));
@@ -486,13 +500,16 @@ BE::InfoCenter::notify( const QString &appName, uint replacesId, const QString &
                         const QStringList &actions, const QVariantMap &hints, int timeout )
 {
     qDebug() << "Got notified" << appName << replacesId << eventId << appIcon << summary << body << actions  << hints << timeout;
+    uint hash = qHash(appName + appIcon + summary + body);
+    QString hBody = body;
+    hBody.replace('\n', "<br>");
     uint id = myInfoDialog->insertNote( replacesId, appIcon, i18n("Message from %1").arg(appName) +
                                       " ( " + QDateTime::currentDateTime().toString(Qt::ISODate) + " )",
-                                        "<html>" + body + "</html>");
+                                        "<html>" + hBody + "</html>", hash);
     mySummaries[id] = summary.isEmpty() ? body.left(80).append("...") : summary;
     setText( " (i) " );
     show();
-    setToolTip(i18n("<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>").arg(body).arg(appName));
+    setToolTip(i18n("<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>").arg(hBody).arg(appName));
     startIconNotification();
     QTimer::singleShot(6000, this, SLOT(stopIconNotification()));
 
