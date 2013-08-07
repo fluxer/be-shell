@@ -666,7 +666,6 @@ void BE::Run::execute( const QString &exec/*Line*/ )
         myOutput->show();
 
         QStringList cmds;
-        qDebug() << units_abuse;
         if (bc_abuse || units_abuse) {
             if (bc_abuse)
                 cmds << myBcCmd;
