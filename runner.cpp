@@ -650,8 +650,10 @@ void BE::Run::execute( const QString &exec/*Line*/ )
         return;
     }
 #endif
-    bool bc_abuse = exec.startsWith('=');
-    if (bc_abuse || exec.startsWith(':')) // bc request || IO command
+    bool io_abuse = exec.startsWith(':');
+    bool bc_abuse = !io_abuse && exec.startsWith('=');
+    bool units_abuse = io_abuse && exec.contains("->");
+    if (bc_abuse || units_abuse || io_abuse) // bc request || IO command
     {
         if (!myOutput) {
             layout()->addWidget(myOutput = new QTextBrowser(this));
@@ -663,8 +665,21 @@ void BE::Run::execute( const QString &exec/*Line*/ )
         myOutput->show();
 
         QStringList cmds;
-        if (bc_abuse) {
-            cmds << "bc -l";
+        qDebug() << units_abuse;
+        if (bc_abuse || units_abuse) {
+            if (bc_abuse)
+                cmds << "bc -l";
+            else {
+                QStringList pl = exec.mid(1).split("->", QString::SkipEmptyParts);
+                if (pl.isEmpty())
+                    return;
+                QString cmd = "units -t";
+                cmd += " \"" + pl.at(0).trimmed() + "\"";
+                if (pl.count() > 1)
+                    cmd += " \"" + pl.at(1).trimmed() + "\"";
+                // no more than 2 parameters
+                cmds << cmd;
+            }
             if (myOutput->objectName() != "Calculator") {
                 myOutput->setObjectName("Calculator");
                 style()->unpolish(myOutput);
