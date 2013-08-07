@@ -399,6 +399,7 @@ BE::Run::configure( KConfigGroup *grp )
 
     myVisibilityTimeout = grp->readEntry("VisibilityTimeout", 2000);
 
+    myBcCmd = grp->readEntry("bc", "bc -l");
     myAliases.clear();
     QStringList stringList = grp->readEntry("Aliases", QStringList());
     int i;
@@ -668,7 +669,7 @@ void BE::Run::execute( const QString &exec/*Line*/ )
         qDebug() << units_abuse;
         if (bc_abuse || units_abuse) {
             if (bc_abuse)
-                cmds << "bc -l";
+                cmds << myBcCmd;
             else {
                 QStringList pl = exec.mid(1).split("->", QString::SkipEmptyParts);
                 if (pl.isEmpty())

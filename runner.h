@@ -105,6 +105,7 @@ private:
     QTextBrowser *myOutput;
     typedef QMap<QString, QString> Aliases;
     Aliases myAliases;
+    QString myBcCmd;
 };
 } // namepsace
 #endif // RUN_H
