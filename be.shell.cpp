@@ -185,6 +185,8 @@ BE::Shell::addApplet(const QString &name, Panel *panel)
         p = new BE::NetMeter(panel);
     else if (!type.compare("HddMeter", Qt::CaseInsensitive))
         p = new BE::HddMeter(panel);
+    else if (!type.compare("ClockMeter", Qt::CaseInsensitive))
+        p = new BE::ClockMeter(panel);
     else if (!type.compare("Battery", Qt::CaseInsensitive))
         p = new BE::Battery(panel);
     else if (!type.compare("Label", Qt::CaseInsensitive))

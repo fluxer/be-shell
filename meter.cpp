@@ -39,7 +39,7 @@ BE::Meter::Meter( QWidget *parent ) : QFrame(parent)
 , iAmActive(true)
 , myNormalRect(QRectF(-1,-1,2,2))
 {
-    setMinimumHeight(2*QFontMetrics(font()).height());
+    setMinimumHeight(2*fontMetrics().height());
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setRanges(0,0,0,0);
     setValues(0,0);
@@ -108,7 +108,7 @@ void
 BE::Meter::changeEvent(QEvent *e)
 {
     if (e->type() == QEvent::FontChange)
-        setMinimumHeight(2*QFontMetrics(font()).height());
+        setMinimumHeight(2*fontMetrics().height());
     QFrame::changeEvent(e);
 }
 
@@ -464,7 +464,7 @@ BE::HddMeter::poll()
 {
     if (!myFile.isOpen())
         return;
-    
+
     myFile.reset();
     QStringList list = QString(myFile.readLine()).split(' ', QString::SkipEmptyParts);
     if (list.count() <  11)
@@ -501,3 +501,24 @@ BE::HddMeter::speed( int i )
     return QString::number(v) + "B"; // lazy day.... ;-)
 }
 
+
+BE::ClockMeter::ClockMeter(QWidget *parent) : BE::Meter(parent)
+{
+    setRanges(0, 59, 0, 23);
+    const int s = 12 * fontMetrics().width("88:88") / 10;
+    setMinimumSize(s,s);
+}
+
+void
+BE::ClockMeter::configure(KConfigGroup *grp)
+{
+    Meter::configure(grp);
+}
+
+void
+BE::ClockMeter::poll()
+{
+    QTime time(QTime::currentTime());
+    setValues( time.minute(), time.hour() );
+    setLabel(time.toString("hh:mm"));
+}

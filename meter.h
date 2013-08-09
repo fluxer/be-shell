@@ -117,5 +117,16 @@ private:
     uint myLastValues[2];
 };
 
+class ClockMeter : public Meter
+{
+    Q_OBJECT
+public:
+    ClockMeter( QWidget *parent = 0 );
+    void configure( KConfigGroup *grp );
+protected:
+    virtual void poll();
+private:
+};
+
 }
 #endif // METER_H
