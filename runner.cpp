@@ -864,6 +864,8 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
             { slotItemActivated(item, 0); return true; }
     case Qt::Key_PageUp:
     case Qt::Key_Up:
+        if (myOutput && myOutput->isVisible())
+            return false;
         if ( !item )
         {
             if (!m_history.isEmpty())
@@ -897,6 +899,8 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
         }
     case Qt::Key_PageDown:
     case Qt::Key_Down:
+        if (myOutput && myOutput->isVisible())
+            return false;
         if ( !m_history.isEmpty() &&
              m_currentHistoryEntry > -1 && m_currentHistoryEntry < m_history.count()-1 )
         {
@@ -910,6 +914,8 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
     case Qt::Key_Left:
     case Qt::Key_Right:
     {
+        if (myOutput && myOutput->isVisible())
+            return false;
         if (ke->modifiers() & Qt::ControlModifier)
         {
             QCoreApplication::sendEvent(m_tree, ke);
