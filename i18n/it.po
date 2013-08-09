@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BE::Shell\n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-08-04 18:19+0200\n"
-"PO-Revision-Date: 2013-07-29 21:58+0200\n"
+"POT-Creation-Date: 2013-08-10 01:14+0200\n"
+"PO-Revision-Date: 2013-08-04 23:32+0200\n"
 "Last-Translator: \n"
 "Language-Team: Italian <kde-i18n-it@kde.org>\n"
 "Language: Italiano\n"
@@ -26,7 +26,7 @@ msgstr "BE::run"
 msgid "Runner for BE::shell"
 msgstr "Runner di BE::Shell"
 
-#: be.run.cpp:48 be.shell.cpp:1521
+#: be.run.cpp:48 be.shell.cpp:1523
 msgid "(c) 2009"
 msgstr "(c) 2009"
 
@@ -52,7 +52,7 @@ msgstr "Configura"
 
 #: be.shell.cpp:116
 msgid "Edit..."
-msgstr "Scrivi..."
+msgstr "Modifica..."
 
 #: be.shell.cpp:117
 msgid "Reload"
@@ -66,59 +66,59 @@ msgstr "Plugins"
 msgid "Windows"
 msgstr "Finestre"
 
-#: be.shell.cpp:575
+#: be.shell.cpp:577
 msgid "{>} Continue process"
 msgstr "{>} Continua processo"
 
-#: be.shell.cpp:575
+#: be.shell.cpp:577
 msgid "{=} Pause process"
 msgstr "{=} Metti il processo in pausa"
 
-#: be.shell.cpp:582
+#: be.shell.cpp:584
 msgid "Close"
 msgstr "Chiudi"
 
-#: be.shell.cpp:585
+#: be.shell.cpp:587
 msgid "On all desktops"
 msgstr "Su tutti i desktop"
 
-#: be.shell.cpp:588
+#: be.shell.cpp:590
 msgid "To desktop"
 msgstr "Al desktop"
 
-#: be.shell.cpp:590
+#: be.shell.cpp:592
 msgid "This desktop"
 msgstr "Questo desktop"
 
-#: be.shell.cpp:598
+#: be.shell.cpp:600
 msgid "%1 desktop %1"
 msgstr "%1 desktop %1"
 
-#: be.shell.cpp:604
+#: be.shell.cpp:606
 msgid "FullScreen"
 msgstr "A schermo intero"
 
-#: be.shell.cpp:605
+#: be.shell.cpp:607
 msgid "Maximized"
 msgstr "Massimizzata"
 
-#: be.shell.cpp:606
+#: be.shell.cpp:608
 msgid "Minimized"
 msgstr "Minimizzata"
 
-#: be.shell.cpp:608
+#: be.shell.cpp:610
 msgid "Shaded"
 msgstr "Arrotolata"
 
-#: be.shell.cpp:610
+#: be.shell.cpp:612
 msgid "Above other windows"
 msgstr "Sopra le altre finestre"
 
-#: be.shell.cpp:611
+#: be.shell.cpp:613
 msgid "Below other windows"
 msgstr "Sotto le altre finestre"
 
-#: be.shell.cpp:832
+#: be.shell.cpp:834
 msgid ""
 "<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1><h2>SIGSTOP is "
 "not for noobs!</h2>You just stopped a process, what will freeze it.<br>The "
@@ -150,51 +150,51 @@ msgstr ""
 "<br>Meglio minimizzarne la finestra prima di farsi venire strane idee. "
 "<h1>Sei stato avvisato!</h1>"
 
-#: be.shell.cpp:854
+#: be.shell.cpp:856
 msgid "SIGSTOP is not for fools!"
 msgstr "SIGSTOP non è per pivelli"
 
-#: be.shell.cpp:1063
+#: be.shell.cpp:1065
 msgid "All screens"
 msgstr "Tutti gli schermi"
 
-#: be.shell.cpp:1063
+#: be.shell.cpp:1065
 msgid "Screen %1"
 msgstr "Schermo %1"
 
-#: be.shell.cpp:1488
+#: be.shell.cpp:1490
 msgid "Edit current..."
 msgstr "Modifica l'attuale..."
 
-#: be.shell.cpp:1505
+#: be.shell.cpp:1507
 msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
 msgstr "Purtroppo BE::Shell si è interrotta<h2>Vuoi riavviarla?</h2>"
 
-#: be.shell.cpp:1506
+#: be.shell.cpp:1508
 msgid "Sorry, BE::Shell just crashed"
 msgstr "Purtroppo BE::Shell si è appena interrotta"
 
-#: be.shell.cpp:1507
+#: be.shell.cpp:1509
 msgid "Restart"
 msgstr "Riavvia"
 
-#: be.shell.cpp:1508
+#: be.shell.cpp:1510
 msgid "Quit"
 msgstr "Spegni"
 
-#: be.shell.cpp:1520
+#: be.shell.cpp:1522
 msgid "BE::shell"
 msgstr "BE::shell"
 
-#: be.shell.cpp:1520
+#: be.shell.cpp:1522
 msgid "A lightweight Desktop shell for KDE4"
 msgstr "Una shell agile e leggera per KDE"
 
-#: be.shell.cpp:1521
+#: be.shell.cpp:1523
 msgid "Some about text..."
 msgstr "Riguardo il testo..."
 
-#: be.shell.cpp:1530
+#: be.shell.cpp:1532
 msgid "Send all your private data to the empire!"
 msgstr "Manda tutti i tuoi dati personali all'impero!"
 
@@ -208,7 +208,7 @@ msgstr "Cambia schema..."
 
 #: clock.cpp:52
 msgid "Set Time..."
-msgstr "Setta l'ora"
+msgstr "Imposta l'ora"
 
 #: clock.cpp:54
 msgid "CountDown..."
@@ -530,7 +530,7 @@ msgstr "Visibile"
 msgid "Move & Resize"
 msgstr "Sposta e ridimensiona"
 
-#: runner.cpp:1355
+#: runner.cpp:1370
 msgid "Favorites"
 msgstr "Favoriti"
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
-"POT-Creation-Date: 2013-08-04 18:19+0200\n"
+"POT-Creation-Date: 2013-08-10 01:14+0200\n"
 "PO-Revision-Date: 2013-07-24 20:22+0800\n"
 "Last-Translator: marguerite <marguerite@opensuse.org>\n"
 "Language-Team: Chinese Simplified <opensuse-zh@opensuse.org>\n"
@@ -25,7 +25,7 @@ msgstr "Be::run"
 msgid "Runner for BE::shell"
 msgstr "BE:shell 的运行器"
 
-#: be.run.cpp:48 be.shell.cpp:1521
+#: be.run.cpp:48 be.shell.cpp:1523
 msgid "(c) 2009"
 msgstr "(c) 2009"
 
@@ -65,61 +65,61 @@ msgstr "插件"
 msgid "Windows"
 msgstr "窗口"
 
-#: be.shell.cpp:575
+#: be.shell.cpp:577
 msgid "{>} Continue process"
 msgstr "{>} 继续进程"
 
-#: be.shell.cpp:575
+#: be.shell.cpp:577
 msgid "{=} Pause process"
 msgstr "{=} 暂停进程"
 
-#: be.shell.cpp:582
+#: be.shell.cpp:584
 msgid "Close"
 msgstr ""
 
-#: be.shell.cpp:585
+#: be.shell.cpp:587
 #, fuzzy
 msgid "On all desktops"
 msgstr "全部桌面"
 
-#: be.shell.cpp:588
+#: be.shell.cpp:590
 msgid "To desktop"
 msgstr "前往桌面"
 
-#: be.shell.cpp:590
+#: be.shell.cpp:592
 msgid "This desktop"
 msgstr "此桌面"
 
-#: be.shell.cpp:598
+#: be.shell.cpp:600
 msgid "%1 desktop %1"
 msgstr "%1 桌面 %1"
 
-#: be.shell.cpp:604
+#: be.shell.cpp:606
 #, fuzzy
 msgid "FullScreen"
 msgstr "屏幕"
 
-#: be.shell.cpp:605
+#: be.shell.cpp:607
 msgid "Maximized"
 msgstr ""
 
-#: be.shell.cpp:606
+#: be.shell.cpp:608
 msgid "Minimized"
 msgstr ""
 
-#: be.shell.cpp:608
+#: be.shell.cpp:610
 msgid "Shaded"
 msgstr ""
 
-#: be.shell.cpp:610
+#: be.shell.cpp:612
 msgid "Above other windows"
 msgstr ""
 
-#: be.shell.cpp:611
+#: be.shell.cpp:613
 msgid "Below other windows"
 msgstr ""
 
-#: be.shell.cpp:832
+#: be.shell.cpp:834
 msgid ""
 "<h1>WARNING</h1><h2>Read this first!</h2><h1>Seriously!</h1><h2>SIGSTOP is "
 "not for noobs!</h2>You just stopped a process, what will freeze it.<br>The "
@@ -146,51 +146,51 @@ msgstr ""
 "<h2>总结</h2>不要觉得进程没有响应就做点犯二的事。<br>最好最小化窗口，不要碰"
 "它，直到它说你可以继续操弄我了为止。<h1>我已经警告过你了！</h1>"
 
-#: be.shell.cpp:854
+#: be.shell.cpp:856
 msgid "SIGSTOP is not for fools!"
 msgstr "SIGSTOP 不是给菜鸟使的！"
 
-#: be.shell.cpp:1063
+#: be.shell.cpp:1065
 msgid "All screens"
 msgstr "全部屏幕"
 
-#: be.shell.cpp:1063
+#: be.shell.cpp:1065
 msgid "Screen %1"
 msgstr "屏幕 %1"
 
-#: be.shell.cpp:1488
+#: be.shell.cpp:1490
 msgid "Edit current..."
 msgstr "编辑当前..."
 
-#: be.shell.cpp:1505
+#: be.shell.cpp:1507
 msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
 msgstr "对不住，BE::Shell 刚崩溃了<h2>您想要重启吗？</h2>"
 
-#: be.shell.cpp:1506
+#: be.shell.cpp:1508
 msgid "Sorry, BE::Shell just crashed"
 msgstr "对不住，BE:Shell 刚崩溃了"
 
-#: be.shell.cpp:1507
+#: be.shell.cpp:1509
 msgid "Restart"
 msgstr "重启"
 
-#: be.shell.cpp:1508
+#: be.shell.cpp:1510
 msgid "Quit"
 msgstr "退出"
 
-#: be.shell.cpp:1520
+#: be.shell.cpp:1522
 msgid "BE::shell"
 msgstr "BE::shell"
 
-#: be.shell.cpp:1520
+#: be.shell.cpp:1522
 msgid "A lightweight Desktop shell for KDE4"
 msgstr "一个用于 KDE4 的轻量级桌面 shell"
 
-#: be.shell.cpp:1521
+#: be.shell.cpp:1523
 msgid "Some about text..."
 msgstr "一些关于文字..."
 
-#: be.shell.cpp:1530
+#: be.shell.cpp:1532
 msgid "Send all your private data to the empire!"
 msgstr "组织需要您的全部私人数据，您愿意配合组织对您的考察吗？"
 
@@ -517,7 +517,7 @@ msgstr "可见"
 msgid "Move & Resize"
 msgstr "移动并缩放"
 
-#: runner.cpp:1355
+#: runner.cpp:1370
 msgid "Favorites"
 msgstr "收藏"
 
