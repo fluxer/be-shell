@@ -53,8 +53,12 @@ protected:
 private:
     int myMinimum[2], myMaximum[2], myValue[2];
     int myTimer, myFullScreenCheckTimer;
+    int myStart, mySpan;
+    bool iHintTheRange;
     bool iAmActive;
     QString myLabel;
+    QRectF myNormalRect;
+    Qt::Alignment myTextAlign;
 };
 
 class CpuMeter : public Meter

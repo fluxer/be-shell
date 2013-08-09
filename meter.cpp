@@ -26,9 +26,18 @@
 #include <QPainter>
 #include <QTimerEvent>
 
+#include <QtDebug>
+
 #include <KDE/KConfigGroup>
 
-BE::Meter::Meter( QWidget *parent ) : QFrame(parent), BE::Plugged(parent), myTimer(0), myFullScreenCheckTimer(0), iAmActive(true)
+#include <cmath>
+
+BE::Meter::Meter( QWidget *parent ) : QFrame(parent)
+, BE::Plugged(parent)
+, myTimer(0)
+, myFullScreenCheckTimer(0)
+, iAmActive(true)
+, myNormalRect(QRectF(-1,-1,2,2))
 {
     setMinimumHeight(2*QFontMetrics(font()).height());
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -36,11 +45,63 @@ BE::Meter::Meter( QWidget *parent ) : QFrame(parent), BE::Plugged(parent), myTim
     setValues(0,0);
 }
 
+static inline float radiants(int degree)
+{
+    return degree * .01745329251994329576;
+}
+
+static inline bool covers(int angle, int start, int span)
+{
+    if (span > 359)
+        return true;
+    int l(start), u(start + span);
+    if (span < 0) { l = start + span; u = start; }
+    while (l < 0) { l += 360; u += 360; }
+    while (angle < l) angle += 360;
+    return angle <= u;
+}
+
 void
 BE::Meter::configure( KConfigGroup *grp )
 {
     setPollInterval(grp->readEntry("PollInterval", 1000));
     myLabel = grp->readEntry("Label", "");
+    iHintTheRange = grp->readEntry("HintRange", false);
+    myStart = grp->readEntry("Start", 150) % 360;
+    mySpan = qMin(qMax(grp->readEntry("Span", -120), -360), 360);
+    myNormalRect = QRectF(-1,-1,2,2);
+    QPointF p[2] = {
+        QPointF(cos(radiants(myStart)), -sin(radiants(myStart))),
+        QPointF(cos(radiants(myStart+mySpan)), -sin(radiants(myStart+mySpan)))
+    };
+    if (!covers(0, myStart, mySpan))
+        myNormalRect.setRight(qMax(p[0].x(), p[1].x()));
+    if (!covers(90, myStart, mySpan))
+        myNormalRect.setTop(qMin(p[0].y(), p[1].y()));
+    if (!covers(180, myStart, mySpan))
+        myNormalRect.setLeft(qMin(p[0].x(), p[1].x()));
+    if (!covers(270, myStart, mySpan))
+        myNormalRect.setBottom(qMax(p[0].y(), p[1].y()));
+    // -1:1 -> 0:1
+    myNormalRect.moveTo((myNormalRect.x()+1.0)/2.0, (myNormalRect.y()+1.0)/2.0);
+    myNormalRect.setSize(myNormalRect.size()/2.0);
+    myTextAlign = (Qt::Alignment)0;
+    if (myNormalRect.left()   > 0.33) myTextAlign |= Qt::AlignLeft;
+    if (myNormalRect.right()  < 0.66) myTextAlign |= Qt::AlignRight;
+    if (myNormalRect.top()    > 0.33) myTextAlign |= Qt::AlignTop;
+    if (myNormalRect.bottom() < 0.66) myTextAlign |= Qt::AlignBottom;
+    if ((myTextAlign&(Qt::AlignLeft|Qt::AlignRight)) != Qt::AlignLeft &&
+        (myTextAlign&(Qt::AlignLeft|Qt::AlignRight)) != Qt::AlignRight) {
+        myTextAlign &= ~(Qt::AlignLeft|Qt::AlignRight);
+        myTextAlign |= Qt::AlignHCenter;
+    }
+    if ((myTextAlign&(Qt::AlignTop|Qt::AlignBottom)) != Qt::AlignTop &&
+        (myTextAlign&(Qt::AlignTop|Qt::AlignBottom)) != Qt::AlignBottom) {
+        myTextAlign &= ~(Qt::AlignTop|Qt::AlignBottom);
+        myTextAlign |= Qt::AlignVCenter;
+    }
+    myStart *= 16;
+    mySpan *= 16;
 }
 
 void
@@ -51,45 +112,57 @@ BE::Meter::changeEvent(QEvent *e)
     QFrame::changeEvent(e);
 }
 
-// 3.46410161513775458705 == 2*tan(60°)
-#define RATIO 3.46410161513775458705
-
 void
 BE::Meter::paintEvent(QPaintEvent *pe)
 {
     QFrame::paintEvent(pe);
-
+    const float ratio = myNormalRect.width() / myNormalRect.height();
     const QRect cr = contentsRect();
-    const int s = qMin(int(RATIO*cr.height()), cr.width());
-    QRect r( cr.x() + qAbs(cr.width()-s)/2, cr.y() + qAbs(cr.height()-int(s/RATIO))/2, s, s );
+    const int s = qMin(int(ratio*cr.height()), cr.width());
+    QRect r( cr.x(), cr.y(), s, s );
+    r.translate(-myNormalRect.x()*s, -myNormalRect.y()*s);
+    if (s < cr.width())
+        r.translate((cr.width() - s) / 2, 0);
+    if (s < cr.height())
+        r.translate(0, (cr.height() - s) / 2);
     int t = r.height()/10;
     int t_2 = (t+1)/2;
+
+    r.adjust(t_2,t_2,-t_2,-t_2);
+
     const float pct0 = percent(0);
 
     QColor c(palette().color(foregroundRole()));
     const int a = c.alpha();
     c.setAlpha(2*c.alpha()/3);
     QColor c2(palette().color(backgroundRole()));
+    c2.setRgb( (c.red()+c2.red())/2, (c.green()+c2.green())/2, (c.blue()+c2.blue())/2, c.alpha() );
 
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
     p.setBrush(Qt::NoBrush);
+
+    if (iHintTheRange) {
+        c2.setAlpha(c2.alpha()/10);
+        p.setPen(QPen(c2, t, Qt::SolidLine, Qt::RoundCap));
+        p.drawArc(r, myStart, mySpan);
+        c2.setAlpha(c.alpha());
+    }
+
     p.setPen(QPen(c, t, Qt::SolidLine, Qt::RoundCap));
 
-    r.adjust(t_2,t_2,-t_2,-t_2);
-//     p.drawArc(r, 150<<4, -(120<<4)*pct0);
-    p.drawArc(r, (150<<4) - (115<<4)*pct0, -5<<4);
+    p.drawArc(r, myStart + mySpan*pct0 + 80, -80);
 
     t += t_2;
     r.adjust(t,t,-t,-t);
     t = r.height()/6;
-    c2.setRgb( (c.red()+c2.red())/2, (c.green()+c2.green())/2, (c.blue()+c2.blue())/2, c.alpha() );
+
     p.setPen(QPen(c2, t, Qt::SolidLine, Qt::RoundCap));
-    p.drawArc(r, 150<<4, -(120<<4)*percent(1));
+    p.drawArc(r, myStart, mySpan*percent(1));
 
     c.setAlpha(a);
     p.setPen(c);
-    p.drawText(cr, Qt::AlignHCenter|Qt::AlignBottom, myLabel );
+    p.drawText(cr, myTextAlign, myLabel );
 
     p.end();
 }
@@ -151,7 +224,7 @@ BE::Meter::setValues(int n1, int n2)
 QSize
 BE::Meter::sizeHint() const
 {
-    return QSize(RATIO*height(), height());
+    return QSize(myNormalRect.width() / myNormalRect.height() * height(), height());
 }
 
 void
