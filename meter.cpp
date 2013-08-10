@@ -34,6 +34,7 @@
 
 BE::Meter::Meter( QWidget *parent ) : QFrame(parent)
 , BE::Plugged(parent)
+, myPollInterval()
 , myTimer(0)
 , myFullScreenCheckTimer(0)
 , iAmActive(true)
@@ -189,6 +190,8 @@ BE::Meter::setLabel(QString label)
 void
 BE::Meter::setPollInterval(int ms)
 {
+    if (myPollInterval == ms)
+        return;
     myPollInterval = ms;
     if (myTimer)
         killTimer(myTimer);
@@ -502,23 +505,36 @@ BE::HddMeter::speed( int i )
 }
 
 
-BE::ClockMeter::ClockMeter(QWidget *parent) : BE::Meter(parent)
+BE::TimeMeter::TimeMeter(QWidget *parent) : BE::Meter(parent), iShowDigits(true)
 {
+    setPollInterval(1000);
     setRanges(0, 59, 0, 23);
     const int s = 12 * fontMetrics().width("88:88") / 10;
     setMinimumSize(s,s);
 }
 
 void
-BE::ClockMeter::configure(KConfigGroup *grp)
+BE::TimeMeter::configure(KConfigGroup *grp)
 {
     Meter::configure(grp);
+    setRanges(0, 59, 0, grp->readEntry("APM", true) ? 11 : 23);
+    iShowDigits = grp->readEntry("Digits", true);
+    if (!iShowDigits)
+        setLabel(QString());
+    setPollInterval(1000);
 }
 
 void
-BE::ClockMeter::poll()
+BE::TimeMeter::poll()
 {
     QTime time(QTime::currentTime());
-    setValues( time.minute(), time.hour() );
-    setLabel(time.toString("hh:mm"));
+    if (myLastTime.hour() == time.hour() && myLastTime.minute() == time.minute()) {
+        setPollInterval(1000); // wait for the next tact in second precision
+        return;
+    }
+    setPollInterval(55000);
+    setValues( time.minute(), time.hour() % (maximum(1) + 1) );
+    if (iShowDigits)
+        setLabel(time.toString("hh:mm"));
+    myLastTime = time;
 }

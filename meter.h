@@ -25,6 +25,7 @@
 
 #include <QFile>
 #include <QFrame>
+#include <QTime>
 
 namespace BE {
 
@@ -117,15 +118,17 @@ private:
     uint myLastValues[2];
 };
 
-class ClockMeter : public Meter
+class TimeMeter : public Meter
 {
     Q_OBJECT
 public:
-    ClockMeter( QWidget *parent = 0 );
+    TimeMeter( QWidget *parent = 0 );
     void configure( KConfigGroup *grp );
 protected:
     virtual void poll();
 private:
+    QTime myLastTime;
+    bool iShowDigits;
 };
 
 }
