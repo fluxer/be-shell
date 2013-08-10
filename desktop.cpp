@@ -1063,6 +1063,7 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
 {
     if (file.isEmpty())
         return; // "none" is ok - [empty] is not but might result from skipped dialog
+
     if (file.compare("none", Qt::CaseInsensitive)) {
         KUrl url(file);
         if (!url.isLocalFile())
@@ -1072,6 +1073,7 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
                 return; // failed download
         }
     }
+
     QList<int> desks;
     if (KWindowSystem::numberOfDesktops() == 1)
         desks << AllDesktops;
@@ -1449,7 +1451,7 @@ BE::Desk::dropEvent ( QDropEvent *de )
         if (QApplication::keyboardModifiers() & Qt::ShiftModifier)
             mode = ScaleAndCrop;
 
-        setWallpaper( url.path(), mode, desktop );
+        setWallpaper( url.pathOrUrl(), mode, desktop );
     }}
 }
 
