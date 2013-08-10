@@ -517,7 +517,7 @@ void
 BE::TimeMeter::configure(KConfigGroup *grp)
 {
     Meter::configure(grp);
-    setRanges(0, 59, 0, grp->readEntry("APM", true) ? 11 : 23);
+    setRanges(0, 59, 0, grp->readEntry("APM", true) ? 12 : 24);
     iShowDigits = grp->readEntry("Digits", true);
     if (!iShowDigits)
         setLabel(QString());
