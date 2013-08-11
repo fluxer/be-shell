@@ -235,8 +235,12 @@ BE::Meter::timerEvent(QTimerEvent *te)
 {
     if (te->timerId() == myTimer)
         { if (iAmActive) poll(); }
-    else if (te->timerId() == myFullScreenCheckTimer)
+    else if (te->timerId() == myFullScreenCheckTimer) {
+        bool wasActive = iAmActive;
         iAmActive = !BE::Shell::hasFullscreenAction();
+        if (iAmActive && !wasActive)
+            emit reactivated();
+    }
     else
         QWidget::timerEvent(te);
 }
@@ -507,7 +511,8 @@ BE::HddMeter::speed( int i )
 
 BE::TimeMeter::TimeMeter(QWidget *parent) : BE::Meter(parent), iShowDigits(true)
 {
-    setPollInterval(1000);
+    connect (this, SIGNAL(reactivated()), SLOT(searchTact()));
+    searchTact();
     setRanges(0, 59, 0, 23);
     const int s = 12 * fontMetrics().width("88:88") / 10;
     setMinimumSize(s,s);
@@ -521,7 +526,7 @@ BE::TimeMeter::configure(KConfigGroup *grp)
     iShowDigits = grp->readEntry("Digits", true);
     if (!iShowDigits)
         setLabel(QString());
-    setPollInterval(1000);
+    searchTact();
 }
 
 void
@@ -529,7 +534,7 @@ BE::TimeMeter::poll()
 {
     QTime time(QTime::currentTime());
     if (myLastTime.hour() == time.hour() && myLastTime.minute() == time.minute()) {
-        setPollInterval(1000); // wait for the next tact in second precision
+        searchTact();
         return;
     }
     setPollInterval(55000);

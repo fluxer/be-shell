@@ -44,6 +44,8 @@ public:
     inline int value(int i) { return myValue[i]; }
     inline int maximum(int i) { return myMaximum[i]; }
     inline int minimum(int i) { return myMinimum[i]; }
+signals:
+    void reactivated();
 protected:
     void changeEvent(QEvent *e);
     void paintEvent(QPaintEvent *pe);
@@ -126,6 +128,8 @@ public:
     void configure( KConfigGroup *grp );
 protected:
     virtual void poll();
+private slots:
+    void searchTact() { setPollInterval(1000); }
 private:
     QTime myLastTime;
     bool iShowDigits;
