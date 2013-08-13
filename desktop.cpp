@@ -1682,22 +1682,29 @@ BE::Desk::desktopResized ( int screen )
     while (i != myPanels.end())
     {
         BE::Panel *p = *i;
-        if (!p)
-        {
+        if (!p) {
             i = myPanels.erase(i);
             continue;
         }
 
         QPoint pt = mapFromGlobal(p->mapToGlobal(QPoint(0,0)));
-        if (p->position() == Panel::Top)
-        {
+        switch (p->position()) {
+        case Panel::Top:
             if (pt.y() + p->height() > myIcons.rect.top())
                 myIcons.rect.setTop(pt.y() + p->height());
-        }
-        else // if (i->position() == Panel::Bototm)
-        {
+            break;
+        case Panel::Bottom:
             if (pt.y() < myIcons.rect.bottom())
                 myIcons.rect.setBottom(pt.y());
+            break;
+        case Panel::Left:
+            if (pt.x() + p->width() > myIcons.rect.left())
+                myIcons.rect.setLeft(pt.x() + p->width());
+            break;
+        case Panel::Right:
+            if (pt.x() < myIcons.rect.right())
+                myIcons.rect.setRight(pt.x());
+            break;
         }
         ++i;
     }
