@@ -30,12 +30,12 @@ class QLabel;
 // #include <QPointer>
 
 namespace BE {
-
+class Tasks;
 class Task : public Button
 {
     Q_OBJECT
 public:
-    Task(QWidget *parent, WId id, bool sticky = false, const QString &name = QString());
+    Task(Tasks *parent, WId id, bool sticky = false, const QString &name = QString());
     void add(WId id);
     inline void clear()  { myWindows.clear(); }
     void configure( KConfigGroup *grp );
@@ -100,6 +100,8 @@ class Tasks : public QFrame, public Plugged
 public:
     Tasks(QWidget *parent);
     void configure( KConfigGroup *grp );
+    bool highlightsWindows() { return iHighlightWindows; }
+    bool showsTooltips() { return iShowTooltips; }
 protected:
 //     void mousePressEvent( QMouseEvent *ev );
     void leaveEvent(QEvent *e);
@@ -122,6 +124,7 @@ private:
     QList<WId> myWindows;
     Qt::Orientation myOrientation;
     bool iStack, iStackNow, iSeparateDesktops, iSeparateScreens, iIgnoreVisible, hasStickies;
+    bool iHighlightWindows, iShowTooltips;
     Qt::ToolButtonStyle myButtonMode;
 };
 }

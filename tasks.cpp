@@ -104,14 +104,14 @@ static bool isOccluded(WId id)
 }
 
 
-BE::Task::Task(QWidget *parent, WId id, bool sticky, const QString &name) : BE::Button(parent, name)
+BE::Task::Task(Tasks *parent, WId id, bool sticky, const QString &name) : BE::Button(parent, name)
 {
     mySizeHintIsDirty = true;
     if (!kdeWindowHighlight)
         kdeWindowHighlight = XInternAtom(QX11Info::display(), "_KDE_WINDOW_HIGHLIGHT", False);
     if (!netIconGeometry)
         netIconGeometry = XInternAtom(QX11Info::display(), "_NET_WM_ICON_GEOMETRY", False);
-    if (!ourToolTip) {
+    if (!ourToolTip && parent->showsTooltips()) {
         ourToolTip = new QLabel(0, Qt::ToolTip);
         ourToolTip->setObjectName("TaskTip");
     }
@@ -259,8 +259,7 @@ BE::Task::enterEvent(QEvent *e)
     if (isSyntheticCrossing())
         return;
 
-    if (true /*TODO add option*/)
-    {
+    if (static_cast<Tasks*>(parentWidget())->showsTooltips()) {
         if (count() < 1)
             ourToolTip->setText(myLabel);
         else if (count() < 2)
@@ -274,13 +273,19 @@ BE::Task::enterEvent(QEvent *e)
         ourToolTip->raise();
     }
 
-    if (isRelevant())
-        highlightWindows(window()->winId(), QList<WId>(myWindows) << ourToolTip->winId());
+    if (static_cast<Tasks*>(parentWidget())->highlightsWindows() && isRelevant()) {
+        QList<WId> l(myWindows);
+        if (static_cast<Tasks*>(parentWidget())->showsTooltips())
+            l << ourToolTip->winId();
+        highlightWindows(window()->winId(), l);
+    }
 }
 
 void
 BE::Task::highlightAllOrNone()
 {
+    if (!static_cast<Tasks*>(parentWidget())->highlightsWindows())
+        return;
     if (rect().contains(mapFromGlobal(QCursor::pos())))
         highlightWindows(window()->winId(), QList<WId>(myWindows) << ourToolTip->winId());
     else
@@ -290,7 +295,7 @@ BE::Task::highlightAllOrNone()
 void
 BE::Task::highlightWindow(QAction *a)
 {
-    if (a)
+    if (a && static_cast<Tasks*>(parentWidget())->highlightsWindows())
         highlightWindows(window()->winId(), QList<WId>() << (WId)a->data().toUInt() << menu()->winId() );
 }
 
@@ -300,15 +305,18 @@ BE::Task::leaveEvent(QEvent *e)
     BE::Button::leaveEvent(e);
     if (isSyntheticCrossing())
         return;
-    ourToolTip->hide();
-    highlightWindows(window()->winId(), QList<WId>());
+    if (static_cast<Tasks*>(parentWidget())->showsTooltips())
+        ourToolTip->hide();
+    if (static_cast<Tasks*>(parentWidget())->highlightsWindows())
+        highlightWindows(window()->winId(), QList<WId>());
 }
 
 static QTime mouseDownTime;
 void
 BE::Task::mousePressEvent(QMouseEvent *me)
 {
-    ourToolTip->hide();
+    if (static_cast<Tasks*>(parentWidget())->showsTooltips())
+        ourToolTip->hide();
     switch (me->button())
     {
         case Qt::LeftButton:
@@ -481,7 +489,8 @@ BE::Task::resizeEvent(QResizeEvent *re)
 void
 BE::Task::wheelEvent(QWheelEvent *ev)
 {
-    ourToolTip->hide();
+    if (static_cast<Tasks*>(parentWidget())->showsTooltips())
+        ourToolTip->hide();
     int i = myWindows.indexOf(KWindowSystem::activeWindow());
     if (i > -1)
     {
@@ -498,7 +507,8 @@ BE::Task::wheelEvent(QWheelEvent *ev)
         {
             WId id = myWindows.at(i);
             KWindowSystem::forceActiveWindow(id);
-            highlightWindows(window()->winId(), QList<WId>() << id);
+            if (static_cast<Tasks*>(parentWidget())->highlightsWindows())
+                highlightWindows(window()->winId(), QList<WId>() << id);
             ev->accept();
             return;
         }
@@ -676,7 +686,8 @@ BE::Task::toggleState(WId id)
         KWindowSystem::raiseWindow(id);
     else
     {
-        highlightWindows(window()->winId(), QList<WId>());
+        if (static_cast<Tasks*>(parentWidget())->highlightsWindows())
+            highlightWindows(window()->winId(), QList<WId>());
         KWindowSystem::minimizeWindow(id);
     }
 }
@@ -894,6 +905,8 @@ BE::Tasks::configure( KConfigGroup *grp )
     iSeparateDesktops = grp->readEntry("OnlyCurrentDesk", false);
     iSeparateScreens = !hasStickies && grp->readEntry("OnlyCurrentScreen", false);
     static_cast<QBoxLayout*>(layout())->setSpacing(grp->readEntry("Spacing", 2));
+    iHighlightWindows = grp->readEntry("HighlightWindows", true);
+    iShowTooltips = grp->readEntry("ShowTooltips", true);
 
     foreach (WId id, KWindowSystem::windows())
         addWindow(id);
@@ -987,7 +1000,8 @@ BE::Tasks::updateWindowProperties(WId id, const unsigned long *properties)
 void
 BE::Tasks::leaveEvent(QEvent */*e*/)
 {
-    highlightWindows(window()->winId(), QList<WId>());
+    if (highlightsWindows())
+        highlightWindows(window()->winId(), QList<WId>());
 }
 
 void
@@ -1040,7 +1054,8 @@ BE::Tasks::wheelEvent( QWheelEvent *we )
     if ((activeId = (we->delta() > 0) ? (*it)->firstRelevant() : (*it)->lastRelevant()))
     {
         KWindowSystem::forceActiveWindow(activeId);
-        highlightWindows(window()->winId(), QList<WId>() << activeId);
+        if (highlightsWindows())
+            highlightWindows(window()->winId(), QList<WId>() << activeId);
     }
 }
 
