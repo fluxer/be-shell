@@ -1,13 +1,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# 
+#
 # Thomas Lübking <thomas.luebking@web.de>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://sourceforge.net/p/be-shell/tickets/\n"
 "POT-Creation-Date: 2013-08-10 01:14+0200\n"
-"PO-Revision-Date: 2013-07-26 21:16+0200\n"
+"PO-Revision-Date: 2013-08-13 17:03+0200\n"
 "Last-Translator: Lars Gabriel\n"
 "Language-Team: American English <kde-i18n-de@kde.org>\n"
 "Language: en_US\n"
@@ -51,7 +51,7 @@ msgstr "Konfiguration"
 
 #: be.shell.cpp:116
 msgid "Edit..."
-msgstr "Ändere..."
+msgstr "Bearbeite..."
 
 #: be.shell.cpp:117
 msgid "Reload"
@@ -75,12 +75,11 @@ msgstr "{=} Prozess anhalten"
 
 #: be.shell.cpp:584
 msgid "Close"
-msgstr ""
+msgstr "Schließen"
 
 #: be.shell.cpp:587
-#, fuzzy
 msgid "On all desktops"
-msgstr "Alle Arbeitsflächen"
+msgstr "Auf allen Arbeitsflächen"
 
 #: be.shell.cpp:590
 msgid "To desktop"
@@ -95,17 +94,16 @@ msgid "%1 desktop %1"
 msgstr "%1 Arbeitsfläche %1"
 
 #: be.shell.cpp:606
-#, fuzzy
 msgid "FullScreen"
-msgstr "Bildschirm"
+msgstr "Vollbild"
 
 #: be.shell.cpp:607
 msgid "Maximized"
-msgstr ""
+msgstr "Maximiert"
 
 #: be.shell.cpp:608
 msgid "Minimized"
-msgstr ""
+msgstr "Minimiert"
 
 #: be.shell.cpp:610
 msgid "Shaded"
@@ -113,11 +111,11 @@ msgstr ""
 
 #: be.shell.cpp:612
 msgid "Above other windows"
-msgstr ""
+msgstr "Über anderen Fenstern"
 
 #: be.shell.cpp:613
 msgid "Below other windows"
-msgstr ""
+msgstr "Hinter anderen Fenstern"
 
 #: be.shell.cpp:834
 msgid ""
@@ -158,7 +156,7 @@ msgstr "SIGSTOP ist nichts für Narren!"
 
 #: be.shell.cpp:1065
 msgid "All screens"
-msgstr "Alle Bildschirme"
+msgstr "Auf allen Bildschirmen"
 
 #: be.shell.cpp:1065
 msgid "Screen %1"
@@ -166,12 +164,12 @@ msgstr "Bildschirm %1"
 
 #: be.shell.cpp:1490
 msgid "Edit current..."
-msgstr "Aktuellen bearbeiten..."
+msgstr "Aktuelles bearbeiten..."
 
 #: be.shell.cpp:1507
 msgid "Sorry, BE::Shell just crashed<h2>Do you want to restart?</h2>"
 msgstr ""
-"Entschuldigung, BE::Shell ist abgestürzt<h2>Möchtest Du neustarten?</h2>"
+"Entschuldigung, BE::Shell ist abgestürzt<h2>Möchtest Du neu starten?</h2>"
 
 #: be.shell.cpp:1508
 msgid "Sorry, BE::Shell just crashed"
@@ -179,7 +177,7 @@ msgstr "Entschuldige, BE::Shell ist abgestürzt! :( "
 
 #: be.shell.cpp:1509
 msgid "Restart"
-msgstr "Neustarten"
+msgstr "Neustart"
 
 #: be.shell.cpp:1510
 msgid "Quit"
@@ -195,7 +193,7 @@ msgstr "Ein schlanker Desktop für KDE4"
 
 #: be.shell.cpp:1523
 msgid "Some about text..."
-msgstr ""
+msgstr "Über..."
 
 #: be.shell.cpp:1532
 msgid "Send all your private data to the empire!"
@@ -227,6 +225,15 @@ msgid ""
 "ignoring AM/PM</dd></dl><dl><b>Format strings:</b><dt>\\n</dt><dd>Line "
 "break</dd><dt>\\t</dt><dd>Tabulator</dd></dl></html>"
 msgstr ""
+"<html><b>Datum:</b><dl><dt>d dd / M MM</dt><dd>Tag/Monat (z.B. 5 oder 05)</"
+"dd><dt>ddd dddd / MMM MMMM</dt><dd>kurze oder lange Tag/Monatsbezeichnung "
+"('Dez' 'Dezember')</dd><dt>yy yyyy</dt><dd>Jahr (09 2009)</dd></dl><dl><b>"
+"Zeit:</"
+"b><dt>h hh / m mm / s ss</dt><dd>Stunden/Minuten/Sekunden (mit/ohne '0' "
+"voran)</"
+"dd><dt>AP/ap</dt><dd>'AM'|'PM' / 'am'|'pm'</dd><dt>H HH</dt><dd>Stunde, 24h "
+"ignoriert AM/PM Einstellung</dd></dl><dl><b>Formatierung:</b><dt>\\n</dt><dd>"
+"Zeilenumbruch </dd><dt>\\t</dt><dd>Tabulator</dd></dl></html>"
 
 #: clock.cpp:126
 msgid "Setup Clock pattern"
@@ -467,7 +474,7 @@ msgstr ""
 
 #: infocenter.cpp:76
 msgid "Close current message"
-msgstr ""
+msgstr "Schließe aktuelle Nachricht"
 
 #: infocenter.cpp:83
 msgid "Job Log"
@@ -491,7 +498,7 @@ msgstr[1] "%1 Ordner"
 
 #: infocenter.cpp:506
 msgid "Message from %1"
-msgstr ""
+msgstr "Nachricht von %1"
 
 #: infocenter.cpp:512
 msgid "<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>"
@@ -503,7 +510,7 @@ msgstr "Mail erhalten!"
 
 #: infocenter.cpp:622
 msgid "KMail holds %1 unread mails for you"
-msgstr "KMail hat eine ungelesene Mail für Dich! "
+msgstr "KMail hat eine ungelesene Mail für Dich"
 
 #: mediatray.cpp:168
 msgid "Disc"
@@ -523,7 +530,7 @@ msgstr "Sichtbar"
 
 #: panel.cpp:237
 msgid "Move & Resize"
-msgstr "Position & Größe ändern"
+msgstr "Position && Größe ändern"
 
 #: runner.cpp:1370
 msgid "Favorites"
@@ -535,13 +542,12 @@ msgstr "Verzögere"
 
 #: session.cpp:110
 msgid "How many minutes to wait for the %1?"
-msgstr "Wie lange auf %1 warten?"
+msgstr "%1 um wieviele Minuten verzögern?"
 
 #: session.cpp:114
-#, fuzzy
 msgctxt "Something like 'Shutdown in 5 sec'"
 msgid "%1 in %2 %3"
-msgstr "%1 @ %2 auf %3"
+msgstr ""
 
 #: session.cpp:115
 msgctxt "Abbridge of minutes"
@@ -549,10 +555,9 @@ msgid "min"
 msgstr ""
 
 #: session.cpp:115
-#, fuzzy
 msgctxt "Abbridge of seconds"
 msgid "sec"
-msgstr "Verhältnis"
+msgstr "sek"
 
 #: session.cpp:135
 msgid "Lock screen"
@@ -576,16 +581,15 @@ msgstr "Neue Sitzung ..."
 
 #: session.cpp:145 session.cpp:270
 msgid "Reboot"
-msgstr "Neustarten"
+msgstr "Neustart"
 
 #: session.cpp:146 session.cpp:306
 msgid "Power Off"
 msgstr "Ausschalten"
 
 #: session.cpp:154
-#, fuzzy
 msgid "Session Manager"
-msgstr "Sitzungen"
+msgstr "Sitzungsverwaltung"
 
 #: session.cpp:156
 msgid "Icon only"
@@ -605,7 +609,7 @@ msgstr "Text unter dem Icon"
 
 #: session.cpp:166
 msgid "Show full name"
-msgstr ""
+msgstr "Zeige kompletten Namen"
 
 #: session.cpp:192
 msgid ""
@@ -616,7 +620,7 @@ msgstr ""
 
 #: session.cpp:298
 msgid "Lock screen & fall asleep"
-msgstr "Bildschirm sperren & einschlafen"
+msgstr "Bildschirm sperren und einschlafen"
 
 #: session.cpp:370
 msgid "%1 @ %2 on %3"
@@ -632,7 +636,7 @@ msgstr "Systemabschnitt"
 
 #: systray.cpp:338
 msgid "Show nasty ones"
-msgstr "Zeige unnütze Icons"
+msgstr "Zeige nutzlose Icons"
 
 #: systray.cpp:341
 msgid "Configure..."
@@ -640,11 +644,11 @@ msgstr "Konfiguriere..."
 
 #: systray.cpp:574
 msgid "Nasty"
-msgstr "Unnütz"
+msgstr "nutzlos"
 
 #: systray.cpp:574
 msgid "Unthemed"
-msgstr "Unverändert"
+msgstr "unverändert"
 
 #: trash.cpp:68
 msgid "Open"
@@ -663,8 +667,10 @@ msgstr ""
 
 #: trash.cpp:211
 msgid "%1 trashed items"
-msgstr "%1 Dinge im Müll"
+msgstr "%1 Ding(e) im Müll"
 
 #: trash.cpp:216
 msgid "Trash is empty"
 msgstr "Kein Müll."
+
+
