@@ -62,11 +62,10 @@ BE::Button::Button( QWidget *parent, const QString &plugName ) : QToolButton(par
     myBuffer[0] = myBuffer[1] = 0;
     new BE::ButtonAdaptor(this);
     setShortcut(QKeySequence());
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     if (orientation() == Qt::Vertical) {
-        setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
         resize(parent->width(), parent->width());
     } else {
-        setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
         resize(parent->height(), parent->height());
     }
 }
@@ -300,7 +299,7 @@ BE::Button::resizeEvent(QResizeEvent */*re*/)
         }
         sz = style()->sizeFromContents(QStyle::CT_ToolButton, &opt, sz, this);
         if (sz.width() > width() || sz.height() > height()) {
-            if (i) --i;
+//             if (i) --i; // greedy
             break;
         }
     }
