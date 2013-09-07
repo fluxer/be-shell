@@ -56,11 +56,19 @@ BE::Button::Button( QWidget *parent, const QString &plugName ) : QToolButton(par
 , iClickedForTouchInterface(false)
 , myRenderTarget(0)
 , myMenuWatcher(0)
+, myLastIconSize(-1)
 {
     window()->setAttribute(Qt::WA_AlwaysShowToolTips);
     myBuffer[0] = myBuffer[1] = 0;
     new BE::ButtonAdaptor(this);
     setShortcut(QKeySequence());
+    if (orientation() == Qt::Vertical) {
+        setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+        resize(parent->width(), parent->width());
+    } else {
+        setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+        resize(parent->height(), parent->height());
+    }
 }
 
 void
@@ -229,8 +237,10 @@ BE::Button::paintEvent(QPaintEvent *pe)
     else if (myAnimationTimer)
     {
         const int step = qAbs(myAnimationStep);
-        merge(myBuffer[0], this, (6-step)/6.0);
-        merge(myBuffer[1], this, step/6.0);
+        if (myBuffer[0])
+            merge(myBuffer[0], this, (6-step)/6.0);
+        if (myBuffer[1])
+            merge(myBuffer[1], this, step/6.0);
     }
     else
         QToolButton::paintEvent(pe);
@@ -266,16 +276,41 @@ BE::Button::requestAttention(int count)
     myPulseIteration %= 2; // reset
 }
 
+static const int iconSizes[10] = {16, 22, 32, 48, 64, 72, 96, 128, 256, 512};
+
 void
 BE::Button::resizeEvent(QResizeEvent */*re*/)
 {
-    if (myRecursionGuard.isValid() && myRecursionGuard.elapsed() < 30) {
-        return; // this can happen because setIconSize can trigger a delayed resize
-    }
     QStyleOptionToolButton opt;
     initStyleOption(&opt);
-    const QSize sz(2*size() - style()->sizeFromContents(QStyle::CT_ToolButton, &opt, size(), this));
-    int s = orientation() == Qt::Horizontal ? sz.height() : sz.width();
+
+    QSize bsz(0,0);
+    if (toolButtonStyle() != Qt::ToolButtonIconOnly)
+        bsz = fontMetrics().size(Qt::TextSingleLine, text());
+
+    int i = 0;
+    for (i = 0; i < 10; ++i) {
+        QSize sz(bsz);
+        if (toolButtonStyle() == Qt::ToolButtonTextUnderIcon) {
+            sz = QSize(qMax(iconSizes[i], sz.width()), sz.height() + iconSizes[i]);
+        } else if (toolButtonStyle() == Qt::ToolButtonTextBesideIcon) {
+            sz = QSize(sz.width() + iconSizes[i], qMax(sz.height(), iconSizes[i]));
+        } else if (toolButtonStyle() == Qt::ToolButtonIconOnly) {
+            sz = QSize(iconSizes[i], iconSizes[i]);
+        }
+        sz = style()->sizeFromContents(QStyle::CT_ToolButton, &opt, sz, this);
+        if (sz.width() > width() || sz.height() > height()) {
+            if (i) --i;
+            break;
+        }
+    }
+
+    int s = iconSizes[i];
+    if (myRecursionGuard.isValid() && myRecursionGuard.elapsed() < 30 && myLastIconSize == s) {
+        s = (s + iconSize().width())/2; // there's a fight in the layout - seek for convergence
+    }
+
+    myLastIconSize = iconSize().width();
     setIconSize(QSize(s,s));
     myRecursionGuard.start();
 }
@@ -320,6 +355,10 @@ BE::Button::timerEvent(QTimerEvent *te)
         if (!myAnimationStep || myAnimationStep > 5)
         {
             killTimer(myAnimationTimer);
+            if (!myBuffer[1]) {
+                hide();
+                emit fadedOut();
+            }
             myAnimationTimer = 0;
             myAnimationStep = 0;
             delete myBuffer[0];
@@ -405,6 +444,25 @@ BE::Button::createBuffer()
 
     myRenderTarget = 0;
     setAttribute(Qt::WA_UnderMouse, wasUnderMouse);
+}
+
+void
+BE::Button::fade(bool in)
+{
+    if (in)
+        show();
+    delete myBuffer[!in];
+    myBuffer[!in] = 0;
+    delete myBuffer[in];
+    myBuffer[in] = new QPixmap(size());
+    myBuffer[in]->fill(Qt::transparent);
+    myRenderTarget = myBuffer[in];
+    repaint();
+    myRenderTarget = 0;
+    myAnimationStep = 0;
+    ++myAnimationStep; // instant reaction
+    if (!myAnimationTimer)
+        myAnimationTimer = startTimer(40);
 }
 
 void

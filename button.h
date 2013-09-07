@@ -37,6 +37,7 @@ public:
     Button(QWidget *parent = 0, const QString &name = QString());
     void configure( KConfigGroup *grp );
     inline const QString &exe() const { return myExe; }
+    void fade(bool in);
     void requestAttention(int count = 12);
 protected:
     bool eventFilter(QObject *o, QEvent *e);
@@ -52,6 +53,8 @@ protected:
     void themeChanged();
     void timerEvent(QTimerEvent *te);
     void wheelEvent(QWheelEvent *ev);
+signals:
+    void fadedOut();
 private slots:
     void dbusCall();
     void pulse();
@@ -69,6 +72,7 @@ private:
     QPixmap *myBuffer[2], *myRenderTarget;
     QFileSystemWatcher *myMenuWatcher;
     QElapsedTimer myRecursionGuard;
+    int myLastIconSize;
 };
 
 }

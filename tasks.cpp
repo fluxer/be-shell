@@ -28,7 +28,6 @@
 #include <QLabel>
 #include <QMenu>
 #include <QMouseEvent>
-#include <QPropertyAnimation>
 #include <QStyle>
 #include <QStyleOptionToolButton>
 #include <QTime>
@@ -116,7 +115,7 @@ BE::Task::Task(Tasks *parent, WId id, bool sticky, const QString &name) : BE::Bu
         ourToolTip->setObjectName("TaskTip");
     }
 
-    setSizePolicy(QSizePolicy( QSizePolicy::Preferred, QSizePolicy::Fixed ));
+//     setSizePolicy(QSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding ));
     setCheckable(true);
     setAcceptDrops( true );
     setFont( KGlobalSettings::taskbarFont() );
@@ -471,18 +470,11 @@ BE::Task::_repolish()
 void
 BE::Task::resizeEvent(QResizeEvent *re)
 {
-    BE::Button::resizeEvent(re);
-    if (toolButtonStyle() == Qt::ToolButtonIconOnly || toolButtonStyle() == Qt::ToolButtonTextUnderIcon) {
-        int s = qMin(width(), height());
-        if (toolButtonStyle() == Qt::ToolButtonTextUnderIcon)
-            s -= fontMetrics().height() + 4;
-        setIconSize(QSize(s,s));
+    if (toolButtonStyle() != Qt::ToolButtonTextOnly)
         mySizeHintIsDirty = true;
-    } else {
-//         int w = fontMetrics().width(text());
-//         if (w > width() || w + 16 < width())
-            setText(squeezedText(myText));
-    }
+    BE::Button::resizeEvent(re);
+    if (toolButtonStyle() != Qt::ToolButtonIconOnly)
+        setText(squeezedText(myText));
     publishGeometry(QRect(mapToGlobal(QPoint(0,0)), size()));
 }
 
@@ -536,12 +528,12 @@ void
 BE::Task::setToolButtonStyle(Qt::ToolButtonStyle tbs)
 {
     BE::Button::setToolButtonStyle(tbs);
-    int s;
-    if (tbs == Qt::ToolButtonIconOnly)
-        s = qMin(width(), height());
-    else
-        s = style()->pixelMetric( QStyle::PM_ToolBarIconSize, 0L, this);
-    setIconSize(QSize(s,s));
+//     int s;
+//     if (tbs == Qt::ToolButtonIconOnly)
+//         s = qMin(width(), height());
+//     else
+//         s = style()->pixelMetric( QStyle::PM_ToolBarIconSize, 0L, this);
+//     setIconSize(QSize(s,s));
     mySizeHintIsDirty = true;
 }
 
@@ -935,12 +927,8 @@ BE::Tasks::removeWindow( WId id )
 //                 else
                 if (!(*it)->isSticky())
                 {
-                    QPropertyAnimation *ani = new QPropertyAnimation(*it, "iconSize", *it);
-                    ani->setDuration(300);
-                    ani->setEasingCurve(QEasingCurve::OutCubic);
-                    ani->setEndValue(QSize(0,0));
-                    connect (ani, SIGNAL(finished()), *it, SLOT(deleteLater()));
-                    ani->start();
+                    connect (*it, SIGNAL(fadedOut()), *it, SLOT(deleteLater()));
+                    (*it)->fade(false);
                     myTasks.erase(it);
                 }
             }
@@ -1072,18 +1060,7 @@ BE::Tasks::updateVisibility(Task *t)
         vis = t->isMinimized();
     if (vis == t->isVisible())
         return;
-    QPropertyAnimation *ani = new QPropertyAnimation(t, "iconSize", t);
-    ani->setDuration(300);
-    ani->setEasingCurve(QEasingCurve::OutCubic);
-    if (vis) {
-        QMetaObject::invokeMethod(t, "show", Qt::QueuedConnection);
-        ani->setStartValue(QSize(0,0));
-        ani->setEndValue(t->iconSize());
-    } else {
-        ani->setEndValue(QSize(0,0));
-        connect (ani, SIGNAL(finished()), t, SLOT(hide()));
-    }
-    ani->start(QAbstractAnimation::DeleteWhenStopped);
+    t->fade(vis);
 }
 
 void
