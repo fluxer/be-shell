@@ -110,7 +110,7 @@ BE::Task::Task(Tasks *parent, WId id, bool sticky, const QString &name) : BE::Bu
         kdeWindowHighlight = XInternAtom(QX11Info::display(), "_KDE_WINDOW_HIGHLIGHT", False);
     if (!netIconGeometry)
         netIconGeometry = XInternAtom(QX11Info::display(), "_NET_WM_ICON_GEOMETRY", False);
-    if (!ourToolTip && parent->showsTooltips()) {
+    if (!ourToolTip) {
         ourToolTip = new QLabel(0, Qt::ToolTip);
         ourToolTip->setObjectName("TaskTip");
     }
