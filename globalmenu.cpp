@@ -129,8 +129,7 @@ BE::GMenu::GMenu(QWidget *parent) : QWidget(parent), BE::Plugged(parent)
 
 BE::GMenu::~GMenu()
 {
-    if (instance == this)
-    { 
+    if (instance == this) {
         byeMenus();
         instance = NULL;
     }
