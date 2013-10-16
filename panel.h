@@ -88,6 +88,7 @@ private slots:
     void updateEffectBg();
     void updateParent();
     void updateSlideHint();
+    void validateVisibilityAction();
 private:
     Position myPosition;
     int mySize, myLength, myOffset, myBlurRadius, myLayer, myAutoHideDelay, myProxyThickness, myScreen;

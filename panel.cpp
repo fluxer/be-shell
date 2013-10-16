@@ -229,6 +229,7 @@ BE::Panel::Panel( QWidget *parent ) : QFrame( parent, Qt::FramelessWindowHint)
 
     if (!configSubMenu)
         configSubMenu = ((QMenu*)configMenu())->addMenu(i18n("Panels"));
+    connect (configSubMenu, SIGNAL(aboutToShow()), SLOT(validateVisibilityAction()));
     myConfigMenuEntry = configSubMenu->addMenu(name());
     myVisibility = myConfigMenuEntry->addAction( i18n("Visible"), this, SLOT(setAndSaveVisible(bool)) );
     myVisibility->setCheckable(true);
@@ -456,6 +457,12 @@ BE::Panel::updateSlideHint() {
                         reinterpret_cast<unsigned char *>(data.data()), data.size());
     } else if (testAttribute(Qt::WA_WState_Created) && internalWinId())
         XDeleteProperty(QX11Info::display(), winId(), atom);
+}
+
+void
+BE::Panel::validateVisibilityAction()
+{
+    myVisibility->setChecked(isVisible());
 }
 
 void

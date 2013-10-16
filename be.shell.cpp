@@ -1275,17 +1275,20 @@ BE::Shell::setCurrentDesktop()
 }
 
 void
-BE::Shell::setPanelVisible(const QString &name, bool vis)
+BE::Shell::setPanelVisible(const QString &name, char vis)
 {
     for (QList<Plugged*>::iterator it = myPlugs.begin(), end = myPlugs.end(); it != end; ++it) {
         BE::Panel *panel = dynamic_cast<BE::Panel*>(*it);
         if (!panel)
             continue;
         if (panel->name() == name) {
+            const bool v = vis < 0 ? !panel->isVisible() : bool(vis);
+            if (v == panel->isVisible())
+                break; // nothing to do
             if (panel->layer() > 1 || !panel->struts())
-                panel->slide(vis);
+                panel->slide(v);
             else
-                panel->setVisible(vis);
+                panel->setVisible(v);
             break;
         }
     }
