@@ -89,11 +89,6 @@ BE::Shell::Shell(QObject *parent) : QObject(parent), myStyleWatcher(0L)
         return;
     }
 
-    // startkde sets XCURSOR_* to have it applied on ksmserver, but that breaks runtime theme changes for new processes
-    // we fix it for the processes we launch
-    unsetenv("XCURSOR_THEME");
-    unsetenv("XCURSOR_SIZE");
-
 #ifdef Q_WS_X11
     Display *dpy = QX11Info::display();
     char string[ 100 ];
@@ -146,7 +141,7 @@ BE::Shell::Shell(QObject *parent) : QObject(parent), myStyleWatcher(0L)
     QDBusConnection::sessionBus().registerService("org.kde.screensaver");
     QDBusConnection::sessionBus().registerObject("/ScreenSaver", this);
 
-    QTimer::singleShot(0, this, SLOT(launchRunner()));
+    QMetaObject::invokeMethod(this, "launchRunner");
 }
 
 BE::Shell::~Shell()
@@ -655,6 +650,11 @@ BE::Shell::editThemeSheet()
 void
 BE::Shell::launchRunner()
 {
+    // startkde sets XCURSOR_* to have it applied on ksmserver, but that breaks runtime theme changes for new processes
+    // we fix it for the processes we launch
+    unsetenv("XCURSOR_THEME");
+    unsetenv("XCURSOR_SIZE");
+
     BE::Run *beRun = new BE::Run(this);
     beRun->myName = "BE::Run";
     KConfigGroup grp = KSharedConfig::openConfig("be.shell")->group(beRun->name());
