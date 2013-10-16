@@ -23,6 +23,7 @@
 
 #include <QtDBus/QDBusAbstractAdaptor>
 #include <KDE/KMenu>
+#include <KDE/KGlobalSettings>
 #include "be.shell.h"
 
 namespace BE
@@ -66,6 +67,7 @@ public slots:
     Q_NOREPLY void showPanel(const QString &name) { myShell->setPanelVisible(name, 1); }
     Q_NOREPLY void setTheme(const QString &theme) { myShell->setTheme(theme); }
     Q_NOREPLY void togglePanel(const QString &name) { myShell->setPanelVisible(name, -1); }
+    Q_NOREPLY void blockGlobalShortcuts(bool yesNo) { KGlobalSettings::self()->emitChange(KGlobalSettings::BlockShortcuts, yesNo); }
 };
 }
 #endif //BLAZER_ADAPTOR_H
