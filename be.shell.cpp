@@ -345,7 +345,7 @@ BE::Shell::rBuildMenu(const QDomElement &node, QWidget *widget)
                         QMenu *newMenu = MENU_FUNC(addMenu(e.attribute("label", LABEL_ERROR)));
                         QString icn = e.attribute("icon");
                         if (!icn.isEmpty())
-                            newMenu->setIcon(BE::Plugged::themeIcon(icn));
+                            newMenu->setIcon(BE::Plugged::themeIcon(icn, static_cast<QWidget*>(NULL)));
                         if (preExec.isEmpty()) {
                             rBuildMenu(e, newMenu);
                         } else {
@@ -375,7 +375,7 @@ BE::Shell::rBuildMenu(const QDomElement &node, QWidget *widget)
                         if (!cmd.isEmpty())
                         {
                             KService kservice(cmd);
-                            action->setIcon(BE::Plugged::themeIcon(kservice.icon()));
+                            action->setIcon(BE::Plugged::themeIcon(kservice.icon(), static_cast<QWidget*>(NULL)));
                             action->setText(kservice.name());
                             cmd = kservice.desktopEntryName();
                         }
@@ -390,7 +390,7 @@ BE::Shell::rBuildMenu(const QDomElement &node, QWidget *widget)
                     action->setText(e.attribute("label", LABEL_ERROR));
                 QString icn = e.attribute("icon");
                 if (!icn.isEmpty())
-                    action->setIcon(BE::Plugged::themeIcon(icn));
+                    action->setIcon(BE::Plugged::themeIcon(icn, static_cast<QWidget*>(NULL)));
                 MENU_FUNC(addAction(action));
             }
             else if (e.tagName() == "separator")

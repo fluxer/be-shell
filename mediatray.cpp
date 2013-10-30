@@ -146,7 +146,7 @@ BE::Device::setEmpty()
     setToolTip(myProduct);
     myUdi = QString();
     myIcon = "media-eject";
-    setIcon( BE::Plugged::themeIcon(myIcon) );
+    setIcon( BE::Plugged::themeIcon(myIcon, parentWidget()) );
     delete menu(); setMenu( 0L );
     connect(this, SIGNAL( clicked(bool) ), this, SLOT(toggleEject()) );
 }
@@ -166,7 +166,7 @@ BE::Device::setMediaDisc(Solid::OpticalDisc::ContentTypes type, QString label)
         { myIcon = "media-optical-video"; if (label.isEmpty()) label = "SVCD"; }
     else
         { myIcon = "media-optical"; if (label.isEmpty()) label = i18n("Disc"); }
-    setIcon( BE::Plugged::themeIcon(myIcon) );
+    setIcon( BE::Plugged::themeIcon(myIcon, parentWidget()) );
     setToolTip(label);
 }
 
@@ -194,7 +194,7 @@ BE::Device::setVolume(bool, const QString &udi)
     myLabel = vol->label();
     myCapacity = vol->size();
     myIcon = dev.icon();
-    setIcon( BE::Plugged::themeIcon(myIcon) );
+    setIcon( BE::Plugged::themeIcon(myIcon, parentWidget()) );
 
     if (!menu())
     {
@@ -444,7 +444,7 @@ BE::Device::updateSolidActions()
         Solid::Predicate predicate = Solid::Predicate::fromString(service.desktopGroup().readEntry("X-KDE-Solid-Predicate"));
         foreach (const QString &action, actions) {
             const KConfigGroup group(&service, "Desktop Action " + action.trimmed());
-            QAction *act = new QAction(BE::Plugged::themeIcon(group.readEntry("Icon")), group.readEntry("Name"), 0);
+            QAction *act = new QAction(BE::Plugged::themeIcon(group.readEntry("Icon"), static_cast<QWidget*>(NULL)), group.readEntry("Name"), 0);
             act->setToolTip(group.readEntry("Exec"));
             act->setData(QVariant::fromValue(predicate));
             ourSolidActions << act;

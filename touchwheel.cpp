@@ -78,14 +78,14 @@ void TouchWheel::setIcons(QString down, QString toggle, QString up)
     if (!s_instance)
         s_instance = new TouchWheel;
     s_instance->myIconsAreDirty = false;
-    s_instance->myDown->setIcon(Plugged::themeIcon(down));
+    s_instance->myDown->setIcon(Plugged::themeIcon(down, static_cast<QWidget*>(NULL)));
     if (toggle.isEmpty())
         s_instance->myToggle->hide();
     else {
-        s_instance->myToggle->setIcon(Plugged::themeIcon(toggle));
+        s_instance->myToggle->setIcon(Plugged::themeIcon(toggle, static_cast<QWidget*>(NULL)));
         s_instance->myToggle->show();
     }
-    s_instance->myUp->setIcon(Plugged::themeIcon(up));
+    s_instance->myUp->setIcon(Plugged::themeIcon(up, static_cast<QWidget*>(NULL)));
     s_instance->adjustSize();
 }
 

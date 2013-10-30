@@ -263,7 +263,7 @@ BE::Job::Job(uint id, const QString &title, int capabilities, QWidget *parent) :
     {
         cancel = new QToolButton(this);
         connect (cancel, SIGNAL(clicked(bool)), this, SIGNAL(cancelRequested()));
-        cancel->setIcon(Plugged::themeIcon(/*"media-playback-stop"*/"dialog-cancel"));
+        cancel->setIcon(Plugged::themeIcon(/*"media-playback-stop"*/"dialog-cancel", window()));
         hl->addWidget(cancel);
     }
 }
@@ -376,13 +376,13 @@ BE::Job::setSuspended(bool suspended)
     if (suspended)
     {
         playPause->disconnect(SIGNAL(clicked(bool)));
-        playPause->setIcon(Plugged::themeIcon("media-playback-start"));
+        playPause->setIcon(Plugged::themeIcon("media-playback-start", window()));
         connect (playPause, SIGNAL(clicked(bool)), this, SIGNAL(resumeRequested()));
     }
     else
     {
         playPause->disconnect(SIGNAL(clicked(bool)));
-        playPause->setIcon(Plugged::themeIcon("media-playback-pause"));
+        playPause->setIcon(Plugged::themeIcon("media-playback-pause", window()));
         connect (playPause, SIGNAL(clicked(bool)), this, SIGNAL(suspendRequested()));
     }
 }

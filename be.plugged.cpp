@@ -131,10 +131,31 @@ BE::Plugged::theme()
     return QString();
 }
 
+
 QIcon
 BE::Plugged::themeIcon(const QString &icon, bool tryKDE)
 {
-    QString file = KGlobal::dirs()->locate("data","be.shell/Themes/" + theme() + "/" + icon + ".png");
+    return themeIcon(icon, dynamic_cast<QWidget*>(this), tryKDE);
+}
+
+QIcon
+BE::Plugged::themeIcon(const QString &icon, const QWidget *w, bool tryKDE)
+{
+    QStringList path;
+    while (w && (w->windowType() & Qt::Desktop) != Qt::Window) {
+        if (const Plugged *p = dynamic_cast<const Plugged*>(w)) {
+            path.prepend(p->name());
+            w = w->parentWidget();
+        }
+    }
+    QString file;
+    while (!path.isEmpty()) {
+        file = KGlobal::dirs()->locate("data","be.shell/Themes/" + theme() + "/" + path.join("/") + "/" + icon + ".png");
+        if (!file.isEmpty())
+            break;
+        path.removeLast();
+    }
+    file = KGlobal::dirs()->locate("data","be.shell/Themes/" + theme() + "/" + icon + ".png");
     QIcon icn(file);
     if (tryKDE && icn.isNull())
         return KIcon(icon);

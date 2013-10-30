@@ -47,7 +47,8 @@ public:
     Qt::Orientation orientation() const;
     inline QWidget *parent() const { return myParent; }
     static QString theme();
-    static QIcon themeIcon(const QString &icon, bool tryKDE = true);
+    static QIcon themeIcon(const QString &icon, const QWidget *w, bool tryKDE = true);
+    QIcon themeIcon(const QString &icon, bool tryKDE = true);
     void saveSettings();
     virtual void saveSettings( KConfigGroup *grp ) { (void)grp; }
 protected:

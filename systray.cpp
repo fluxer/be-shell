@@ -279,7 +279,7 @@ public:
     void syncToRedirected() { if (!bed) return; bed->syncToRedirected(); curtain->repaint(); }
     void updateIcon()
     {
-        QIcon icn = BE::Plugged::themeIcon(iName, false);
+        QIcon icn = BE::Plugged::themeIcon(iName, parentWidget(), false);
         curtain->setPixmap(icn.isNull() ? wmPix : icn.pixmap(128));
     }
     bool nasty, fallback;
@@ -575,7 +575,7 @@ BE::SysTray::configureIcons()
         item->setCheckState(2, it.value() & 1 ? Qt::Checked : Qt::Unchecked );
         item->setCheckState(1, it.value() & 2 ? Qt::Checked : Qt::Unchecked );
         item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-        item->setIcon(0, BE::Plugged::themeIcon(it.key(), true));
+        item->setIcon(0, themeIcon(it.key(), true));
         tree->addTopLevelItem(item);
     }
 
