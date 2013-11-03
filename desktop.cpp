@@ -965,6 +965,22 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     if ( img.isNull() )
         return ret;
 
+    bool addOverlay = mode == Heuristic && !wp->pix.isNull() && img.width() + img.height() < 129 && img.hasAlphaChannel();
+    if (addOverlay && (wp->mode == Tiled || wp->mode == ScaleV || wp->mode ==  ScaleH))
+        addOverlay = false; // nope - we replace the current tile instead
+    if (addOverlay) {
+        tile = img;
+        QString oldFile = wp->file;
+        if (wp->mode == Composed) {
+            oldFile = wp->file.section(':', 0, 0, QString::SectionSkipEmpty);
+            img = QImage(oldFile);
+        } else {
+            img = wp->pix.toImage();
+        }
+        file = oldFile + ':' + file;
+        mode = Composed;
+    }
+
     if (wp->file != file) {
         wp->file = file;
         wp->aspect = -1.0;
