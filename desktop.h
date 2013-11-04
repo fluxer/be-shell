@@ -165,6 +165,7 @@ private slots:
     void storeTrashPosition();
     void toggleIconsVisible( bool );
     void toggleTrashcan( bool );
+    void unsetWallpaper();
     void updateOnWallpaperChange();
 
 private:

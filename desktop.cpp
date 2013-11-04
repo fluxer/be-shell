@@ -579,6 +579,8 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
     foreach (QAction *act, wpSettings.aspect->actions())
         act->setCheckable(true);
     connect(wpSettings.aspect, SIGNAL(triggered(QAction*)), this, SLOT(changeWallpaperAspect(QAction*)));
+    menu->addSeparator();
+    menu->addAction( i18n("None"), this, SLOT(unsetWallpaper()) );
 
     menu = configMenu()->addMenu(i18n("Settings"));
 //     xserver              - X-Server information
@@ -1035,10 +1037,12 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
             if (img.height() < 32)
                 dst.setHeight(qCeil(32.0f/img.height())*img.height());
             if (img.size() != dst) {
+                const bool hasAlpha = img.hasAlphaChannel();
                 if (img.format() == QImage::Format_Indexed8) // not supported
-                    img = img.convertToFormat(img.hasAlphaChannel() ? QImage::Format_ARGB32 :
-                                                                        QImage::Format_RGB32);
+                    img = img.convertToFormat(hasAlpha ? QImage::Format_ARGB32 : QImage::Format_RGB32);
                 QImage nImg(dst, img.format());
+                if (hasAlpha)
+                    nImg.fill(Qt::transparent);
                 QPainter p(&nImg);
                 p.fillRect(nImg.rect(), QBrush(img));
                 p.end();
@@ -1072,6 +1076,12 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     ret.wp = wp;
     ret.img = img;
     return ret;
+}
+
+void
+BE::Desk::unsetWallpaper()
+{
+    setWallpaper("none");
 }
 
 void
