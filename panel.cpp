@@ -1190,7 +1190,9 @@ BE::Panel::updateEffectBg()
         QImage *img = new QImage(prect.size(), QImage::Format_ARGB32);
         int sr = myShadowRadius;
         myShadowRadius = -1; // ensure the desktop will not paint our shadow now
+        QMetaObject::invokeMethod(parentWidget(), "setRedirected", Q_ARG(bool, true));
         parentWidget()->render(img, QPoint(), prect, DrawWindowBackground);
+        QMetaObject::invokeMethod(parentWidget(), "setRedirected", Q_ARG(bool, false));
         myShadowRadius = sr;
         QImage *blurCp = new QImage(*img);
         BE::Shell::blur( *blurCp, myBlurRadius );

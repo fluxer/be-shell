@@ -104,6 +104,7 @@ public:
     void configure( KConfigGroup *grp );
     void saveSettings( KConfigGroup *grp );
     inline int screen() { return myScreen; }
+    Q_INVOKABLE void setRedirected(bool b) { iAmRedirected = b; }
 public slots:
     void configure() { Plugged::configure(); }
 
@@ -154,6 +155,7 @@ private slots:
     void changeWallpaperMode( QAction *action );
     void desktopChanged ( int desk );
     void desktopResized ( int screen );
+    void fadeOutWallpaper();
     void fileCreated( const QString &path );
     void fileDeleted( const QString &path );
     void fileChanged( const QString &path );
@@ -202,6 +204,10 @@ private:
     Wallpapers myWallpapers;
     Qt::Alignment myWallpaperDefaultAlign;
     WallpaperMode myWallpaperDefaultMode;
+    QPixmap *myFadingWallpaper;
+    QTimer *myFadingWallpaperTimer;
+    int myFadingWallpaperStep, myFadingWallpaperSteps;
+    bool iAmRedirected;
 
 
     typedef QList< QPointer<Panel> > PanelList;

@@ -511,7 +511,12 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
 , BE::Plugged(parent)
 , myScreen(QApplication::desktop()->primaryScreen())
 , myCorners( 0 )
-, myWpDialog(0)
+, myFadingWallpaper(NULL)
+, myFadingWallpaperTimer(NULL)
+, myFadingWallpaperStep(0)
+, myFadingWallpaperSteps(8)
+, iAmRedirected(false)
+, myWpDialog(NULL)
 {
     setObjectName("Desktop");
     setFocusPolicy( Qt::ClickFocus );
@@ -697,6 +702,8 @@ BE::Desk::configure( KConfigGroup *grp )
     if ( myCorners != corners )
         setRoundCorners();
 
+    myFadingWallpaperSteps = grp->readEntry("WallpaperFadeSteps", 8);
+
     changeWallpaper = false;
 
     QRect oldWPArea = wpSettings.area;
@@ -847,7 +854,7 @@ BE::Desk::changeWallpaperAlignment( QAction *action )
 BE::Wallpaper &
 BE::Desk::currentWallpaper(bool *common)
 {
-    Wallpapers::iterator i = myWallpapers.find(KWindowSystem::currentDesktop());
+    Wallpapers::iterator i = myWallpapers.find(myCurrentDesktop/*KWindowSystem::currentDesktop()*/);
     if (i == myWallpapers.end())
     {
         if (common) *common = true;
@@ -884,6 +891,7 @@ BE::Desk::saveSettings( KConfigGroup *grp )
     grp->writeEntry( "HaloColor", myHaloColor );
     grp->writeEntry( "Rootpaper", iRootTheWallpaper );
     grp->writeEntry( "ShowIcons", myIcons.areShown );
+    grp->writeEntry( "WallpaperFadeSteps", myFadingWallpaperSteps);
     grp->writeEntry( "Wallpaper", myWallpaper.file );
     grp->writeEntry( "WallpaperDefaultAlign", (int)myWallpaperDefaultAlign );
     grp->writeEntry( "WallpaperDefaultMode", (int)myWallpaperDefaultMode );
@@ -1199,8 +1207,42 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
 }
 
 void
+BE::Desk::fadeOutWallpaper()
+{
+    if (!myFadingWallpaperTimer) {
+        // cache old background
+        delete myFadingWallpaper;
+        myFadingWallpaper = new QPixmap(size());
+        myFadingWallpaperStep = 0;
+        myFadingWallpaper->fill(Qt::transparent);
+        render(myFadingWallpaper, QPoint(), rect(), DrawWindowBackground);
+        myFadingWallpaperStep = myFadingWallpaperSteps + 2;
+        delete myFadingWallpaperTimer;
+        myFadingWallpaperTimer = new QTimer(this);
+        connect (myFadingWallpaperTimer, SIGNAL(timeout()), SLOT(fadeOutWallpaper()));
+        myFadingWallpaperTimer->start(50);
+    }
+    if (--myFadingWallpaperStep < 2) {
+        myFadingWallpaperStep = 0;
+        delete myFadingWallpaperTimer;
+        myFadingWallpaperTimer = NULL;
+        delete myFadingWallpaper;
+        myFadingWallpaper = NULL;
+        update();
+        return;
+    }
+    if (!myFadingWallpaper)
+        return;
+    QPainter p(myFadingWallpaper);
+    p.setCompositionMode(QPainter::CompositionMode_DestinationOut);
+    p.fillRect(rect(), QColor(255,255,255,qRound(255.0/myFadingWallpaperStep)));
+    update();
+}
+
+void
 BE::Desk::finishSetWallpaper()
 {
+    fadeOutWallpaper();
     ImageToWallpaper result;
     if (QFutureWatcher<ImageToWallpaper>* watcher =
                 dynamic_cast< QFutureWatcher<ImageToWallpaper>* >(sender()))
@@ -1645,6 +1687,11 @@ BE::Desk::paintEvent(QPaintEvent *pe)
             }
         }
     }
+
+    if (myFadingWallpaper && myFadingWallpaperStep && !iAmRedirected) {
+        p.drawPixmap(0, 0, *myFadingWallpaper);
+    }
+
     p.end();
 }
 
@@ -1677,8 +1724,10 @@ BE::Desk::desktopChanged ( int desk )
     {
         qint64 pId = (prev == myWallpapers.end() ? myWallpaper.pix.cacheKey() : prev.value().pix.cacheKey());
         qint64 nId = (next == myWallpapers.end() ? myWallpaper.pix.cacheKey() : next.value().pix.cacheKey());
-        if (pId != nId)
+        if (pId != nId) {
+            fadeOutWallpaper();
             emit wallpaperChanged();
+        }
     }
     myCurrentDesktop = desk;
 }
