@@ -1381,8 +1381,10 @@ BE::Desk::updateOnWallpaperChange()
             render(&qPix, QPoint(), rect(), DrawWindowBackground);
         XSetWindowBackgroundPixmap(QX11Info::display(), QX11Info::appRootWindow(), xPix);
         XFreePixmap(QX11Info::display(), xPix);
-        XClearWindow(QX11Info::display(), QX11Info::appRootWindow());
+    } else {
+        XSetWindowBackground(QX11Info::display(), QX11Info::appRootWindow(), 0);
     }
+    XClearWindow(QX11Info::display(), QX11Info::appRootWindow());
     // update menus
     foreach (QAction *act, wpSettings.aspect->actions())
         act->setChecked( act->data() == wp.aspect );
