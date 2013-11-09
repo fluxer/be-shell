@@ -260,7 +260,7 @@ BE::Device::run(QAction *act)
     if (exec.contains("%f")) { // want's path. first ensure it's mounted'
         if (Solid::StorageAccess *vol = dev.as<Solid::StorageAccess>()) {
             if (!vol->isAccessible()) {
-                connect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()));
+                connect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()), Qt::UniqueConnection);
                 vol->setup(); // the command likes the device to be mounted
                 return;
             } else { // tidy up
