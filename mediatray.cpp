@@ -259,12 +259,15 @@ BE::Device::run(QAction *act)
     }
     if (exec.contains("%f")) { // want's path. first ensure it's mounted'
         if (Solid::StorageAccess *vol = dev.as<Solid::StorageAccess>()) {
+            // tidy up and figure whether this is invoked from a vol->setup
+            const bool isRecall = disconnect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()));
             if (!vol->isAccessible()) {
-                connect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()), Qt::UniqueConnection);
+                if (isRecall) { // this stems from a failed mount attempt - we're not gonna try it again implicitly
+                    return;
+                }
+                connect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()));
                 vol->setup(); // the command likes the device to be mounted
                 return;
-            } else { // tidy up
-                disconnect(vol, SIGNAL(setupDone(Solid::ErrorType,QVariant,const QString&)), act, SIGNAL(triggered()));
             }
             exec.replace("%f", vol->filePath());
         }
