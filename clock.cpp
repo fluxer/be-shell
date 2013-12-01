@@ -21,18 +21,96 @@
 ***************************************************************************/
 
 #include "clock.h"
-
+#include "be.shell.h"
 #include <KDE/KConfigGroup>
 #include <KDE/KPopupFrame>
-#include <KDE/KDatePicker>
 #include <KDE/KCMultiDialog>
 #include <KDE/KSystemTimeZones>
 
+#include <QAbstractItemView>
 #include <QDateTime>
 #include <QInputDialog>
+#include <QLocale>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QTimerEvent>
+#include <QToolButton>
+
+static BE::CalendarWidget *gs_calendar = 0;
+
+BE::CalendarWidget::CalendarWidget(QWidget *parent) : QCalendarWidget(parent)
+{
+    connect(this, SIGNAL(activated(const QDate&)), SLOT(runActionOn(const QDate&)));
+    QFont fnt(font());
+//     fnt.setPointSize(grp.readEntry("FontSize", 17));
+    fnt.setPointSize(17);
+    setFont(fnt);
+    configure();
+    setFirstDayOfWeek(QLocale::system().firstDayOfWeek());
+    if (QAbstractItemView *view = findChild<QAbstractItemView*>("qt_calendar_calendarview"))
+        view->viewport()->installEventFilter(this);
+    else
+        qWarning("could not event handle view, activation on single click!");
+    if (QToolButton *btn = findChild<QToolButton*>("qt_calendar_prevmonth")) {
+        btn->setIcon(QIcon());
+        btn->setText("<");
+    }
+    if (QToolButton *btn = findChild<QToolButton*>("qt_calendar_nextmonth")) {
+        btn->setIcon(QIcon());
+        btn->setText(">");
+    }
+    adjustSize();
+}
+
+void BE::CalendarWidget::configure()
+{
+    KConfigGroup grp = KSharedConfig::openConfig("be.shell")->group("BE::Calendar");
+    myCommand = grp.readEntry("Command", QString());
+    setGridVisible(grp.readEntry("ShowGrid", true));
+    iNeedToReconfigure = false;
+}
+
+void BE::CalendarWidget::runActionOn(const QDate &date)
+{
+    if (myLastClick.isValid() && myLastClick.elapsed() < 30)
+        return;
+    if (iNeedToReconfigure)
+        configure();
+    const QString cmd = date.toString(myCommand);
+//     qDebug() << cmd;
+    if (!cmd.isEmpty())
+        BE::Shell::run(date.toString(myCommand));
+}
+
+bool BE::CalendarWidget::eventFilter(QObject *o, QEvent *e)
+{
+    if (e->type() == QEvent::MouseButtonRelease) {
+        myLastClick.start();
+        return false;
+    }
+    if (e->type() == QEvent::MouseButtonDblClick) {
+        myLastClick.invalidate();
+        runActionOn(selectedDate());
+    }
+    return false;
+}
+
+void BE::CalendarWidget::showEvent(QShowEvent *e)
+{
+    myLastClick.invalidate();
+    if (iNeedToReconfigure)
+        configure();
+    QDate currentDate = QDate::currentDate();
+    if (currentDate != myLastCurrentDate) {
+        for (int i = 0; i < 2; ++i) {
+            QTextCharFormat fmt = dateTextFormat(myLastCurrentDate);
+            fmt.setFontWeight(i ? QFont::Black : QFont::Normal);
+            setDateTextFormat(myLastCurrentDate, fmt);
+            myLastCurrentDate = currentDate;
+        }
+    }
+    QCalendarWidget::showEvent(e);
+}
 
 BE::Clock::Clock(QWidget *parent, const QString &pattern ) : QLabel(parent)
 , BE::Plugged(parent)
@@ -61,6 +139,8 @@ BE::Clock::Clock(QWidget *parent, const QString &pattern ) : QLabel(parent)
 void
 BE::Clock::configure( KConfigGroup *grp )
 {
+    if (gs_calendar)
+        gs_calendar->reconfigure();
     const QDateTime cdt = QDateTime::currentDateTime();
 
     const QString s = myPattern;
@@ -186,9 +266,8 @@ BE::Clock::mousePressEvent(QMouseEvent *ev)
             calenderPopup = new KPopupFrame;
             calenderPopup->setProperty("KStyleFeatureRequest", property("KStyleFeatureRequest").toUInt() | 1); // "Shadowed"
             calenderPopup->setObjectName("Calendar");
-            KDatePicker *calender = new KDatePicker(calenderPopup);
-            calenderPopup->setMainWidget(calender);
-            calender->adjustSize();
+            gs_calendar = new CalendarWidget(calenderPopup);
+            calenderPopup->setMainWidget(gs_calendar);
             calenderPopup->adjustSize();
         }
         calenderPopup->exec( popupPosition(calenderPopup->size()) );

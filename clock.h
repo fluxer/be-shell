@@ -23,12 +23,33 @@
 #ifndef CLOCK_H
 #define CLOCK_H
 
+#include <QCalendarWidget>
+#include <QElapsedTimer>
 #include <QLabel>
 #include "be.plugged.h"
 
 class QMenu;
 
 namespace BE {
+
+class CalendarWidget : public QCalendarWidget {
+    Q_OBJECT
+public:
+    CalendarWidget(QWidget *parent = 0);
+    void reconfigure() { iNeedToReconfigure = true; }
+protected:
+    bool eventFilter(QObject *o, QEvent *e);
+    void showEvent(QShowEvent *e);
+private slots:
+    void runActionOn(const QDate &date);
+private:
+    void configure();
+private:
+    QString myCommand;
+    bool iNeedToReconfigure;
+    QDate myLastCurrentDate;
+    QElapsedTimer myLastClick;
+};
 
 class Clock : public QLabel, public Plugged
 {
