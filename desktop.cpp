@@ -74,6 +74,101 @@ QSize BE::DeskIcon::ourSize(64,64);
 static bool isClick = false;
 static QPoint dragStart;
 
+namespace BE {
+class Snow : public QWidget {
+#define NUM_FLAKES 200
+public:
+    Snow(QWidget *parent) : QWidget(parent) {
+//         setAttribute(Qt::WA_NoSystemBackground);
+        setAttribute(Qt::WA_OpaquePaintEvent);
+        setGeometry(0,0,parent->width(),parent->height());
+        snowflakes = new Snowflake[NUM_FLAKES];
+        srandom(20131224);
+        for (int i = 0; i < NUM_FLAKES; ++i) {
+            snowflakes[i].y = - (random() % height());
+            snowflakes[i].x = random() % width();
+            snowflakes[i].type = random() % 3;
+            snowflakes[i].speed = (random() % 8) + 1;
+            snowflakes[i].speed |= (random() % 9) << 4;
+        }
+        QPainter p;
+        QFont fnt;
+        fnt.setPixelSize(18);
+        QString flakeGlyph[3] = { QString::fromUtf8("❄"), QString::fromUtf8("❅"), QString::fromUtf8("❆") };
+        for (int i = 0; i < 3; ++i) {
+            flake[i] = QPixmap(16,16);
+            flake[i].fill(Qt::transparent);
+            p.begin(&flake[i]);
+            p.setBrush(Qt::white);
+            p.setPen(Qt::white);
+            p.setFont(fnt);
+            p.drawText(flake[i].rect(), Qt::AlignCenter, flakeGlyph[i]);
+            p.end();
+        }
+        buffer = QPixmap(size());
+        parent->render(&buffer, QPoint(), QRegion(), QWidget::DrawWindowBackground);
+        myTimer = startTimer(100);
+    }
+    ~Snow() {
+        killTimer(myTimer);
+        myTimer = 0;
+        delete [] snowflakes;
+        snowflakes = 0;
+    }
+protected:
+    void timerEvent(QTimerEvent *e) {
+        if (e->timerId() != myTimer) {
+            QWidget::timerEvent(e);
+            return;
+        }
+        static int xspeed[9] = {-1, 0, 1, -1, 0 , 1, -1, 0, 1 };
+        static int counter = 0;
+        if (++counter > 10) {
+            for (int i = 0; i < 9; ++i)
+                xspeed[i] = qMax(-4, qMin(4, xspeed[i] + int((random() % 3) - 1)));
+            counter = 0;
+        }
+        int speed = random() % 8;
+        int moved = 0;
+        for (int i = 0; i < NUM_FLAKES; ++i) {
+            if ((snowflakes[i].speed & 15) > speed) {
+                ++moved;
+                snowflakes[i].y += 1;
+            }
+            if (snowflakes[i].y > height())
+                snowflakes[i].y = 0;
+            snowflakes[i].x += xspeed[((snowflakes[i].speed >> 4) & 15)];
+            if (snowflakes[i].x > width())
+                snowflakes[i].x -= width();
+            else if (snowflakes[i].x < 0)
+                snowflakes[i].x += width();
+        }
+        update();
+    }
+    void paintEvent(QPaintEvent *pe) {
+        if (snowflakes) {
+            QPainter p(this);
+            p.drawPixmap(0,0,buffer);
+            p.setClipRegion(static_cast<BE::Desk*>(parent())->panelFreeRegion());
+//             p.fillRect(rect(), Qt::red);
+            for (int i = 0; i < NUM_FLAKES; ++i)
+                p.drawPixmap(snowflakes[i].x, snowflakes[i].y, flake[snowflakes[i].type]);
+            p.end();
+        }
+    }
+private:
+    struct Snowflake {
+        int x, y;
+        uchar type;
+        char speed;
+    };
+    Snowflake *snowflakes;
+    QPixmap buffer;
+    QPixmap flake[3];
+    int myTimer;
+};
+} //namespace
+
 BE::DeskIcon::DeskIcon( const QString &path, QWidget *parent ) : QToolButton( parent ), myUrl(path)
 {
 //     setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
@@ -224,7 +319,7 @@ BE::Desk::populate( const QString &path )
 
     QDir desktopDir( path );
     QFileInfoList files = desktopDir.entryInfoList( QDir::AllEntries | QDir::NoDotAndDotDot );
-    foreach( QFileInfo file, files)
+    foreach(const QFileInfo &file, files)
         fileCreated(file.absoluteFilePath());
 }
 
@@ -522,8 +617,10 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
     setFocusPolicy( Qt::ClickFocus );
     setAcceptDrops( true );
     // to get background-image interpreted
-//     setAttribute(Qt::WA_StyledBackground);
+    setAttribute(Qt::WA_StyledBackground, false);
     setAttribute(Qt::WA_NoSystemBackground);
+    setAttribute(Qt::WA_OpaquePaintEvent);
+//     setAttribute(Qt::WA_PaintOnScreen);
     connect( QApplication::desktop(), SIGNAL(resized(int)), this, SLOT(desktopResized(int)));
     connect( this, SIGNAL(wallpaperChanged()), this, SLOT(updateOnWallpaperChange()));
     connect( shell(), SIGNAL(styleSheetChanged()), this, SIGNAL(wallpaperChanged()));
@@ -1583,6 +1680,28 @@ BE::Desk::keyPressEvent( QKeyEvent *ke )
     }
 }
 
+void BE::Desk::merryXmas()
+{
+    if (QDate::currentDate().month() != 12)
+        return;
+    static BE::Snow *snow = 0;
+    if (snow) {
+        delete snow;
+        snow = 0;
+    } else {
+        snow = new BE::Snow(this);
+        foreach (QStyle *style, qApp->findChildren<QStyle*>()) {
+            if (!style->inherits("QStyleSheetStyle")) {
+                snow->setStyle(style);
+                break;
+            }
+        }
+        desktopResized(myScreen);
+        snow->lower();
+        snow->show();
+    }
+}
+
 
 void
 BE::Desk::mouseDoubleClickEvent(QMouseEvent *me)
@@ -1600,8 +1719,6 @@ enum PosFlag { Top = 1, Bottom = 2, Left = 4, Right = 8 };
 void
 BE::Desk::paintEvent(QPaintEvent *pe)
 {
-//     QWidget::paintEvent(pe);
-
     QPainter p(this);
     p.setClipRegion( pe->rect() );
     p.fillRect(rect(), palette().brush(backgroundRole()));
@@ -1614,7 +1731,7 @@ BE::Desk::paintEvent(QPaintEvent *pe)
             p.drawPixmap( wp.offset, wp.pix );
     }
 
-    foreach (BE::Panel *panel, myPanels)
+    foreach (const BE::Panel *panel, myPanels)
     {
         if (panel && panel->isVisible())
         {
@@ -1757,6 +1874,7 @@ BE::Desk::desktopResized ( int screen )
         emit resized();
     }
     myIcons.rect = rect();
+    myPanelFreeRegion = rect();
     PanelList::iterator i = myPanels.begin();
     while (i != myPanels.end())
     {
@@ -1765,6 +1883,8 @@ BE::Desk::desktopResized ( int screen )
             i = myPanels.erase(i);
             continue;
         }
+
+        myPanelFreeRegion -= p->geometry();
 
         QPoint pt = mapFromGlobal(p->mapToGlobal(QPoint(0,0)));
         switch (p->position()) {

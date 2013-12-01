@@ -401,7 +401,7 @@ BE::Shell::rBuildMenu(const QDomElement &node, QWidget *widget)
 }
 
 void
-BE::Shell::getContentsMargins(QWidget *w, int *l, int *t, int *r, int *b)
+BE::Shell::getContentsMargins(const QWidget *w, int *l, int *t, int *r, int *b)
 {
     QStyleOptionProgressBarV2 sopbv2;
     sopbv2.initFrom(w);

@@ -102,6 +102,7 @@ public:
     Desk( QWidget *parent = 0 );
     void registrate( BE::Panel * );
     void configure( KConfigGroup *grp );
+    const QRegion &panelFreeRegion() const { return myPanelFreeRegion; }
     void saveSettings( KConfigGroup *grp );
     inline int screen() { return myScreen; }
     Q_INVOKABLE void setRedirected(bool b) { iAmRedirected = b; }
@@ -147,6 +148,7 @@ private:
     void setWallpaper( QString file, int mode = 700, int desktop = -1 );
     void toggleDesktopShown();
     void reArrangeIcons();
+    void merryXmas();
 
 private slots:
     void bindScreenMenu();
@@ -208,6 +210,8 @@ private:
     QTimer *myFadingWallpaperTimer;
     int myFadingWallpaperStep, myFadingWallpaperSteps;
     bool iAmRedirected;
+
+    QRegion myPanelFreeRegion;
 
 
     typedef QList< QPointer<Panel> > PanelList;

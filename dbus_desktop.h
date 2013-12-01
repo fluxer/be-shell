@@ -43,6 +43,7 @@ public slots:
     Q_NOREPLY void toggleDesktopShown() { myDesk->toggleDesktopShown(); }
     Q_NOREPLY void reArrangeIcons() { myDesk->reArrangeIcons(); }
     Q_NOREPLY void refresh() { myDesk->update(); }
+    Q_NOREPLY void merryXmas() { myDesk->merryXmas(); }
     int winId() { return myDesk->winId(); }
 };
 }

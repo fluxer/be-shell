@@ -62,7 +62,7 @@ public:
      * segfaults because of this.
      * USE WITH GOD DAMN CARE!
      */
-    static void getContentsMargins(QWidget *w, int *l, int *t, int *r, int *b);
+    static void getContentsMargins(const QWidget *w, int *l, int *t, int *r, int *b);
     static void buildMenu(const QString &name, QWidget *widget, const QString &type);
     static void call(const QString &instruction);
     static bool callThemeChangeEventFor(BE::Plugged*);

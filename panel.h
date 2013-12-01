@@ -42,18 +42,18 @@ public:
     Panel( QWidget *parent = 0 );
     ~Panel();
     BE::Plugged *addStretch(int s);
-    inline int castsShadow() { return isVisible() && iCastAShadow; }
+    inline int castsShadow() const { return isVisible() && iCastAShadow; }
     void configure( KConfigGroup *grp );
-    inline QPixmap *effectBgPix() { return myBgPix; }
+    inline QPixmap *effectBgPix() const { return myBgPix; }
     inline int layer() const { return myLayer; }
     Qt::Orientation orientation() const;
     inline Position position() { return myPosition; }
     void saveSettings( KConfigGroup *grp );
-    inline int shadowPadding() { return myShadowPadding; }
-    inline int shadowRadius() { return myShadowRadius; }
-    inline QPen shadowBorder() { return myShadowBorder; }
+    inline int shadowPadding() const { return myShadowPadding; }
+    inline int shadowRadius() const { return myShadowRadius; }
+    inline QPen shadowBorder() const { return myShadowBorder; }
     void slide(bool in);
-    inline bool struts() { return iStrut; }
+    inline bool struts() const { return iStrut; }
 public slots:
     void raiseProxy();
 signals:
