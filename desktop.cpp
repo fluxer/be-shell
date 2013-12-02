@@ -83,7 +83,7 @@ public:
         setAttribute(Qt::WA_OpaquePaintEvent);
         setGeometry(0,0,parent->width(),parent->height());
         snowflakes = new Snowflake[NUM_FLAKES];
-        srandom(20131224);
+        srandom(QDateTime::currentDateTime().toTime_t()/*20131224*/);
         for (int i = 0; i < NUM_FLAKES; ++i) {
             snowflakes[i].y = - (random() % height());
             snowflakes[i].x = random() % width();
@@ -93,16 +93,25 @@ public:
         }
         QPainter p;
         QFont fnt;
-        fnt.setPixelSize(18);
+        fnt.setPixelSize(10);
+        int sz = 8;
         QString flakeGlyph[3] = { QString::fromUtf8("❄"), QString::fromUtf8("❅"), QString::fromUtf8("❆") };
-        for (int i = 0; i < 3; ++i) {
-            flake[i] = QPixmap(16,16);
+        for (int i = 0; i < 9; ++i) {
+            if (i == 3) {
+                fnt.setPixelSize(18);
+                sz = 16;
+            } else if (i == 6) {
+                fnt.setPixelSize(26);
+                sz = 24;
+            }
+            flake[i] = QPixmap(sz,sz);
             flake[i].fill(Qt::transparent);
             p.begin(&flake[i]);
-            p.setBrush(Qt::white);
-            p.setPen(Qt::white);
+            const int a = 255 - (sz-8)*3;
+            p.setBrush(QColor(255,255,255,a));
+            p.setPen(QColor(255,255,255,a));
             p.setFont(fnt);
-            p.drawText(flake[i].rect(), Qt::AlignCenter, flakeGlyph[i]);
+            p.drawText(flake[i].rect(), Qt::AlignCenter, flakeGlyph[i%3]);
             p.end();
         }
         buffer = QPixmap(size());
@@ -145,14 +154,21 @@ protected:
         }
         update();
     }
-    void paintEvent(QPaintEvent *pe) {
+    void paintEvent(QPaintEvent */*pe*/) {
         if (snowflakes) {
             QPainter p(this);
             p.drawPixmap(0,0,buffer);
             p.setClipRegion(static_cast<BE::Desk*>(parent())->panelFreeRegion());
 //             p.fillRect(rect(), Qt::red);
-            for (int i = 0; i < NUM_FLAKES; ++i)
+            int n = NUM_FLAKES/3;
+            int i;
+            for (i = 0; i < n; ++i)
                 p.drawPixmap(snowflakes[i].x, snowflakes[i].y, flake[snowflakes[i].type]);
+            n *= 2;
+            for (; i < n; ++i)
+                p.drawPixmap(snowflakes[i].x, snowflakes[i].y, flake[snowflakes[i].type + 3]);
+            for (; i < NUM_FLAKES; ++i)
+                p.drawPixmap(snowflakes[i].x, snowflakes[i].y, flake[snowflakes[i].type + 6]);
             p.end();
         }
     }
@@ -164,7 +180,7 @@ private:
     };
     Snowflake *snowflakes;
     QPixmap buffer;
-    QPixmap flake[3];
+    QPixmap flake[9];
     int myTimer;
 };
 } //namespace
