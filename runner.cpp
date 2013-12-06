@@ -1171,26 +1171,21 @@ void BE::Run::filter( const QString &string )
     const bool wasFlat = m_flat;
     delegate[0]->flat = delegate[1]->flat = m_flat = (m_visibleIcons < 30);
 
-    if ( m_flat )
-    {
-        if ( !wasFlat )
-        {
-            m_tree->sortItems ( 1, Qt::DescendingOrder );
+    if (m_flat) {
+        if (!(inc && wasFlat)) {
+            m_tree->sortItems(1, Qt::DescendingOrder);
             m_tree->expandAll();
         }
-    }
-    else
-    {
+    } else {
         m_tree->collapseAll();
         if (wasFlat)
-            m_tree->sortItems ( 0, Qt::AscendingOrder );
+            m_tree->sortItems(0, Qt::AscendingOrder);
     }
 
     m_tree->insertTopLevelItem( 0, m_tree->takeTopLevelItem( m_tree->indexOfTopLevelItem(favorites) ) );
     bool showFavorites = string.isEmpty();
     favorites->setHidden(!showFavorites);
-    if (showFavorites)
-    {
+    if (showFavorites) {
         favorites->sortChildren(1, Qt::DescendingOrder);
         favorites->setExpanded(string.isEmpty());
     }
