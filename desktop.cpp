@@ -948,6 +948,12 @@ static Qt::Alignment alignFromInt(int i)
         return i == 1 ? Qt::AlignTop : (i == 2 ? Qt::AlignBottom : Qt::AlignVCenter);
 }
 
+static int alignToInt(Qt::Alignment a)
+{
+    return (a & Qt::AlignTop) ? 1 : ((a & Qt::AlignBottom) ? 2 : 0) +
+            10 * ((a & Qt::AlignLeft) ? 1 : ((a & Qt::AlignRight) ? 2 : 0));
+}
+
 void
 BE::Desk::changeWallpaperAlignment( QAction *action )
 {
@@ -1295,6 +1301,9 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
             finishSetWallpaper();
         else
         {
+            while ( mode < 100)
+                mode *= 10;
+            mode += alignToInt(wp.align);
             QFutureWatcher<ImageToWallpaper>* watcher = new QFutureWatcher<ImageToWallpaper>;
             connect( watcher, SIGNAL( finished() ), SLOT( finishSetWallpaper() ), Qt::QueuedConnection );
             if (changed)
