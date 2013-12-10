@@ -45,7 +45,7 @@ static const int OSD_BRICK_WIDTH = 5;
 static const int OSD_FRAME_WIDTH = 2;
 static const int OSD_GAP_WIDTH = 3;
 
-BE::Volume::OSD::OSD( QWidget *parent ) : QWidget(parent, Qt::Window|Qt::X11BypassWindowManagerHint|Qt::SplashScreen)
+BE::Volume::OSD::OSD( QWidget *parent ) : QWidget(parent, Qt::Window|Qt::X11BypassWindowManagerHint/*Qt::SplashScreen*/)
 , myProgress(-1)
 , myTarget(-1)
 {
