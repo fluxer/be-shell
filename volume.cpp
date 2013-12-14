@@ -88,8 +88,6 @@ BE::Volume::OSD::show(int total, int done)
     {
         myTarget = total;
         resize((total*(OSD_BRICK_WIDTH+2*OSD_FRAME_WIDTH))+((total-1)*OSD_GAP_WIDTH), 11+2*OSD_FRAME_WIDTH+2*total);
-        QRect r = QApplication::desktop()->availableGeometry();
-        move( r.x() + (r.width() - width())/2, r.y() + (r.height() - height())/2 );
 //         setGeometry( r.x() + (r.width() - width())/2, r.y() + (r.height() - height())/2, width(), height() );
 
         QRegion mask;
@@ -104,6 +102,8 @@ BE::Volume::OSD::show(int total, int done)
         }
         setMask(mask);
     }
+    QRect r = QApplication::desktop()->availableGeometry(QCursor::pos());
+    move( r.x() + (r.width() - width())/2, r.y() + (r.height() - height())/2 );
     QWidget::show();
     if (myProgress != done)
     {
