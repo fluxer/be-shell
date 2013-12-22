@@ -1862,12 +1862,12 @@ BE::Desk::desktopChanged ( int desk )
 {
     Wallpapers::iterator prev = myWallpapers.find(myCurrentDesktop);
     Wallpapers::iterator next = myWallpapers.find(desk);
-    if (prev != next)
-    {
+    if (prev != next) {
         qint64 pId = (prev == myWallpapers.end() ? myWallpaper.pix.cacheKey() : prev.value().pix.cacheKey());
         qint64 nId = (next == myWallpapers.end() ? myWallpaper.pix.cacheKey() : next.value().pix.cacheKey());
         if (pId != nId) {
             fadeOutWallpaper();
+            myCurrentDesktop = desk;
             emit wallpaperChanged();
         }
     }
