@@ -333,8 +333,10 @@ void BE::Session::rescueDialogFinished(int result)
 #else
             //  org.freedesktop.UPower.Suspend
             //  org.freedesktop.UPower.CanSuspend
-                QDBusInterface("org.freedesktop.UPower", "/org/freedesktop/UPower",
-                            "org.freedesktop.UPower", QDBusConnection::systemBus()).call(QLatin1String("Suspend"));
+//                 QDBusInterface("org.freedesktop.UPower", "/org/freedesktop/UPower",
+//                             "org.freedesktop.UPower", QDBusConnection::systemBus()).call(QLatin1String("Suspend"));
+                QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
+                            "org.freedesktop.login1.Manager", QDBusConnection::systemBus()).call(QLatin1String("Suspend"), false);
 #endif
                 break;
             }
