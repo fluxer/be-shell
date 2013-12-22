@@ -81,6 +81,7 @@ private slots:
     void conditionalHide();
     void desktopResized();
     void enable() { setEnabled(true); }
+    void saveMySettings() { Plugged::saveSettings(); }
     void startMoveResize();
     void setAndSaveVisible( bool on );
     void setOnScreen(QAction*);

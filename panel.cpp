@@ -61,7 +61,7 @@ public:
 class StrutManager : public QWidget
 {
 public:
-    StrutManager() : QWidget( 0, Qt::Window | Qt::FramelessWindowHint )
+    StrutManager() : QWidget( 0, Qt::Window | Qt::FramelessWindowHint ), timer(0)
     {
 //         KWindowSystem::setType( winId(), NET::Dock );
         setAttribute(Qt::WA_X11NetWmWindowTypeDock, true);
@@ -96,13 +96,26 @@ protected:
         case QEvent::Resize:
         case QEvent::Show:
         case QEvent::Hide:
-            if (qobject_cast<BE::Panel*>(o))
-                updateStruts();
+            if (BE::Panel *panel = qobject_cast<BE::Panel*>(o)) {
+                if (!panel->isVisible() && (e->type() == QEvent::Move || e->type() == QEvent::Resize))
+                    break;
+                killTimer(timer);
+                timer = startTimer(75); // group slide moves etc. and multiple panel changes
+            }
             break;
         default:
             break;
         }
         return false;
+    }
+    void timerEvent(QTimerEvent *te) {
+        if (te->timerId() == timer) {
+            killTimer(timer);
+            timer = 0;
+            updateStruts();
+        } else {
+            QWidget::timerEvent(te);
+        }
     }
 public:
     bool isEmpty() { return panels.isEmpty(); }
@@ -135,6 +148,7 @@ public:
 private:
     typedef QList< QPointer<BE::Panel> > PanelList;
     PanelList panels;
+    int timer;
 };
 
 QMap<int, StrutManager*> gs_struts;
@@ -914,8 +928,10 @@ BE::Panel::saveSettings( KConfigGroup *grp )
 void
 BE::Panel::setAndSaveVisible( bool vis )
 {
-    setVisible(vis);
-    Plugged::saveSettings();
+//     setVisible(vis);
+//     Plugged::saveSettings();
+    slide(vis);
+    QTimer::singleShot(250, this, SLOT(saveMySettings()));
 }
 
 void
