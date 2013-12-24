@@ -1301,9 +1301,11 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
             finishSetWallpaper();
         else
         {
-            while ( mode < 100)
-                mode *= 10;
-            mode += alignToInt(wp.align);
+            if (mode > 0) {
+                while ( mode < 100)
+                    mode *= 10;
+                mode += alignToInt(wp.align);
+            }
             QFutureWatcher<ImageToWallpaper>* watcher = new QFutureWatcher<ImageToWallpaper>;
             connect( watcher, SIGNAL( finished() ), SLOT( finishSetWallpaper() ), Qt::QueuedConnection );
             if (changed)
