@@ -143,7 +143,10 @@ QSslSocket(parent)
     connect (this, SIGNAL(sslErrors(QList<QSslError>)), SLOT(handleSslErrors(QList<QSslError>)));
     m_signalTimer = new QTimer(this);
     m_signalTimer->setSingleShot(true);
+    m_reIdleTimer = new QTimer(this);
+    m_reIdleTimer->setSingleShot(true);
     connect(m_signalTimer, SIGNAL(timeout()), SIGNAL(newMail()));
+    connect(m_reIdleTimer, SIGNAL(timeout()), SLOT(reIdle()));
     connectToHostEncrypted(m_account.server, m_account.port);
 }
 
@@ -204,7 +207,7 @@ void Idler::listen()
             Q_ASSERT(tokens.count() > 1);
             if ((m_loggedIn = compare(tokens.at(1), "OK"))) {  // we're in!
                 // check what we have, that will also trigger IDLE
-                request(QString("t_uns STATUS %1 (UNSEEN)").arg(m_account.dir));
+                checkUnseen();
                 return; // not interested in anything else atm.
             }
         }
@@ -221,13 +224,12 @@ void Idler::listen()
         }
 
         if (m_idling && tokens.at(0) == "*") {
-            if (compare(tokens.at(tokens.count()-1), "EXPUNGE")) // this is not spontaneous, user interacts
-                break; // ... with some other client and has updated mails and we get notified -> skip
-            if (compare(tokens.at(tokens.count()-1), "RECENT") ||
-                compare(tokens.at(tokens.count()-1), "EXISTS")) { // google can't recent mails :-(
+            if (compare(tokens.last(), "EXPUNGE") || // this is not spontaneous, user interacts with some other client and has updated mails
+                compare(tokens.last(), "RECENT") ||
+                compare(tokens.last(), "EXISTS")) { // google can't recent mails :-(
                 request("done");
                 m_idling = false;
-                request(QString("t_uns STATUS %1 (UNSEEN)").arg(m_account.dir));
+                checkUnseen();
                 break;
             }
             continue;
@@ -240,22 +242,26 @@ void Idler::checkCaps()
     request("t_caps CAPABILITY");
 }
 
+void Idler::checkUnseen()
+{
+    request(QString("t_uns STATUS %1 (UNSEEN)").arg(m_account.dir));
+}
+
 void
 Idler::reIdle()
 {
     m_idling = !m_idling;
-    int timeout = 0;
     if (m_idling) {
         request("t_idle IDLE");
         // servers don't like permanent idling, so we re-idle every 4:30 minutes to prevent a timeout or spontaneous notifications (gmail does that)
-        timeout = (4*60 + 30)*1000;
+        m_reIdleTimer->start((4*60 + 30)*1000);
     }
     else {
         request("done");
+        // sync data - this will cause another re-idle, getting us into above branch
         // we wait a second to not confuse the server
-        timeout = 1000;
+        QTimer::singleShot(1000, this, SLOT(checkUnseen()));
     }
-    QTimer::singleShot(timeout, this, SLOT(reIdle()));
 }
 
 void
@@ -267,6 +273,8 @@ Idler::request(const QString &s)
 
 void
 Idler::updateMails(int recent) {
+    if (m_recent == recent)
+        return;
     m_recent = recent;
     m_signalTimer->start(150);
 }

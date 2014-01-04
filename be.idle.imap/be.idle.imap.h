@@ -57,6 +57,7 @@ public:
 signals:
     void newMail();
 private slots:
+    void checkUnseen();
     void checkCaps();
     void listen();
     void handleSslErrors(const QList<QSslError> &errors);
@@ -68,6 +69,6 @@ private:
 private:
     Account m_account;
     int m_recent;
-    QTimer *m_signalTimer;
+    QTimer *m_signalTimer, *m_reIdleTimer;
     bool m_canIdle, m_loggedIn, m_idling;
 };
