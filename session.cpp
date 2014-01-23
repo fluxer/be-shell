@@ -38,6 +38,12 @@
 #include <QTimerEvent>
 #include <QtDebug>
 
+#ifdef Q_WS_X11
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <QX11Info>
+#endif
+
 #define BE_SHELL_USE_HAL 0
 
 namespace BE {
@@ -68,6 +74,18 @@ public:
         QFont fnt = label->font(); fnt.setPointSize(2*fnt.pointSize()); label->setFont(fnt);
         setMainWidget(label);
         countDownTimer = startTimer(1000);
+#ifdef Q_WS_X11
+        static Atom classProp = 0;
+        static const uchar className[] = "ksmserver\0ksmserver";
+        static const uchar role[] = "logoutdialog";
+        if (!classProp) {
+                classProp = XInternAtom(QX11Info::display(), "WM_CLASS", False);
+                roleProp = XInternAtom(QX11Info::display(), "WM_WINDOW_ROLE", False);
+                stringProp = XInternAtom(QX11Info::display(), "STRING", False);
+        }
+        XChangeProperty(QX11Info::display(), winId(), classProp, stringProp, 8, PropModeReplace, className, 19);
+        XChangeProperty(QX11Info::display(), winId(), roleProp, stringProp, 8, PropModeReplace, role, 12);
+#endif
     }
 protected:
     void slotButtonClicked(int button) {
@@ -77,6 +95,10 @@ protected:
             if (minutes > 0) {
                 const bool wasModal = isModal();
                 if (wasModal) {
+#ifdef Q_WS_X11
+                    static const uchar role[] = "delaydialog";
+                    XChangeProperty(QX11Info::display(), winId(), roleProp, stringProp, 8, PropModeReplace, role, 11);
+#endif
                     setModal(false);
                     setWindowModality(Qt::NonModal);
                     hide();
@@ -118,7 +140,17 @@ private:
     QLabel *label;
     QString rescueFrom;
     uint countDown;
+#ifdef Q_WS_X11
+    static Atom roleProp;
+    static Atom stringProp;
+#endif
 };
+
+#ifdef Q_WS_X11
+Atom RescueDialog::roleProp = 0;
+Atom RescueDialog::stringProp = 0;
+#endif
+
 }
 
 #define ksmserver QDBusInterface("org.kde.ksmserver", "/KSMServer", "org.kde.KSMServerInterface", QDBusConnection::sessionBus())
