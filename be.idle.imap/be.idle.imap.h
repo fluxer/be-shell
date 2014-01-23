@@ -21,6 +21,7 @@
 class QTimer;
 
 #include <QSslSocket>
+#include <QStringList>
 
 class IdleManager : public QObject {
     Q_OBJECT
@@ -56,9 +57,12 @@ public:
     inline int recentMails() const { return m_recent; }
 signals:
     void newMail();
+    void lostConnection(QString);
 private slots:
     void checkUnseen();
     void checkCaps();
+    void reconnect();
+    void reconnectLater();
     void listen();
     void handleSslErrors(const QList<QSslError> &errors);
     void handleVerificationError(const QSslError &error);

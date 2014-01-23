@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <QCoreApplication>
+#include <QPointer>
 #include <QProcess>
 #include <QSettings>
 #include <QStringList>
@@ -47,8 +48,8 @@ IdleThread(IdleManager *parent, const Account &account)
 
 ~IdleThread()
 {
-    s_idlers.removeAll(m_idler);
-    m_idler->deleteLater();
+    if (m_idler)
+        m_idler->deleteLater();
 }
 
 void run() {
@@ -56,6 +57,7 @@ void run() {
     s_idlers << m_idler;
     connect(m_idler, SIGNAL(newMail()), m_manager, SLOT(gotMail()));
     connect(m_idler, SIGNAL(destroyed(QObject*)), SLOT(quit()));
+    connect(this, SIGNAL(finished()), SLOT(deleteLater()));
     m_account.id.clear();
     m_account.server.clear();
     m_account.login.clear();
@@ -66,7 +68,7 @@ void run() {
 private:
     Account m_account;
     IdleManager *m_manager;
-    Idler *m_idler;
+    QPointer<Idler> m_idler;
 };
 
 #define READ(_S_, _s_) \
@@ -141,16 +143,20 @@ QSslSocket(parent)
     connect (this, SIGNAL(readyRead()), SLOT(listen()));
     connect (this, SIGNAL(peerVerifyError(QSslError)), SLOT(handleVerificationError(QSslError)));
     connect (this, SIGNAL(sslErrors(QList<QSslError>)), SLOT(handleSslErrors(QList<QSslError>)));
+    connect (this, SIGNAL(disconnected()), SLOT(reconnectLater()));
     m_signalTimer = new QTimer(this);
     m_signalTimer->setSingleShot(true);
     m_reIdleTimer = new QTimer(this);
     m_reIdleTimer->setSingleShot(true);
     connect(m_signalTimer, SIGNAL(timeout()), SIGNAL(newMail()));
     connect(m_reIdleTimer, SIGNAL(timeout()), SLOT(reIdle()));
-    connectToHostEncrypted(m_account.server, m_account.port);
+    reconnect();
 }
 
 Idler::~Idler() {
+    s_idlers.removeAll(this);
+    disconnect (this, SIGNAL(readyRead()), this, SLOT(listen())); // ignore "BYE"
+    disconnect (this, SIGNAL(disconnected()), this, SLOT(reconnectLater()));
     request("t_logout LOGOUT");
 }
 
@@ -165,6 +171,18 @@ void Idler::handleVerificationError(const QSslError &error)
     qDebug() << "BE::Idle.Imap" << m_account.server << "VERIFICATION ERROR" << error.error() << error.errorString();
 }
 
+void Idler::reconnectLater()
+{
+    QTimer::singleShot(1000, this, SLOT(reconnect()));
+}
+
+void Idler::reconnect()
+{
+    m_canIdle = false;
+    m_loggedIn = false;
+    m_idling = false;
+    connectToHostEncrypted(m_account.server, m_account.port);
+}
 
 void Idler::listen()
 {
@@ -180,9 +198,9 @@ void Idler::listen()
                 if (compare(token, "IDLE")) {
                     m_canIdle = true;
                     request(QString("t_login LOGIN %1 %2").arg(m_account.login).arg(m_account.pass));
-                    // wipe private data
-                    m_account.login.clear();
-                    m_account.pass.clear();
+                    // wipe private data - would orevent required reconnection...
+//                     m_account.login.clear();
+//                     m_account.pass.clear();
                     break;
                 }
             }
@@ -212,27 +230,34 @@ void Idler::listen()
             }
         }
 
-        if (!m_idling && tokens.at(0) == "*" && tokens.count() > 4) {
-            if (compare(tokens.at(tokens.count()-2), "(UNSEEN")) {
-                QString s = tokens.at(tokens.count()-1);
-                s = s.left(s.count()-1); // " n)"
-                if (int unseen = s.toInt())
-                    updateMails(unseen);
-                reIdle();
-                break; // it's all we wanted to know
+        if (tokens.at(0) == "*") {
+            if (tokens.count() > 1 && compare(tokens.at(1), "BYE")) {
+                // we've been disconnected
+                // -> reconnect!
+                qDebug() << "we were logged out, try to reconnect" << m_account.id;
+                reconnectLater();
+                return;
             }
-        }
-
-        if (m_idling && tokens.at(0) == "*") {
-            if (compare(tokens.last(), "EXPUNGE") || // this is not spontaneous, user interacts with some other client and has updated mails
-                compare(tokens.last(), "RECENT") ||
-                compare(tokens.last(), "EXISTS")) { // google can't recent mails :-(
-                request("done");
-                m_idling = false;
-                checkUnseen();
-                break;
+            if (m_idling) {
+                if (compare(tokens.last(), "EXPUNGE") || // this is not spontaneous, user interacts with some other client and has updated mails
+                    compare(tokens.last(), "RECENT") ||
+                    compare(tokens.last(), "EXISTS")) { // google can't recent mails :-(
+                    request("done");
+                    m_idling = false;
+                    checkUnseen();
+                    break;
+                }
+                continue;
+            } else if (tokens.count() > 4) {
+                if (compare(tokens.at(tokens.count()-2), "(UNSEEN")) {
+                    QString s = tokens.at(tokens.count()-1);
+                    s = s.left(s.count()-1); // " n)"
+                    if (int unseen = s.toInt())
+                        updateMails(unseen);
+                    reIdle();
+                    break; // it's all we wanted to know
+                }
             }
-            continue;
         }
     }
 }
@@ -252,15 +277,17 @@ Idler::reIdle()
 {
     m_idling = !m_idling;
     if (m_idling) {
+//         qDebug() << "idle another 4.5 minutes" << m_account.id;
         request("t_idle IDLE");
         // servers don't like permanent idling, so we re-idle every 4:30 minutes to prevent a timeout or spontaneous notifications (gmail does that)
         m_reIdleTimer->start((4*60 + 30)*1000);
     }
     else {
         request("done");
+//         qDebug() << "stopped idling" << m_account.id;
         // sync data - this will cause another re-idle, getting us into above branch
         // we wait a second to not confuse the server
-        QTimer::singleShot(1000, this, SLOT(checkUnseen()));
+        QTimer::singleShot(500, this, SLOT(checkUnseen()));
     }
 }
 
@@ -268,7 +295,10 @@ void
 Idler::request(const QString &s)
 {
     QSslSocket::write(s.toLatin1());
-    QSslSocket::write("\r\n");
+    if (QSslSocket::write("\r\n") < 0) {
+        qDebug() << "somehow lost connection" << m_account.id;
+        reconnectLater();
+    }
 }
 
 void
