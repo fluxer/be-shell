@@ -141,16 +141,20 @@ BE::Button::configure( KConfigGroup *grp )
         if (myCommand.isEmpty())
         {
             myCommand = grp->readEntry("Menu", QString());
-            if (myCommand.isEmpty())
-                return;
-            myMenu = new QMenu(this);
-            updateMenu();
-            setMenu(myMenu);
-            setPopupMode( QToolButton::InstantPopup );
-            myExe = grp->readEntry("MenuUpdater", QString());
-            if (!myExe.isEmpty()) {
-                myUpdaterTimeout = grp->readEntry("MenuUpdaterTimeout", 2000);
-                connect (myMenu, SIGNAL(aboutToShow()), SLOT(updateMenu()));
+            if (myCommand == "BE::Config")
+                setMenu(BE::Plugged::configMenu());
+            else if (myCommand == "windowlist")
+                setMenu(BE::Shell::windowList());
+            else if (!myCommand.isEmpty()) {
+                myMenu = new QMenu(this);
+                updateMenu();
+                setMenu(myMenu);
+                setPopupMode( QToolButton::InstantPopup );
+                myExe = grp->readEntry("MenuUpdater", QString());
+                if (!myExe.isEmpty()) {
+                    myUpdaterTimeout = grp->readEntry("MenuUpdaterTimeout", 2000);
+                    connect (myMenu, SIGNAL(aboutToShow()), SLOT(updateMenu()));
+                }
             }
         }
         else
@@ -402,8 +406,6 @@ BE::Button::mousePressEvent(QMouseEvent *me)
 void
 BE::Button::mouseReleaseEvent(QMouseEvent *me)
 {
-    if (menu())
-        menu()->removeEventFilter(this);
     if (BE::Shell::touchMode() &&
         !(menu() && menu()->isVisible()) &&
         !(myWheel[0].isEmpty() && myWheel[1].isEmpty()) &&
@@ -489,8 +491,11 @@ BE::Button::leaveEvent(QEvent *e)
 bool
 BE::Button::eventFilter(QObject *o, QEvent *e)
 {
-    if (e->type() == QEvent::Show && o == menu())
-        menu()->move(popupPosition(menu()->size()));
+    if (e->type() == QEvent::Show) {
+        if (o == menu())
+            menu()->move(popupPosition(menu()->size()));
+    } else if (e->type() == QEvent::Hide && o == menu())
+        menu()->removeEventFilter(this);
     return false;
 }
 
