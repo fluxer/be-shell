@@ -229,8 +229,7 @@ BE::Label::leaveEvent(QEvent *e)
 void
 BE::Label::timerEvent(QTimerEvent *te)
 {
-    if ( !te->timerId() == myTimer )
-    {
+    if ( te->timerId() != myTimer ) {
         QLabel::timerEvent(te);
         return;
     }
