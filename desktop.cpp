@@ -1287,6 +1287,7 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
             QString tile(KStandardDirs::locateLocal("tmp", "be.shell/tile.png"));
             if ( !KIO::NetAccess::download(url, tile, this) )
                 return; // failed download
+            mode = -1;
         }
 
         // first check whether we already have this file loaded somewhere...
