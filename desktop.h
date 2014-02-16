@@ -147,6 +147,7 @@ private:
     friend class DeskAdaptor;
     void setWallpaper( QString file, int mode = 700, int desktop = -1 );
     void toggleDesktopShown();
+    void triggerMouseAction(QMouseEvent *me);
     void reArrangeIcons();
     void merryXmas();
 
@@ -200,6 +201,8 @@ private:
     bool ignoreSaveRequest, iRootTheWallpaper, iWheelOnClickOnly;
     uint myCorners;
     int myCurrentDesktop;
+    QString myMouseAction[Qt::MidButton];
+    QMenu *myMouseActionMenu[Qt::MidButton];
 
     Wallpaper myWallpaper;
     typedef QHash<int,Wallpaper> Wallpapers;

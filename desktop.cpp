@@ -629,6 +629,8 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
 , iAmRedirected(false)
 , myWpDialog(NULL)
 {
+    for (int i = 0; i < Qt::MidButton; ++i)
+        myMouseActionMenu[i] = NULL;
     setObjectName("Desktop");
     setFocusPolicy( Qt::ClickFocus );
     setAcceptDrops( true );
@@ -760,6 +762,10 @@ void
 BE::Desk::configure( KConfigGroup *grp )
 {
     delete myWpDialog; myWpDialog = 0;
+    for (int i = 0; i < Qt::MidButton; ++i) {
+        delete myMouseActionMenu[i];
+        myMouseActionMenu[i] = NULL;
+    }
 
     ignoreSaveRequest = true;
     bool b; int i; QString s; float f;
@@ -767,6 +773,9 @@ BE::Desk::configure( KConfigGroup *grp )
     bool needUpdate = false;
 
     iWheelOnClickOnly = grp->readEntry("WheelOnLMB", false);
+    myMouseAction[Qt::LeftButton-1] = grp->readEntry("LMBAction", QString());
+    myMouseAction[Qt::RightButton-1] = grp->readEntry("RMBAction", "menu:BE::Config");
+    myMouseAction[Qt::MidButton-1] = grp->readEntry("MMBAction", "menu:windowlist");
 
     QStringList l = grp->readEntry("IconAreaPaddings", QStringList());
     bool needIconShift = false;
@@ -1001,22 +1010,27 @@ BE::Desk::saveSettings( KConfigGroup *grp )
 {
     if (ignoreSaveRequest)
         return;
-    grp->deleteGroup(); // required to clean myWallpaperXYZ entries
-    grp->writeEntry( "BlurRadius", myRootBlurRadius );
+//     grp->deleteGroup(); // required to clean myWallpaperXYZ entries
+    foreach (QString key, grp->keyList()) {
+        if (key.startsWith("Wallpaper_") || key.startsWith("WallpaperAlign_") ||
+            key.startsWith("WallpaperAspect_") || key.startsWith("WallpaperMode_"))
+            grp->deleteEntry(key);
+    }
+//     grp->writeEntry( "BlurRadius", myRootBlurRadius );
     grp->writeEntry( "Corners", myCorners );
     if (myScreen != QApplication::desktop()->primaryScreen())
         grp->writeEntry( "Screen", myScreen );
-    grp->writeEntry( "ShadowOpacity", myShadowOpacity );
-    grp->writeEntry( "HaloColor", myHaloColor );
-    grp->writeEntry( "Rootpaper", iRootTheWallpaper );
+//     grp->writeEntry( "ShadowOpacity", myShadowOpacity );
+//     grp->writeEntry( "HaloColor", myHaloColor );
+//     grp->writeEntry( "Rootpaper", iRootTheWallpaper );
     grp->writeEntry( "ShowIcons", myIcons.areShown );
-    grp->writeEntry( "WallpaperFadeSteps", myFadingWallpaperSteps);
+//     grp->writeEntry( "WallpaperFadeSteps", myFadingWallpaperSteps);
     grp->writeEntry( "Wallpaper", myWallpaper.file );
-    grp->writeEntry( "WallpaperDefaultAlign", (int)myWallpaperDefaultAlign );
-    grp->writeEntry( "WallpaperDefaultMode", (int)myWallpaperDefaultMode );
+//     grp->writeEntry( "WallpaperDefaultAlign", (int)myWallpaperDefaultAlign );
+//     grp->writeEntry( "WallpaperDefaultMode", (int)myWallpaperDefaultMode );
     grp->writeEntry( "WallpaperAlign", (int)myWallpaper.align );
-    if (wpSettings.area.isValid())
-        grp->writeEntry( "WallpaperArea", wpSettings.area );
+//     if (wpSettings.area.isValid())
+//         grp->writeEntry( "WallpaperArea", wpSettings.area );
     grp->writeEntry( "WallpaperAspect", (float)myWallpaper.aspect );
     grp->writeEntry( "WallpaperMode", (int)myWallpaper.mode );
     Wallpapers::const_iterator i;
@@ -1027,18 +1041,21 @@ BE::Desk::saveSettings( KConfigGroup *grp )
         grp->writeEntry( QString("WallpaperAspect_%1").arg(i.key()), (float)i.value().aspect );
         grp->writeEntry( QString("WallpaperMode_%1").arg(i.key()), (int)i.value().mode );
     }
-    grp->writeEntry("WheelOnLMB", iWheelOnClickOnly);
-    grp->writeEntry( "TrashCan", bool(myTrash.can) );
+//     grp->writeEntry("WheelOnLMB", iWheelOnClickOnly);
+//     grp->writeEntry("LMBAction", myMouseAction[Qt::LeftButton-1]);
+//     grp->writeEntry("RMBAction", myMouseAction[Qt::RightButton-1]);
+//     grp->writeEntry("MMBAction", myMouseAction[Qt::MidButton-1]);
+//     grp->writeEntry( "TrashCan", bool(myTrash.can) );
     if (myTrash.can)
     {
         grp->writeEntry( "TrashSize", myTrash.can->width());
         grp->writeEntry( "TrashX", myTrash.can->geometry().x());
         grp->writeEntry( "TrashY", myTrash.can->geometry().y());
     }
-    grp->writeEntry( "IconAreaPaddings", QStringList() <<   QString::number(myIconPaddings[0]) <<
-                                                            QString::number(myIconPaddings[1]) <<
-                                                            QString::number(myIconPaddings[2]) <<
-                                                            QString::number(myIconPaddings[3]) );
+//     grp->writeEntry( "IconAreaPaddings", QStringList() <<   QString::number(myIconPaddings[0]) <<
+//                                                             QString::number(myIconPaddings[1]) <<
+//                                                             QString::number(myIconPaddings[2]) <<
+//                                                             QString::number(myIconPaddings[3]) );
 }
 
 void
@@ -1570,21 +1587,51 @@ BE::Desk::eventFilter(QObject *o, QEvent *e)
     return false;
 }
 
+void
+BE::Desk::triggerMouseAction(QMouseEvent *me)
+{
+    if (me->button() > Qt::MidButton || me->modifiers())
+        return;
+    const QString &mouseAction = myMouseAction[me->button()-1];
+    if (mouseAction.isEmpty())
+        return;
+    if (mouseAction.startsWith("menu:")) {
+        const QString menu = mouseAction.mid(5);
+        if ( menu == "windowlist")
+            BE::Shell::windowList()->popup(me->globalPos());
+        else if (menu == "BE::Config")
+            configMenu()->popup(me->globalPos());
+        else if (menu == "BE::Run") {
+            QPoint pos = me->globalPos();
+            QDBusInterface runner( "org.kde.be.shell", "/Runner", "org.kde.be.shell", QDBusConnection::sessionBus() );
+            runner.call("togglePopup", pos.x(), pos.y());
+
+        } else {
+            if (!myMouseActionMenu[me->button()-1]) {
+                myMouseActionMenu[me->button()-1] = new QMenu(this);
+                BE::Shell::buildMenu(menu, myMouseActionMenu[me->button()-1], "");
+            }
+            myMouseActionMenu[me->button()-1]->popup(me->globalPos());
+        }
+    } else if (mouseAction.startsWith("exec:")) {
+        BE::Shell::run(mouseAction.mid(5));
+    } else if (mouseAction.startsWith("dbus:")) {
+        BE::Shell::call(mouseAction.mid(5));
+    } else
+        qDebug() << "Invalid mouse action, must be '[menu|exec|dbus]:'" << mouseAction;
+}
 
 static QElapsedTimer mouseDownTimer;
 void
-BE::Desk::mousePressEvent( QMouseEvent *me )
+BE::Desk::mousePressEvent(QMouseEvent *me)
 {
-    if (me->button() == Qt::LeftButton && BE::Shell::touchMode())
-        mouseDownTimer.start();
-    else if (me->button() == Qt::RightButton)
-        configMenu()->popup( me->globalPos() );
-    else if (me->button() == Qt::MidButton)
-    {
-        QPoint pos = me->globalPos();
-        QDBusInterface shell( "org.kde.be.shell", "/Shell", "org.kde.be.shell", QDBusConnection::sessionBus() );
-        shell.call("showWindowList", pos.x(), pos.y());
+    if (me->button() == Qt::LeftButton) {
+        if (BE::Shell::touchMode()) {
+            mouseDownTimer.start();
+            return;
+        }
     }
+    triggerMouseAction(me);
 }
 
 void
@@ -1604,8 +1651,10 @@ BE::Desk::mouseReleaseEvent(QMouseEvent *me)
         hints->input = false;
         XSetWMHints( QX11Info::display(), winId(), hints );
         XSync( QX11Info::display(), 0 );
-        if (showMenu)
-            configMenu()->popup( me->globalPos() );
+        if (showMenu) {
+            QMouseEvent me2(QEvent::MouseButtonRelease, me->pos(), Qt::RightButton, Qt::RightButton, me->modifiers());
+            triggerMouseAction(&me2);
+        }
     }
 }
 
