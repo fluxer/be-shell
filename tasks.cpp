@@ -134,7 +134,7 @@ BE::Task::Task(Tasks *parent, WId id, bool sticky, const QString &name) : BE::Bu
     iAmImportant = false;
     iAmDirty = false;
     const unsigned long props[2] = {NET::WMVisibleIconName|NET::WMIcon, NET::WM2WindowClass};
-    update(props);
+    update(props, id);
 }
 
 void
@@ -152,7 +152,7 @@ BE::Task::add(WId id) {
     myText = myGroup;
     setObjectName( count() > 1 ? "ManyTasks" : "OneTask" );
     const unsigned long props[2] = {NET::WMState|NET::XAWMState, 0};
-    update(props);
+    update(props, id);
     if (wereFew) {
         mySizeHintIsDirty = true;
         repolish();
@@ -353,8 +353,12 @@ BE::Task::mouseReleaseEvent(QMouseEvent *me)
                     return;
                 }
             }
+            iAmImportant = false; // no urgent found - somehow missed state withdraw
+            setProperty("needsAttention", false);
+            repolish();
+            requestAttention(0);
         }
-        else if (menu())
+        if (menu())
             showWindowList();
         else if (count())
             toggleState(myWindows.at(0));
@@ -438,7 +442,7 @@ BE::Task::remove(WId id)
             repolish();
         }
         const unsigned long props[2] = {NET::WMState|NET::XAWMState, 0};
-        update(props);
+        update(props, myWindows.last());
     } else {
         myText = myLabel;
         mySizeHintIsDirty = true;
@@ -672,11 +676,13 @@ BE::Task::squeezedText(const QString &text)
 void
 BE::Task::toggleState(WId id)
 {
-    if (id != KWindowSystem::activeWindow())
+    if (id != KWindowSystem::activeWindow()) {
         KWindowSystem::forceActiveWindow(id);
-    else if (isOccluded(id))
+        QTimer::singleShot(1000, this, SLOT(updateStates()));
+    } else if (isOccluded(id)) {
         KWindowSystem::raiseWindow(id);
-    else
+        QTimer::singleShot(1000, this, SLOT(updateStates()));
+    } else
     {
         if (static_cast<Tasks*>(parentWidget())->highlightsWindows())
             highlightWindows(window()->winId(), QList<WId>());
@@ -697,7 +703,7 @@ static const unsigned long s_relT1Props = s_nameProps|NET::WMIcon|NET::XAWMState
                                             NET::WMState|NET::DemandsAttention;
 
 void
-BE::Task::update(const unsigned long *properties)
+BE::Task::update(const unsigned long *properties, WId id)
 {
     //     WM2UserTime
     //     WM2StartupId
@@ -710,7 +716,8 @@ BE::Task::update(const unsigned long *properties)
     if (!(props[0] || props[1]))
         return;
 
-    const WId id = isEmpty() ? 0 : myWindows.last();
+    if (isEmpty())
+        id = 0;
     if (id)
     {
         NETWinInfo info(QX11Info::display(), id, QX11Info::appRootWindow(), props, 2);
@@ -770,6 +777,15 @@ BE::Task::update(const unsigned long *properties)
             icn.addPixmap( KWindowSystem::icon(id) );
         if (!icn.isNull())
             setIcon( icn );
+    }
+}
+
+void
+BE::Task::updateStates()
+{
+    if (count()) {
+        const unsigned long props[2] = {NET::WMState|NET::XAWMState, 0};
+        update(props, myWindows.last());
     }
 }
 
@@ -978,7 +994,7 @@ BE::Tasks::updateWindowProperties(WId id, const unsigned long *properties)
     foreach (Task *t, myTasks)
         if (t->contains(id)) {
             const unsigned long props[2] = { properties[0] & s_relT1Props, properties[1] & 0 };
-            t->update(props);
+            t->update(props, id);
             if (properties[0] & (NET::WMDesktop|NET::WMState|NET::XAWMState))
                 updateVisibility(t);
             break;

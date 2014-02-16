@@ -59,7 +59,7 @@ public:
     QSize sizeHint() const;
 
     void showWindowList();
-    void update(const unsigned long *properties);
+    void update(const unsigned long *properties, WId id);
 protected:
     void dragEnterEvent(QDragEnterEvent*);
     void dragLeaveEvent(QDragLeaveEvent*);
@@ -83,6 +83,7 @@ private slots:
     void _repolish();
     void raiseForDnD();
     void toggleSticky();
+    void updateStates();
 private:
     bool iStick, iAmImportant, iAmMinimized, iAmDirty;
     QString myGroup, myLabel, myText;
