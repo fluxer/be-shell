@@ -1089,6 +1089,8 @@ BE::Desk::setOnScreen( QAction *action )
 
 BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int> desks, Wallpaper *wp, QSize sz)
 {
+    if (mode >= Composed * 100 && mode < (Composed + 1) * 100) // Composed
+        mode = Composed;
     ImageToWallpaper ret;
     ret.desks = desks;
     ret.targetSize = sz;
@@ -1287,7 +1289,7 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
             QString tile(KStandardDirs::locateLocal("tmp", "be.shell/tile.png"));
             if ( !KIO::NetAccess::download(url, tile, this) )
                 return; // failed download
-            mode = -1;
+            mode = Composed;
         }
 
         // first check whether we already have this file loaded somewhere...
