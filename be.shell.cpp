@@ -1538,10 +1538,16 @@ int main (int argc, char *argv[])
 
     KCmdLineOptions options;
     options.add("restart", ki18n("Send all your private data to the empire!"));
+    options.add("setWallpaper <file>", ki18n("Set current wallpaper via dbus"), "none");
     KCmdLineArgs::addCmdLineOptions(options);
     KUniqueApplication::addCmdLineOptions();
 
     KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
+    if (args->isSet("setWallpaper")) {
+        QDBusInterface be_shell("org.kde.be.shell", "/Desktop", "org.kde.be.shell", QDBusConnection::sessionBus());
+        be_shell.call(QLatin1String("setWallpaper"), args->getOption("setWallpaper"));
+        return 0;
+    }
     if (args->isSet("restart")) {
         QDBusInterface be_shell("org.kde.be.shell", "/MainApplication", "org.kde.KApplication", QDBusConnection::sessionBus());
         be_shell.call(QLatin1String("quit"));
