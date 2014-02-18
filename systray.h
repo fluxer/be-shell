@@ -58,6 +58,7 @@ private slots:
     void toggleNastyOnes(bool);
     void toggleItem( QTreeWidgetItem*, int);
     void requestShowIcon();
+    void releaseIcons();
 private:
     QMenu *myConfigMenu;
     QTimer *healthTimer;

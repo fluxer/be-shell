@@ -266,6 +266,9 @@ public:
     inline WId cId() { return bed->clientWinId(); }
     inline bool isOutdated() { return !bed->clientWinId(); }
     const QString &name() { return iName; }
+    void release() {
+        XReparentWindow(QX11Info::display(), cId(), QX11Info::appRootWindow(), 0, 0);
+    }
     void setFallBack( bool on )
     {
         if (fallback == on)
@@ -342,6 +345,7 @@ BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent), nas
     healthTimer = new QTimer(this);
     healthTimer->setSingleShot(true);
     connect (healthTimer, SIGNAL(timeout()), this, SLOT(selfCheck()));
+    connect (qApp, SIGNAL(aboutToQuit()), SLOT(releaseIcons()));
 
     FlowLayout *l = new FlowLayout(this);
     l->setContentsMargins(3, 1, 3, 1);
@@ -476,6 +480,18 @@ BE::SysTray::requestShowIcon()
         icon->show();
     }
     icon->setFallBack(unthemedOnes.contains(icon->name()));
+}
+
+void
+BE::SysTray::releaseIcons() {
+    QList< QPointer<SysTrayIcon> >::iterator i = myIcons.begin();
+    while (i != myIcons.end()) {
+        BE::SysTrayIcon *icon = *i;
+        if (icon)
+            icon->release();
+        ++i;
+    }
+    XSync(QX11Info::display(), false);
 }
 
 void
