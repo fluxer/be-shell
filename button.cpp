@@ -90,7 +90,7 @@ BE::Button::configure( KConfigGroup *grp )
     myMenu = 0;
     bool connected = false;
 
-    setText(grp->readEntry("Label", QString()));
+    setText(grp->readEntry("Label", text()));
     setToolTip(grp->readEntry("ToolTip", QString()));
     myIcon = grp->readEntry("Icon", QString());
     setToolButtonStyle((Qt::ToolButtonStyle)grp->readEntry("Mode", text().isEmpty() ? (int)Qt::ToolButtonIconOnly : (int)Qt::ToolButtonTextOnly));
