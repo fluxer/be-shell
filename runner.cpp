@@ -825,7 +825,12 @@ void BE::Run::pipeIOProc()
     QTextCursor cursor(myOutput->textCursor());
     cursor.movePosition(QTextCursor::End);
     cursor.movePosition(QTextCursor::NextBlock);
-    cursor.insertText(QString::fromLocal8Bit(myIOProcs.last()->readAllStandardOutput()));
+    const QString output(QString::fromLocal8Bit(myIOProcs.last()->readAllStandardOutput()));
+    if (m_shell->text().startsWith(':') && m_shell->text().contains("->")) {
+        cursor.insertText(m_shell->text().section("->", 0,0).mid(1).trimmed() + " = " +  output +
+                          m_shell->text().section("->", 1,1).trimmed());
+    } else
+        cursor.insertText(output);
 //     QScrollBar *bar = messageList->verticalScrollBar();
 //     bar->setValue(bar->maximum());
 //     myOutput->document()->setPlainText( myOutput->document()->toPlainText() + QString::fromLocal8Bit(myIOProc->readAllStandardOutput()) );
