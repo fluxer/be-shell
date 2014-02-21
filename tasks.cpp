@@ -50,28 +50,10 @@
 #include <QX11Info>
 #include <netwm.h>
 
-static Atom kdeWindowHighlight = 0;
 static Atom netIconGeometry = 0;
 QLabel *BE::Task::ourToolTip = 0;
 
 #endif
-
-
-static void highlightWindows(WId controller, const QList<WId> &ids)
-{
-#ifdef Q_WS_X11
-    if (!ids.count())
-    {
-        XDeleteProperty(QX11Info::display(), controller, kdeWindowHighlight);
-        return;
-    }
-
-    QVector<WId> wIDs = ids.toVector();
-    if (wIDs.size())
-        XChangeProperty(QX11Info::display(), controller, kdeWindowHighlight, kdeWindowHighlight, 32,
-                        PropModeReplace, reinterpret_cast<unsigned char *>(wIDs.data()), wIDs.size());
-#endif
-}
 
 static bool isOccluded(WId id)
 {
@@ -106,8 +88,6 @@ static bool isOccluded(WId id)
 BE::Task::Task(Tasks *parent, WId id, bool sticky, const QString &name) : BE::Button(parent, name)
 {
     mySizeHintIsDirty = true;
-    if (!kdeWindowHighlight)
-        kdeWindowHighlight = XInternAtom(QX11Info::display(), "_KDE_WINDOW_HIGHLIGHT", False);
     if (!netIconGeometry)
         netIconGeometry = XInternAtom(QX11Info::display(), "_NET_WM_ICON_GEOMETRY", False);
     if (!ourToolTip) {
@@ -276,7 +256,7 @@ BE::Task::enterEvent(QEvent *e)
         QList<WId> l(myWindows);
         if (static_cast<Tasks*>(parentWidget())->showsTooltips())
             l << ourToolTip->winId();
-        highlightWindows(window()->winId(), l);
+        BE::Shell::highlightWindows(window()->winId(), l);
     }
 }
 
@@ -286,16 +266,16 @@ BE::Task::highlightAllOrNone()
     if (!static_cast<Tasks*>(parentWidget())->highlightsWindows())
         return;
     if (rect().contains(mapFromGlobal(QCursor::pos())))
-        highlightWindows(window()->winId(), QList<WId>(myWindows) << ourToolTip->winId());
+        BE::Shell::highlightWindows(window()->winId(), QList<WId>(myWindows) << ourToolTip->winId());
     else
-        highlightWindows(window()->winId(), QList<WId>());
+        BE::Shell::highlightWindows(window()->winId(), QList<WId>());
 }
 
 void
 BE::Task::highlightWindow(QAction *a)
 {
     if (a && static_cast<Tasks*>(parentWidget())->highlightsWindows())
-        highlightWindows(window()->winId(), QList<WId>() << (WId)a->data().toUInt() << menu()->winId() );
+        BE::Shell::highlightWindows(window()->winId(), QList<WId>() << (WId)a->data().toUInt() << menu()->winId() );
 }
 
 void
@@ -307,7 +287,7 @@ BE::Task::leaveEvent(QEvent *e)
     if (static_cast<Tasks*>(parentWidget())->showsTooltips())
         ourToolTip->hide();
     if (static_cast<Tasks*>(parentWidget())->highlightsWindows())
-        highlightWindows(window()->winId(), QList<WId>());
+        BE::Shell::highlightWindows(window()->winId(), QList<WId>());
 }
 
 static QTime mouseDownTime;
@@ -504,7 +484,7 @@ BE::Task::wheelEvent(QWheelEvent *ev)
             WId id = myWindows.at(i);
             KWindowSystem::forceActiveWindow(id);
             if (static_cast<Tasks*>(parentWidget())->highlightsWindows())
-                highlightWindows(window()->winId(), QList<WId>() << id);
+                BE::Shell::highlightWindows(window()->winId(), QList<WId>() << id);
             ev->accept();
             return;
         }
@@ -685,7 +665,7 @@ BE::Task::toggleState(WId id)
     } else
     {
         if (static_cast<Tasks*>(parentWidget())->highlightsWindows())
-            highlightWindows(window()->winId(), QList<WId>());
+            BE::Shell::highlightWindows(window()->winId(), QList<WId>());
         KWindowSystem::minimizeWindow(id);
     }
 }
@@ -1005,7 +985,7 @@ void
 BE::Tasks::leaveEvent(QEvent */*e*/)
 {
     if (highlightsWindows())
-        highlightWindows(window()->winId(), QList<WId>());
+        BE::Shell::highlightWindows(window()->winId(), QList<WId>());
 }
 
 void
@@ -1059,7 +1039,7 @@ BE::Tasks::wheelEvent( QWheelEvent *we )
     {
         KWindowSystem::forceActiveWindow(activeId);
         if (highlightsWindows())
-            highlightWindows(window()->winId(), QList<WId>() << activeId);
+            BE::Shell::highlightWindows(window()->winId(), QList<WId>() << activeId);
     }
 }
 

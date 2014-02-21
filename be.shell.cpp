@@ -75,7 +75,15 @@
 #include "dbus_shell.h"
 
 #ifdef Q_WS_X11
-static Atom net_wm_cm;
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <QX11Info>
+#endif
+
+
+#ifdef Q_WS_X11
+static Atom net_wm_cm = 0;
+static Atom kdeWindowHighlight = 0;
 #endif
 
 static BE::Shell *instance = 0;
@@ -94,6 +102,7 @@ BE::Shell::Shell(QObject *parent) : QObject(parent), myStyleWatcher(0L)
     char string[ 100 ];
     sprintf(string, "_NET_WM_CM_S%d", DefaultScreen( dpy ));
     net_wm_cm = XInternAtom(dpy, string, False);
+    kdeWindowHighlight = XInternAtom(QX11Info::display(), "_KDE_WINDOW_HIGHLIGHT", False);
 #endif
 
     instance = this;
@@ -1021,6 +1030,23 @@ BE::Shell::hasFullscreenAction()
         return info.hasState(NET::FullScreen);
     }
     return false;
+}
+
+void
+BE::Shell::highlightWindows(WId controller, const QList<WId> &ids)
+{
+#ifdef Q_WS_X11
+    if (!ids.count())
+    {
+        XDeleteProperty(QX11Info::display(), controller, kdeWindowHighlight);
+        return;
+    }
+
+    QVector<WId> wIDs = ids.toVector();
+    if (wIDs.size())
+        XChangeProperty(QX11Info::display(), controller, kdeWindowHighlight, kdeWindowHighlight, 32,
+                        PropModeReplace, reinterpret_cast<unsigned char *>(wIDs.data()), wIDs.size());
+#endif
 }
 
 bool
