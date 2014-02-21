@@ -168,6 +168,7 @@ private slots:
     void setOnScreen( QAction *action );
     void setRoundCorners();
     void storeTrashPosition();
+    void toggleDesktopHighlighted();
     void toggleIconsVisible( bool );
     void toggleTrashcan( bool );
     void unsetWallpaper();

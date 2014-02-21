@@ -24,6 +24,7 @@
 #include "panel.h"
 #include "trash.h"
 
+#include <KDE/KAction>
 #include <KDE/KConfigGroup>
 #include <KDE/KDesktopFile>
 #include <KDE/KDirWatch>
@@ -747,6 +748,11 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
 
     connect( KWindowSystem::self(), SIGNAL(currentDesktopChanged(int)), this, SLOT(desktopChanged(int)) );
     connect( KWindowSystem::self(), SIGNAL(numberOfDesktopsChanged (int)), this, SLOT(configure()) );
+
+    KAction *action = new KAction(this);
+    action->setObjectName("BE::Desk::highlight");
+    action->setGlobalShortcut(KShortcut());
+    connect(action, SIGNAL(triggered(Qt::MouseButtons, Qt::KeyboardModifiers)), SLOT(toggleDesktopHighlighted()));
 
     myCurrentDesktop = KWindowSystem::currentDesktop();
 
@@ -1512,6 +1518,17 @@ BE::Desk::toggleDesktopShown()
     const long unsigned int props[2] = {0, NET::WM2ShowingDesktop};
     NETRootInfo net(QX11Info::display(), props, 2);
     net.setShowingDesktop(!net.showingDesktop());
+}
+
+void
+BE::Desk::toggleDesktopHighlighted()
+{
+    static bool highlighted = false;
+    highlighted = ! highlighted;
+    if (highlighted)
+        BE::Shell::highlightWindows(window()->winId(), QList<WId>() << window()->winId());
+    else
+        BE::Shell::highlightWindows(window()->winId(), QList<WId>());
 }
 
 void
