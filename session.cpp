@@ -293,7 +293,7 @@ void BE::Session::logout()
 {
     RescueDialog *dlg = new RescueDialog(i18n("Logout"), 10, desktop());
     dlg->setProperty("DelayedAction", Logout);
-    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)));
+    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)), Qt::QueuedConnection);
     dlg->show();
 }
 
@@ -301,7 +301,7 @@ void BE::Session::reboot()
 {
     RescueDialog *dlg = new RescueDialog(i18n("Reboot"), 10, desktop());
     dlg->setProperty("DelayedAction", Reboot);
-    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)));
+    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)), Qt::QueuedConnection);
     dlg->show();
 }
 
@@ -321,7 +321,7 @@ void BE::Session::suspend()
 {
     RescueDialog *dlg = new RescueDialog(i18n("Fall asleep"), 10, desktop());
     dlg->setProperty("DelayedAction", Suspend);
-    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)));
+    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)), Qt::QueuedConnection);
     dlg->show();
 }
 
@@ -329,7 +329,7 @@ void BE::Session::saveSuspend()
 {
     RescueDialog *dlg = new RescueDialog(i18n("Lock screen & fall asleep"), 10, desktop());
     dlg->setProperty("DelayedAction", SaveSuspend);
-    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)));
+    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)), Qt::QueuedConnection);
     dlg->show();
 }
 
@@ -337,7 +337,7 @@ void BE::Session::shutdown()
 {
     RescueDialog *dlg = new RescueDialog(i18n("Power Off"), 10, desktop());
     dlg->setProperty("DelayedAction", PowerOff);
-    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)));
+    connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)), Qt::QueuedConnection);
     dlg->show();
 }
 
