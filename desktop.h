@@ -149,6 +149,7 @@ private:
     void toggleDesktopShown();
     void triggerMouseAction(QMouseEvent *me);
     void reArrangeIcons();
+    void tint(QColor color);
     void merryXmas();
 
 private slots:
@@ -193,6 +194,7 @@ private:
     QCache<int, Shadow> myShadowCache;
     int myShadowOpacity;
     QColor myHaloColor;
+    QColor myTint;
 
     struct WpSettings {
         QMenu *mode, *align, *aspect;

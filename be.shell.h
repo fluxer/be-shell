@@ -71,6 +71,7 @@ public:
     static QString executable(WId id);
     static bool hasFullscreenAction();
     static void highlightWindows(WId controller, const QList<WId> &ids);
+    static void monochromatize(QImage &img, QColor c);
     static bool name(BE::Plugged *p, const QString &string);
     static void populateWindowList(const QList<WId> &windows, QMenu *popup, bool allDesktops);
     static void run(const QString &command);

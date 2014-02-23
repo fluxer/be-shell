@@ -44,6 +44,7 @@ public slots:
     Q_NOREPLY void toggleDesktopHighlighted() { myDesk->toggleDesktopHighlighted(); }
     Q_NOREPLY void reArrangeIcons() { myDesk->reArrangeIcons(); }
     Q_NOREPLY void refresh() { myDesk->update(); }
+    Q_NOREPLY void tint( const QString &color ) { myDesk->tint(QColor(color)); }
     Q_NOREPLY void merryXmas() { myDesk->merryXmas(); }
     int winId() { return myDesk->winId(); }
 };

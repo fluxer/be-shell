@@ -1049,6 +1049,22 @@ BE::Shell::highlightWindows(WId controller, const QList<WId> &ids)
 #endif
 }
 
+void
+BE::Shell::monochromatize(QImage &img, QColor c)
+{
+    if (!c.isValid())
+        return;
+    int r,g,b;
+    c.getRgb(&r,&g,&b);
+    int n = img.width() * img.height();
+    const uchar *bits = img.bits();
+    QRgb *pixel = (QRgb*)(const_cast<uchar*>(bits));
+    for (int i = 0; i < n; ++i) {
+        int v = qGray(pixel[i]);
+        pixel[i] = qRgba( (v * r)/255, (v * g)/255, (v * b)/255, qAlpha(pixel[i]) );
+    }
+}
+
 bool
 BE::Shell::name(BE::Plugged *p, const QString &string)
 {

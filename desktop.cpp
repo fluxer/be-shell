@@ -834,6 +834,11 @@ BE::Desk::configure( KConfigGroup *grp )
 
     changeWallpaper = false;
 
+    QColor oldTint = myTint;
+    myTint = grp->readEntry("Tint", QColor());
+    if (oldTint != myTint)
+        changeWallpaper = true;
+
     QRect oldWPArea = wpSettings.area;
     wpSettings.area = grp->readEntry("WallpaperArea", QRect());
     if (wpSettings.area != oldWPArea)
@@ -1122,6 +1127,7 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
         return ret;
 
     bool addOverlay = mode == Heuristic && !wp->pix.isNull() && img.width() + img.height() < 129 && img.hasAlphaChannel();
+    bool tint = true;
     if (addOverlay && (wp->mode == Tiled || wp->mode == ScaleV || wp->mode ==  ScaleH))
         addOverlay = false; // nope - we replace the current tile instead
     if (addOverlay) {
@@ -1130,11 +1136,31 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
         if (wp->mode == Composed) {
             oldFile = wp->file.section(':', 0, 0, QString::SectionSkipEmpty);
             img = QImage(oldFile);
+            BE::Shell::monochromatize(img, myTint);
+            tint = false;
         } else {
             img = wp->pix.toImage();
         }
         file = oldFile + ':' + file;
         mode = Composed;
+    }
+
+    if (tint) { // check whether better tint now or later (scaling up or down)
+        const int imgPx = img.width()*img.height();
+        if (imgPx < width()*height()) {
+            BE::Shell::monochromatize(img, myTint);
+            tint = false;
+        } else if (mode == ScaleAndCrop || mode < 0) { // assume "worst" case, being ScaleAndCrop
+            int tgtPx(0);
+            if (float(height())/img.height() > float(width())/img.width()) // "flat
+                tgtPx = height()*(img.width()*height()/img.height());
+            else // tall
+                tgtPx = width()*(img.height()*width()/img.width());
+            if (imgPx < tgtPx) {
+                BE::Shell::monochromatize(img, myTint);
+                tint = false;
+            }
+        }
     }
 
     if (wp->file != file) {
@@ -1220,6 +1246,11 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
             break;
         }
     }
+    if (tint) {
+        BE::Shell::monochromatize(img, myTint);
+        tint = false;
+    }
+
     if (wp->mode == Composed) {
         if (img.format() == QImage::Format_Indexed8) // not supported
             img = img.convertToFormat(img.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32);
@@ -1513,6 +1544,17 @@ BE::Desk::storeTrashPosition()
 }
 
 void
+BE::Desk::tint(QColor color)
+{
+    if (myTint == color)
+        return;
+    myTint = color;
+    Plugged::saveSettings();
+    bool common; Wallpaper &wp = currentWallpaper(&common);
+    setWallpaper( wp.file, 0, common ? -3 : KWindowSystem::currentDesktop() );
+}
+
+void
 BE::Desk::toggleDesktopShown()
 {
     const long unsigned int props[2] = {0, NET::WM2ShowingDesktop};
@@ -1700,7 +1742,10 @@ BE::Desk::dragEnterEvent( QDragEnterEvent *de )
                 file.endsWith(".bwp", Qt::CaseInsensitive))
                 de->accept();
         }
-    }}
+    }
+        if (de->mimeData()->hasColor())
+            de->accept();
+    }
 }
 
 void
@@ -1717,7 +1762,9 @@ BE::Desk::dropEvent ( QDropEvent *de )
             mode = ScaleAndCrop;
 
         setWallpaper( url.pathOrUrl(), mode, desktop );
-    }}
+    } else if (de->mimeData()->hasColor())
+        tint(qvariant_cast<QColor>(de->mimeData()->colorData()));
+    }
 }
 
 #if 0 // doesn't work, areas don't reflect the pager layout... :-(
