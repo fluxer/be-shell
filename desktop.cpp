@@ -1035,6 +1035,7 @@ BE::Desk::saveSettings( KConfigGroup *grp )
 //     grp->writeEntry( "HaloColor", myHaloColor );
 //     grp->writeEntry( "Rootpaper", iRootTheWallpaper );
     grp->writeEntry( "ShowIcons", myIcons.areShown );
+    grp->writeEntry( "Tint", myTint );
 //     grp->writeEntry( "WallpaperFadeSteps", myFadingWallpaperSteps);
     grp->writeEntry( "Wallpaper", myWallpaper.file );
 //     grp->writeEntry( "WallpaperDefaultAlign", (int)myWallpaperDefaultAlign );

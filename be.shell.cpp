@@ -1052,7 +1052,7 @@ BE::Shell::highlightWindows(WId controller, const QList<WId> &ids)
 void
 BE::Shell::monochromatize(QImage &img, QColor c)
 {
-    if (!c.isValid())
+    if (!c.isValid() || !(c.red() || c.green() || c.blue())) // no invalid, no black
         return;
     int r,g,b;
     c.getRgb(&r,&g,&b);
