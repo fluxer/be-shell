@@ -1056,12 +1056,19 @@ BE::Shell::monochromatize(QImage &img, QColor c)
         return;
     int r,g,b;
     c.getRgb(&r,&g,&b);
+//     const int cv = sqrt(qMax(r, qMax(g, b))/255.0)*255;
     int n = img.width() * img.height();
     const uchar *bits = img.bits();
     QRgb *pixel = (QRgb*)(const_cast<uchar*>(bits));
     for (int i = 0; i < n; ++i) {
-        int v = qGray(pixel[i]);
-        pixel[i] = qRgba( (v * r)/255, (v * g)/255, (v * b)/255, qAlpha(pixel[i]) );
+        const int v = qGray(pixel[i]);
+        int f = qAbs(128-v);
+//         f = f*f*f/(128*128);
+//         f = f*f/128;
+//         const int s = qMax(qMax(qAbs(v-qRed(pixel[i])), qAbs(v-qGreen(pixel[i]))), qAbs(v-qBlue(pixel[i])));
+//         pixel[i] = qRgba( (r*s + v*(255-s))/255, (g*s + v*(255-s))/255, (b*s + v*(255-s))/255, qAlpha(pixel[i]) );
+//         pixel[i] = qRgba( qMin((v * r)/cv, 255), qMin((v * g)/cv, 255), qMin((v * b)/cv, 255), qAlpha(pixel[i]) );
+        pixel[i] = qRgba((r*(128-f) + v*f)/128, (g*(128-f) + v*f)/128, (b*(128-f) + v*f)/128, qAlpha(pixel[i]) );
     }
 }
 
