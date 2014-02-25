@@ -970,7 +970,7 @@ static Qt::Alignment alignFromInt(int i)
 
 static int alignToInt(Qt::Alignment a)
 {
-    return (a & Qt::AlignTop) ? 1 : ((a & Qt::AlignBottom) ? 2 : 0) +
+    return ((a & Qt::AlignTop) ? 1 : ((a & Qt::AlignBottom) ? 2 : 0)) +
             10 * ((a & Qt::AlignLeft) ? 1 : ((a & Qt::AlignRight) ? 2 : 0));
 }
 
@@ -1195,7 +1195,7 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
             mode *= 10;
         wp->mode = (WallpaperMode)( mode / 100 );
         const int a = mode - 100*wp->mode;
-        wp->align = alignFromInt(a) | alignFromInt(a - a/10);
+        wp->align = alignFromInt(a) | alignFromInt(a%10);
     }
 
     if (wp->aspect > 0.0)
