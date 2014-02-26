@@ -103,6 +103,7 @@ IdleManager::IdleManager(QObject *parent) : QObject(parent)
         valid = true;
         account.dir = settings.value("Directory", "INBOX").toString();
         account.port = settings.value("Port", 993).toUInt();
+        account.ignoredErrors = settings.value("IgnoredErrors", QString()).toString();
         settings.endGroup();
         IdleThread *it = new IdleThread(this, account);
         it->start();
@@ -131,6 +132,37 @@ IdleManager::gotMail()
 inline bool compare(const QString &s, const char *c) {
     return !qstricmp(s.toLatin1().data(), c);
 }
+
+#define RETURN_ERROR(_ERR_) if (string == #_ERR_) return QSslError::_ERR_
+QSslError::SslError sslError(QString string) {
+    RETURN_ERROR(UnableToGetIssuerCertificate);
+    RETURN_ERROR(UnableToDecryptCertificateSignature);
+    RETURN_ERROR(UnableToDecodeIssuerPublicKey);
+    RETURN_ERROR(CertificateSignatureFailed);
+    RETURN_ERROR(CertificateNotYetValid);
+    RETURN_ERROR(CertificateExpired);
+    RETURN_ERROR(InvalidNotBeforeField);
+    RETURN_ERROR(InvalidNotAfterField);
+    RETURN_ERROR(SelfSignedCertificate);
+    RETURN_ERROR(SelfSignedCertificateInChain);
+    RETURN_ERROR(UnableToGetLocalIssuerCertificate);
+    RETURN_ERROR(UnableToVerifyFirstCertificate);
+    RETURN_ERROR(CertificateRevoked);
+    RETURN_ERROR(InvalidCaCertificate);
+    RETURN_ERROR(PathLengthExceeded);
+    RETURN_ERROR(InvalidPurpose);
+    RETURN_ERROR(CertificateUntrusted);
+    RETURN_ERROR(CertificateRejected);
+    RETURN_ERROR(SubjectIssuerMismatch);
+    RETURN_ERROR(AuthorityIssuerSerialNumberMismatch);
+    RETURN_ERROR(NoPeerCertificate);
+    RETURN_ERROR(HostNameMismatch);
+    RETURN_ERROR(UnspecifiedError);
+    RETURN_ERROR(NoSslSupport);
+    RETURN_ERROR(CertificateBlacklisted);
+    return QSslError::NoError;
+}
+#undef RETURN_ERROR
 
 Idler::Idler(QObject *parent, const Account &account) :
 QSslSocket(parent)
@@ -162,8 +194,25 @@ Idler::~Idler() {
 
 void Idler::handleSslErrors(const QList<QSslError> &errors)
 {
+    if (errors.isEmpty())
+        return;
     foreach (const QSslError &error, errors)
         qDebug() << "BE::Idle.Imap" << m_account.server << error.error() << error.errorString();
+    if (m_account.ignoredErrors.isEmpty())
+        return;
+
+    // WARNING! SSL Error ignoring code below!
+    qDebug() << "*** WARNING ***" << m_account.server << "will by IgnoredErrors configuration ignore:\n" <<
+                m_account.ignoredErrors << "\nIgnoring errors is a MAJOR security risk! Use with greatest care only!";
+    if (m_account.ignoredErrors == "ALL") {
+        ignoreSslErrors();
+    } else {
+        QStringList sl = m_account.ignoredErrors.split(',');
+        QList<QSslError> sslel;
+        foreach (const QString &s, sl)
+            sslel << QSslError(sslError(s.trimmed()));
+        ignoreSslErrors(sslel);
+    }
 }
 
 void Idler::handleVerificationError(const QSslError &error)

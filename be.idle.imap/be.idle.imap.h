@@ -42,9 +42,10 @@ public:
         login = other.login;
         pass = other.pass;
         dir = other.dir;
+        ignoredErrors = other.ignoredErrors;
         port = other.port;
     }
-    QString id, server, login, pass, dir;
+    QString id, server, login, pass, dir, ignoredErrors;
     int port;
 };
 
