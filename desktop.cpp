@@ -971,7 +971,7 @@ static Qt::Alignment alignFromInt(int i)
 static int alignToInt(Qt::Alignment a)
 {
     return ((a & Qt::AlignTop) ? 1 : ((a & Qt::AlignBottom) ? 2 : 0)) +
-            10 * ((a & Qt::AlignLeft) ? 1 : ((a & Qt::AlignRight) ? 2 : 0));
+            10 * ((a & Qt::AlignLeft) ? 1 : ((a & Qt::AlignRight) ? 2 : 3));
 }
 
 void
