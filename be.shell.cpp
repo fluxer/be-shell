@@ -55,7 +55,6 @@
 
 #include "battery.h"
 #include "button.h"
-#include "claws.h"
 #include "clock.h"
 #include "desktop.h"
 #include "globalmenu.h"
@@ -184,8 +183,6 @@ BE::Shell::addApplet(const QString &name, Panel *panel)
         p = new BE::Clock(panel);
     else if (!type.compare("Button", Qt::CaseInsensitive))
         p = new BE::Button(panel, name);
-    else if (!type.compare("Claws", Qt::CaseInsensitive))
-        p = new BE::Claws(panel);
     else if (!type.compare("CpuMeter", Qt::CaseInsensitive))
         p = new BE::CpuMeter(panel);
     else if (!type.compare("RamMeter", Qt::CaseInsensitive))
