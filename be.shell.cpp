@@ -70,6 +70,7 @@
 #include "tasks.h"
 #include "trash.h"
 #include "volume.h"
+#include "wmctrl.h"
 
 #include "dbus_shell.h"
 
@@ -209,6 +210,8 @@ BE::Shell::addApplet(const QString &name, Panel *panel)
         p = panel->addStretch(2);
     else if (!type.compare("Trash", Qt::CaseInsensitive))
         p = new BE::Trash(panel);
+    else if (!type.compare("WmCtrl", Qt::CaseInsensitive))
+        p = new BE::WmCtrl(panel);
 
     if (p)
     {
