@@ -24,9 +24,14 @@
 #include "flowlayout.h"
 
 #include <KDE/KWindowSystem>
+#include <KDE/KConfigGroup>
+#include <KDE/KLocale>
 
+#include <QAction>
 #include <QButtonGroup>
 #include <QHBoxLayout>
+#include <QMenu>
+#include <QMouseEvent>
 #include <QToolButton>
 
 BE::Pager::Pager(QWidget *parent) : QFrame(parent), BE::Plugged(parent)
@@ -38,12 +43,32 @@ BE::Pager::Pager(QWidget *parent) : QFrame(parent), BE::Plugged(parent)
     myLayout->setSpacing(0);
     myLayout->setMargin(0);
 
-    connect( KWindowSystem::self(), SIGNAL(currentDesktopChanged(int)), this, SLOT(currentDesktopChanged(int)) );
-    connect( KWindowSystem::self(), SIGNAL(desktopNamesChanged()), this, SLOT(desktopNamesChanged()) );
-    connect( KWindowSystem::self(), SIGNAL(numberOfDesktopsChanged(int)), this, SLOT(numberOfDesktopsChanged(int)) );
-    connect( myDesktops, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(setCurrentDesktop(QAbstractButton*)) );
+    myConfigMenu = new QMenu(this);
+    iShowNames = new QAction(i18n("Show desktop names"), this);
+    iShowNames->setCheckable(true);
+    connect (iShowNames, SIGNAL(toggled(bool)), SLOT(desktopNamesChanged()));
+    myConfigMenu->addAction(iShowNames);
+
+    connect (KWindowSystem::self(), SIGNAL(currentDesktopChanged(int)), SLOT(currentDesktopChanged(int)));
+    connect (KWindowSystem::self(), SIGNAL(desktopNamesChanged()), SLOT(desktopNamesChanged()));
+    connect (KWindowSystem::self(), SIGNAL(numberOfDesktopsChanged(int)), SLOT(numberOfDesktopsChanged(int)));
+    connect (myDesktops, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(setCurrentDesktop(QAbstractButton*)));
 
     numberOfDesktopsChanged(KWindowSystem::numberOfDesktops());
+}
+
+void BE::Pager::configure(KConfigGroup *grp)
+{
+    iShowNames->setChecked(grp->readEntry("UseNameAsLabel", false));
+}
+
+void BE::Pager::mousePressEvent(QMouseEvent *ev)
+{
+    if (ev->button() == Qt::RightButton) {
+        myConfigMenu->exec(QCursor::pos());
+        Plugged::saveSettings();
+    } else
+        QFrame::mousePressEvent(ev);
 }
 
 void BE::Pager::currentDesktopChanged (int desktop)
@@ -51,36 +76,43 @@ void BE::Pager::currentDesktopChanged (int desktop)
     myDesktops->button(desktop)->setChecked(true);
 }
 
-void BE::Pager::desktopNamesChanged ()
+void BE::Pager::desktopNamesChanged()
 {
     int buttonCount = myDesktops->buttons().count();
-    for ( int i = 1; i <= buttonCount; ++i )
-    {
-        if (QAbstractButton *button = myDesktops->button(i))
-            button->setToolTip(KWindowSystem::desktopName(i));
+    for (int i = 1; i <= buttonCount; ++i) {
+        if (QAbstractButton *button = myDesktops->button(i)) {
+            const QString name = KWindowSystem::desktopName(i);
+            button->setToolTip(name);
+            button->setText(iShowNames->isChecked() ? name : QString::number(i));
+        }
     }
 }
 
 void BE::Pager::numberOfDesktopsChanged(int desktopCount)
 {
     qDeleteAll( myDesktops->buttons() );
-    for ( int i = 1; i <= desktopCount; ++i )
-    {
+    for (int i = 1; i <= desktopCount; ++i) {
         QToolButton *button = new QToolButton(this);
         button->setShortcut(QKeySequence());
         button->setCheckable(true);
-        if ( i == KWindowSystem::currentDesktop() )
+        if (i == KWindowSystem::currentDesktop())
             button->setChecked(true);
-        button->setText( QString::number(i) );
-        button->setToolTip( KWindowSystem::desktopName(i) );
-        myLayout->addWidget( button );
-        myDesktops->addButton( button, i );
+        const QString name = KWindowSystem::desktopName(i);
+        button->setText(iShowNames->isChecked() ? name : QString::number(i));
+        button->setToolTip(name);
+        myLayout->addWidget(button);
+        myDesktops->addButton(button, i);
     }
 
     if (desktopCount == 1)
         hide();
     else
         show();
+}
+
+void BE::Pager::saveSettings(KConfigGroup *grp)
+{
+    grp->writeEntry("UseNameAsLabel", iShowNames->isChecked());
 }
 
 void BE::Pager::setCurrentDesktop(QAbstractButton *button)

@@ -22,13 +22,14 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#include <QFrame>
-
-#include "be.plugged.h"
-
 class QButtonGroup;
 class QHBoxLayout;
 class QAbstractButton;
+class QMenu;
+class QAction;
+
+#include <QFrame>
+#include "be.plugged.h"
 
 namespace BE {
 
@@ -39,16 +40,23 @@ class Pager : public QFrame, public Plugged
     Q_OBJECT
 public:
     Pager( QWidget *parent = 0);
+    void configure(KConfigGroup *grp);
+    void saveSettings(KConfigGroup *grp);
+
+protected:
+    void mousePressEvent(QMouseEvent *event);
 
 private slots:
-    void currentDesktopChanged (int desktop);
-    void desktopNamesChanged ();
-    void numberOfDesktopsChanged (int num);
-    void setCurrentDesktop( QAbstractButton *button );
+    void currentDesktopChanged(int desktop);
+    void desktopNamesChanged();
+    void numberOfDesktopsChanged(int num);
+    void setCurrentDesktop(QAbstractButton *button);
 
 private:
     QButtonGroup *myDesktops;
     FlowLayout *myLayout;
+    QMenu *myConfigMenu;
+    QAction *iShowNames;
 };
 
 }
