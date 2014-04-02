@@ -23,6 +23,7 @@
 #include <KDE/KConfigGroup>
 #include <KDE/KDialog>
 #include <KDE/KLocale>
+#include <KDE/KMessageBox>
 #include <KDE/KUser>
 // #include <KDE/KIcon>
 // #include <KDE/KLocale>
@@ -39,6 +40,7 @@
 #include <QtDebug>
 
 #ifdef Q_WS_X11
+#include <utmp.h> // POSIX login check
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <QX11Info>
@@ -73,6 +75,8 @@ public:
         updateLabel();
         QFont fnt = label->font(); fnt.setPointSize(2*fnt.pointSize()); label->setFont(fnt);
         setMainWidget(label);
+        warnLabel = new QLabel(this);
+        setDetailsWidget(warnLabel);
         countDownTimer = startTimer(1000);
 #ifdef Q_WS_X11
         static Atom classProp = 0;
@@ -86,6 +90,10 @@ public:
         XChangeProperty(QX11Info::display(), winId(), classProp, stringProp, 8, PropModeReplace, className, 19);
         XChangeProperty(QX11Info::display(), winId(), roleProp, stringProp, 8, PropModeReplace, role, 12);
 #endif
+    }
+    void setWarning(QString warning) {
+        warnLabel->setText(warning);
+        setDetailsWidgetVisible(!warning.isEmpty());
     }
 protected:
     void slotButtonClicked(int button) {
@@ -137,7 +145,7 @@ private:
         arg(countDown>60?countDown/60:countDown).arg(countDown > 60 ? i18nc("Abbridge of minutes", "min") : i18nc("Abbridge of seconds", "sec")));
     }
     int countDownTimer;
-    QLabel *label;
+    QLabel *label, *warnLabel;
     QString rescueFrom;
     uint countDown;
 #ifdef Q_WS_X11
@@ -250,6 +258,11 @@ BE::Session::activateSession()
 void
 BE::Session::lockscreen()
 {
+    QStringList logins = otherLogins();
+    if (logins.count()) {
+        KMessageBox::information(0, i18n("<h1>WARNING</h1><h3>You have other open logins:</h3>"
+                                        "<h2>%1</h2>").arg(logins.join(", ")), i18n("Other open logins!"));
+    }
     QDBusInterface("org.freedesktop.ScreenSaver", "/ScreenSaver",
                     "org.freedesktop.ScreenSaver", QDBusConnection::sessionBus()).call(QLatin1String("Lock"));
 }
@@ -270,6 +283,27 @@ void BE::Session::login()
 {
     lockscreen();
     QProcess::startDetached("kdmctl", QStringList() << "reserve");
+}
+
+
+QStringList BE::Session::otherLogins() const
+{
+    QStringList logins;
+#ifdef Q_WS_X11
+    // let's see if we're logged in somewhere else on this box.
+    struct utmp *u;
+    QString me = KUser().loginName();
+    setutent();
+    while ((u = getutent())) {
+        if (u->ut_type != 7 || me != u->ut_user || QString(u->ut_host).count())
+            continue;
+        QString line(u->ut_line);
+        if (line.startsWith("pts") || line == XDisplayString(QX11Info::display()))
+            continue;
+        logins << line;
+    }
+#endif
+    return logins;
 }
 
 /**
@@ -297,9 +331,14 @@ void BE::Session::logout()
     dlg->show();
 }
 
+#define WARN_LOGINS if (logins.count())\
+    dlg->setWarning(i18n("<hr><b>You have other open logins:</b><div align=\"center\">%1</div><hr>").arg(logins.join(", ")))
+
 void BE::Session::reboot()
 {
-    RescueDialog *dlg = new RescueDialog(i18n("Reboot"), 10, desktop());
+    QStringList logins = otherLogins();
+    RescueDialog *dlg = new RescueDialog(i18n("Reboot"), logins.count() ? 60 : 10, desktop());
+    WARN_LOGINS;
     dlg->setProperty("DelayedAction", Reboot);
     connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)), Qt::QueuedConnection);
     dlg->show();
@@ -327,7 +366,9 @@ void BE::Session::suspend()
 
 void BE::Session::saveSuspend()
 {
-    RescueDialog *dlg = new RescueDialog(i18n("Lock screen & fall asleep"), 10, desktop());
+    QStringList logins = otherLogins();
+    RescueDialog *dlg = new RescueDialog(i18n("Lock screen & fall asleep"), logins.count() ? 60 : 10, desktop());
+    WARN_LOGINS;
     dlg->setProperty("DelayedAction", SaveSuspend);
     connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)), Qt::QueuedConnection);
     dlg->show();
@@ -335,7 +376,9 @@ void BE::Session::saveSuspend()
 
 void BE::Session::shutdown()
 {
-    RescueDialog *dlg = new RescueDialog(i18n("Power Off"), 10, desktop());
+    QStringList logins = otherLogins();
+    RescueDialog *dlg = new RescueDialog(i18n("Power Off"), logins.count() ? 60 : 10, desktop());
+    WARN_LOGINS;
     dlg->setProperty("DelayedAction", PowerOff);
     connect (dlg, SIGNAL(finished(int)), SLOT(rescueDialogFinished(int)), Qt::QueuedConnection);
     dlg->show();

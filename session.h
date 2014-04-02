@@ -54,6 +54,8 @@ private slots:
     void updateSessions();
     void updateSettings(QAction *);
 private:
+    QStringList otherLogins() const;
+private:
     QAction *useFullName, *mySessionAction;
     QMenu *myConfigMenu, *mySessionMenu;
     QString myIcon;
