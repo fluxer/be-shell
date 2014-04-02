@@ -172,12 +172,16 @@ BE::Label::configure( KConfigGroup *grp )
     }
 }
 
-void 
-BE::Label::protectedExec(const QString &cmd) const
+void
+BE::Label::protectedExec(const QString &cmd)
 {
     QUrl url(cmd);
     if (url.scheme() != "exec") // not for us
         return;
+    if (url.path() == "%poll") {
+        poll();
+        return;
+    }
     if (!myPermittedCommands.contains(url.path())) {
         qWarning() << "***WARNING*** Execution of unpermitted path requested\nPath: " << url.path() << 
                       "The path *must* be in the \"PermittedCommands\" list of the sender" << sender();;

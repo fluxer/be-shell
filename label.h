@@ -43,7 +43,7 @@ protected:
     void leaveEvent(QEvent *e);
     void timerEvent(QTimerEvent *te);
 private slots:
-    void protectedExec(const QString &cmd) const;
+    void protectedExec(const QString &cmd);
     void updateContents();
     void readFiFo();
 private:
