@@ -42,6 +42,7 @@
 #include <QPainter>
 #include <QtConcurrentRun>
 #include <QScrollBar>
+#include <QStringListModel>
 #include <QTextBrowser>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
@@ -858,6 +859,9 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
 
     QKeyEvent *ke = static_cast<QKeyEvent*>(ev);
     QTreeWidgetItem *item = m_tree->currentItem();
+    static int tabPressCount = 0;
+    if (ke->key() != Qt::Key_Tab)
+        tabPressCount = 0;
 
     switch (ke->key())
     {
@@ -950,7 +954,36 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
         else
             hide();
         return true;
-
+    case Qt::Key_Tab: {
+        if (m_shell->text().startsWith(':')) {
+            QRegExp sep("[\\s:|]+");
+            const QString lastToken = m_shell->text().section(sep, -1);
+            static QStringList matches;
+            if (!tabPressCount) {
+                matches.clear();
+                if (lastToken.startsWith('/')) {
+                    int i = lastToken.lastIndexOf('/') + 1;
+                    const QString path = lastToken.left(i);
+                    matches = QDir(path).entryList(QStringList() << QString(lastToken.mid(i) + '*'),
+                                                   QDir::AllEntries|QDir::Hidden|QDir::NoDotAndDotDot);
+                    foreach (const QString &str, matches)
+                        const_cast<QString&>(str).prepend(path);
+                } else {
+                    foreach (const QString &str,
+                             static_cast<QStringListModel*>(m_binCompleter->model())->stringList()) {
+                        if (str.startsWith(lastToken))
+                            matches << str;
+                    }
+                }
+            }
+            if (matches.count()) {
+                const QString match = matches.at(tabPressCount % matches.count());
+                m_shell->setText(m_shell->text().left(m_shell->text().count() - lastToken.count()) + match);
+                ++tabPressCount;
+            }
+            return true;
+        }
+    }
     default:
         return false;
     }
