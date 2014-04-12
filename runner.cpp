@@ -1410,6 +1410,9 @@ void BE::Run::slotRepopulate()
     favorites->setData( 0, Executable, false ); favorites->setData( 0, TreeLevel, 0 );
 
     repopulate( KServiceGroup::root(), m_tree->invisibleRootItem() );
+    m_tree->sortItems(0, Qt::AscendingOrder);
+    m_tree->insertTopLevelItem( 0, m_tree->takeTopLevelItem( m_tree->indexOfTopLevelItem(favorites) ) );
+
     updateFavorites();
     favorites->setHidden(false);
     favorites->setExpanded(true);
