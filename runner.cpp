@@ -968,6 +968,8 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
                                                    QDir::AllEntries|QDir::Hidden|QDir::NoDotAndDotDot);
                     foreach (const QString &str, matches)
                         const_cast<QString&>(str).prepend(path);
+                    if (matches.count() == 1)
+                        const_cast<QString&>(matches.at(0)).append('/');
                 } else {
                     foreach (const QString &str,
                              static_cast<QStringListModel*>(m_binCompleter->model())->stringList()) {
@@ -1196,6 +1198,7 @@ void BE::Run::filter( const QString &string )
 {
     if (string.startsWith(':') || string.startsWith('='))
         return; // IO command - no filtering. Doesn't make sense
+
     m_currentHistoryEntry = -1;
     bool inc = !(string.isEmpty() || m_lastFilter.isEmpty()) && string.contains(m_lastFilter, Qt::CaseInsensitive);
 
@@ -1220,10 +1223,10 @@ void BE::Run::filter( const QString &string )
             m_tree->sortItems(0, Qt::AscendingOrder);
     }
 
-    m_tree->insertTopLevelItem( 0, m_tree->takeTopLevelItem( m_tree->indexOfTopLevelItem(favorites) ) );
     bool showFavorites = string.isEmpty();
     favorites->setHidden(!showFavorites);
     if (showFavorites) {
+        m_tree->insertTopLevelItem(0, m_tree->takeTopLevelItem(m_tree->indexOfTopLevelItem(favorites)));
         favorites->sortChildren(1, Qt::DescendingOrder);
         favorites->setExpanded(string.isEmpty());
     }
