@@ -78,6 +78,7 @@ private:
     float favor( const QString &exec );
     void flash( const QColor &c );
     void focusInput();
+    void closeShellOutput(bool resetText = true);
     bool repopulate( KSharedPtr<KServiceGroup> group, QTreeWidgetItem *);
     void rSaveFavor(QTreeWidgetItem *item);
     void slideTo( const QTreeWidgetItem *item, QAbstractItemView::ScrollHint hint = QAbstractItemView::EnsureVisible );

@@ -925,7 +925,7 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
     {
         if (myOutput && myOutput->isVisible())
             return false;
-        if (ke->modifiers() & Qt::ControlModifier)
+        if (m_tree->currentItem() && (ke->modifiers() & Qt::ControlModifier))
         {
             QCoreApplication::sendEvent(m_tree, ke);
             return true;
@@ -934,30 +934,23 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
             return false;
     }
     case Qt::Key_Escape:
-        if (myOutput && myOutput->isVisible())
-        {
-            if (!myIOProcs.isEmpty())
-            {
+        if (myOutput && myOutput->isVisible()) {
+            if (!myIOProcs.isEmpty()) {
                 for (int i = 0; i < myIOProcs.count(); ++i ) {
                     myIOProcs.at(i)->terminate();
                 }
                 myIOProcs.clear();
+            } else {
+                closeShellOutput();
             }
-            else
-            {
-                filter( QString() );
-                m_shell->clear();
-                myOutput->hide();
-                m_tree->show();
-            }
-        }
-        else
+        } else {
             hide();
+        }
         return true;
     case Qt::Key_Tab: {
-        if (m_shell->text().startsWith(':')) {
+        if (!m_shell->text().startsWith('=')) {
             QRegExp sep("[\\s:|]+");
-            const QString lastToken = m_shell->text().section(sep, -1);
+            const QString lastToken = m_shell->text().left(m_shell->selectionStart()).section(sep, -1);
             static QStringList matches;
             if (!tabPressCount) {
                 matches.clear();
@@ -980,7 +973,8 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
             }
             if (matches.count()) {
                 const QString match = matches.at(tabPressCount % matches.count());
-                m_shell->setText(m_shell->text().left(m_shell->text().count() - lastToken.count()) + match);
+                const int pos = m_shell->text().left(m_shell->selectionStart()).count() - lastToken.count();
+                m_shell->setText(m_shell->text().left(pos) + match);
                 ++tabPressCount;
             }
             return true;
@@ -1200,6 +1194,9 @@ void BE::Run::filter( const QString &string )
         m_tree->setCurrentItem(NULL, 0);
         return; // IO command - no filtering. Doesn't make sense
     }
+
+    if (myOutput && myOutput->isVisible())
+        closeShellOutput(false);
     m_currentHistoryEntry = -1;
     bool inc = !(string.isEmpty() || m_lastFilter.isEmpty()) && string.contains(m_lastFilter, Qt::CaseInsensitive);
 
@@ -1291,6 +1288,18 @@ bool BE::Run::repopulate( KSharedPtr<KServiceGroup> group, QTreeWidgetItem *pare
 
     }
     return ret;
+}
+
+void BE::Run::closeShellOutput(bool resetText)
+{
+    myOutput->hide(); // filter calls this recursively otherwise
+    if (resetText) {
+        filter(QString());
+        m_shell->clear();
+    } else {
+        filter(m_shell->text());
+    }
+    m_tree->show();
 }
 
 void BE::Run::focusInput()
