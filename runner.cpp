@@ -1196,13 +1196,15 @@ void BE::Run::updateFavorites()
 
 void BE::Run::filter( const QString &string )
 {
-    if (string.startsWith(':') || string.startsWith('='))
+    if (string.startsWith(':') || string.startsWith('=')) {
+        m_tree->setCurrentItem(0,0);
         return; // IO command - no filtering. Doesn't make sense
-
+    }
     m_currentHistoryEntry = -1;
     bool inc = !(string.isEmpty() || m_lastFilter.isEmpty()) && string.contains(m_lastFilter, Qt::CaseInsensitive);
 
     if ( inc && m_visibleIcons < 2 ) {
+        m_tree->setCurrentItem(0,0); // still typing, gonna be command
         return;
     }
 
@@ -1217,6 +1219,7 @@ void BE::Run::filter( const QString &string )
             m_tree->sortItems(1, Qt::DescendingOrder);
             m_tree->expandAll();
         }
+        m_tree->setCurrentItem(m_tree->topLevelItem(0), 1);
     } else {
         m_tree->collapseAll();
         if (wasFlat)
