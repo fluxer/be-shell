@@ -899,7 +899,7 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
             }
             if ( !item )
             {
-                m_tree->setCurrentItem(0,0);
+                m_tree->setCurrentItem(NULL, 0);
                 m_shell->selectAll();
 //                 flash(m_shell->palette().color(QPalette::Highlight));
                 return true;
@@ -1197,14 +1197,14 @@ void BE::Run::updateFavorites()
 void BE::Run::filter( const QString &string )
 {
     if (string.startsWith(':') || string.startsWith('=')) {
-        m_tree->setCurrentItem(0,0);
+        m_tree->setCurrentItem(NULL, 0);
         return; // IO command - no filtering. Doesn't make sense
     }
     m_currentHistoryEntry = -1;
     bool inc = !(string.isEmpty() || m_lastFilter.isEmpty()) && string.contains(m_lastFilter, Qt::CaseInsensitive);
 
     if ( inc && m_visibleIcons < 2 ) {
-        m_tree->setCurrentItem(0,0); // still typing, gonna be command
+        m_tree->setCurrentItem(NULL, 0); // still typing, gonna be command
         return;
     }
 
@@ -1296,7 +1296,7 @@ bool BE::Run::repopulate( KSharedPtr<KServiceGroup> group, QTreeWidgetItem *pare
 void BE::Run::focusInput()
 {
     m_currentHistoryEntry = -1;
-    m_tree->setCurrentItem(0,0);
+    m_tree->setCurrentItem(NULL, 0);
     m_shell->selectAll();
 }
 
@@ -1408,7 +1408,7 @@ void BE::Run::slotRepopulate()
     m_tree->clear();
     m_tree->setColumnCount( 2 );
     m_tree->hideColumn( 1 );
-    m_tree->setCurrentItem ( 0, 0 );
+    m_tree->setCurrentItem(NULL, 0);
     m_tree->invisibleRootItem()->setData( 0, TreeLevel, -1 );
 
     favorites = new QTreeWidgetItem( m_tree->invisibleRootItem() );
