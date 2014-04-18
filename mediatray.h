@@ -53,6 +53,7 @@ public slots:
     void setVolume(bool, const QString &udi);
 
 protected:
+    void mousePressEvent(QMouseEvent *ev);
     void resizeEvent(QResizeEvent *re);
 
 private slots:
@@ -63,6 +64,7 @@ private slots:
     void toggleEject(); void ejected(Solid::ErrorType error);
     void umount();
     void setCheckState();
+    void configureDeviceActions();
 private:
     void extendMenu( const QMap<QString, QString> &map, QAction **defAction );
     void setMediaDisc(Solid::OpticalDisc::ContentTypes type, QString label);
@@ -84,8 +86,6 @@ public:
     void saveSettings( KConfigGroup *grp );
     void themeChanged();
     static QString ejectCommand() { return ourEjectCommand; };
-protected:
-    void mousePressEvent(QMouseEvent *ev);
 private slots:
     void addDevice( const Solid::Device &device );
     void addDevice( const QString &udi );

@@ -320,9 +320,29 @@ BE::Device::setMounted( bool mounted, const QString &path )
         menu()->addAction( "Mount", this, SLOT(mount()) );
         menu()->addSeparator();
     }
-    if (ejectable)
+    if (ejectable) {
         menu()->addAction( "Eject", this, SLOT(toggleEject()) );
+        menu()->addSeparator();
+    }
+    menu()->addAction( "Configure device actions", this, SLOT(configureDeviceActions()) );
     setToolTip(diskname);
+}
+
+void
+BE::Device::configureDeviceActions()
+{
+    BE::Shell::run("kcmshell4 solid-actions");
+}
+
+void
+BE::Device::mousePressEvent(QMouseEvent *ev)
+{
+    if( ev->button() == Qt::RightButton ) {
+        showMenu();
+        ev->accept();
+    } else {
+        QToolButton::mousePressEvent(ev);
+    }
 }
 
 void
@@ -481,19 +501,6 @@ BE::MediaTray::MediaTray( QWidget *parent ) : QFrame(parent), BE::Plugged(parent
 
 //     connect(this, SIGNAL(triggered(QAction*)), this, SLOT(slotActionTriggered(QAction*)));
     QMetaObject::invokeMethod(this, "collectDevices", Qt::QueuedConnection);
-}
-
-
-void
-BE::MediaTray::mousePressEvent(QMouseEvent *ev)
-{
-    if( ev->button() == Qt::RightButton )
-    {
-        BE::Shell::run("kcmshell4 solid-actions");
-        ev->accept();
-    }
-    else
-        QFrame::mousePressEvent(ev);
 }
 
 void
