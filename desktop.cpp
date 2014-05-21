@@ -639,11 +639,12 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
     setAttribute(Qt::WA_StyledBackground, false);
     setAttribute(Qt::WA_NoSystemBackground);
     setAttribute(Qt::WA_OpaquePaintEvent);
+    setAttribute(Qt::WA_X11NetWmWindowTypeDesktop);
 //     setAttribute(Qt::WA_PaintOnScreen);
     connect( QApplication::desktop(), SIGNAL(resized(int)), this, SLOT(desktopResized(int)));
     connect( this, SIGNAL(wallpaperChanged()), this, SLOT(updateOnWallpaperChange()));
     connect( shell(), SIGNAL(styleSheetChanged()), this, SIGNAL(wallpaperChanged()));
-    KWindowSystem::setType( winId(), NET::Desktop );
+//     KWindowSystem::setType( winId(), NET::Desktop );
     KWindowSystem::setOnAllDesktops( winId(), true );
 
     connect (configMenu(), SIGNAL(aboutToShow()), SLOT(bindScreenMenu()));
