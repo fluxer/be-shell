@@ -8,5 +8,8 @@ else
     COUNT=`echo "$UPDATES" | wc -l`
 fi
 
-qdbus org.kde.be.shell /Apt setText "$COUNT"
-qdbus org.kde.be.shell /Apt setToolTip "$UPDATES"
+PID=`pidof be.shell`
+ADDRESS="`tr '\0' '\n' < /proc/${PID}/environ | grep DBUS_SESSION_BUS_ADDRESS | cut -d"=" -f2-`"
+
+qdbus --address "$ADDRESS" org.kde.be.shell /Apt setText "$COUNT"
+qdbus --address "$ADDRESS" org.kde.be.shell /Apt setToolTip "$UPDATES"
