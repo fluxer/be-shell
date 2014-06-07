@@ -138,6 +138,7 @@ private slots:
     void removeSummery(uint id);
 private:
     friend class JobServerAdaptor;
+    void repolish();
     QDBusObjectPath requestView(const QString &appName, const QString &appIconName, int capabilities);
 protected:
     void mousePressEvent( QMouseEvent *me );
@@ -149,12 +150,14 @@ private slots:
     void startIconNotification();
     void stopIconNotification();
     void updateUnreadMailCount();
+    void _repolish();
 private:
     static uint myActiveNotes;
     static QPointer<InfoDialog> myInfoDialog;
     int myBlinkTimer, myBlinkLevel;
     uint unreadMail, unreadMailId;
     QHash<uint, QString> mySummaries;
+    bool iAmDirty;
 };
 
 }

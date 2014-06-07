@@ -32,6 +32,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QScrollArea>
+#include <QStyle>
 #include <QTextBrowser>
 #include <QTime>
 #include <QTimer>
@@ -125,7 +126,7 @@ BE::InfoDialog::closeCurrent()
         if (i != noteDict.end())
         {
             // only log -> (l) TODO: mails?!?!?
-            emit labelRequest( notes->count() == 1 && notes->widget(0) == log ? " (l) " : " (i) " );
+            emit labelRequest( notes->count() == 1 && notes->widget(0) == log ? " [l] " : " [i] " );
             emit notificationClosed( i.key(), 2 );
             noteDict.erase(i);
         }
@@ -233,9 +234,9 @@ BE::InfoDialog::updateJobSummary()
     if ( jobs )
         label = QString("%1% (%2)").arg(percent/jobs).arg(jobs);
     else if ( notes->count() == 1 && log->document() && !log->document()->isEmpty() )
-        label = " (l) ";
+        label = " [l] ";
     else
-        label = " (i) ";
+        label = " [i] ";
     emit labelRequest( label );
 }
 
@@ -416,8 +417,8 @@ BE::Job::updateToolTip()
 uint BE::InfoCenter::myActiveNotes = 0;
 QPointer<BE::InfoDialog> BE::InfoCenter::myInfoDialog = 0;
 
-BE::InfoCenter::InfoCenter( QWidget *parent ) : QLabel(" (i) ", parent), BE::Plugged(parent),
-myBlinkTimer(0), myBlinkLevel(0), unreadMail(0), unreadMailId(0)
+BE::InfoCenter::InfoCenter( QWidget *parent ) : QLabel(" [i] ", parent), BE::Plugged(parent),
+myBlinkTimer(0), myBlinkLevel(0), unreadMail(0), unreadMailId(0), iAmDirty(false)
 {
     if (!myInfoDialog) {
         myInfoDialog = new InfoDialog(window());
@@ -455,7 +456,7 @@ myBlinkTimer(0), myBlinkLevel(0), unreadMail(0), unreadMailId(0)
 void
 BE::InfoCenter::closeNotification( uint id )
 {
-    qDebug() << "Shall close" << id;
+//     qDebug() << "Shall close" << id;
     // we emit the signal to calm the caller, but i do not like taking the info away from the user...
     emit notificationClosed( id, 3 );
 }
@@ -486,10 +487,15 @@ BE::InfoCenter::dialogClosed()
 }
 
 void
-BE::InfoCenter::mousePressEvent ( QMouseEvent *me )
+BE::InfoCenter::mousePressEvent(QMouseEvent *me)
 {
-    if (me->button() == Qt::LeftButton)
-        myInfoDialog->setVisible( !myInfoDialog->isVisible() );
+    if (me->button() == Qt::LeftButton) {
+        if (!myInfoDialog->isVisible()) {
+            setProperty("unseenInfo", false);
+            repolish();
+        }
+        myInfoDialog->setVisible(!myInfoDialog->isVisible());
+    }
 }
 //
 // emit  actionInvoked( uint id, const QString& actionKey );
@@ -499,15 +505,17 @@ BE::InfoCenter::notify( const QString &appName, uint replacesId, const QString &
                         const QString &appIcon, const QString &summary, const QString &body,
                         const QStringList &actions, const QVariantMap &hints, int timeout )
 {
-    qDebug() << "Got notified" << appName << replacesId << eventId << appIcon << summary << body << actions  << hints << timeout;
+//     qDebug() << "Got notified" << appName << replacesId << eventId << appIcon << summary << body << actions  << hints << timeout;
     uint hash = qHash(appName + appIcon + summary + body);
     QString hBody = body;
     hBody.replace('\n', "<br>");
-    uint id = myInfoDialog->insertNote( replacesId, appIcon, i18n("Message from %1").arg(appName) +
-                                      " ( " + QDateTime::currentDateTime().toString(Qt::ISODate) + " )",
+    uint id = myInfoDialog->insertNote(replacesId, appIcon, i18n("Message from %1").arg(appName) +
+                                      " ( " + QDateTime::currentDateTime().toString(Qt::TextDate) + " )",
                                         "<html>" + hBody + "</html>", hash);
     mySummaries[id] = summary.isEmpty() ? body.left(80).append("...") : summary;
-    setText( " (i) " );
+    setText( " [i] " /*+ QTime::currentTime().toString("h:mm")*/ );
+    setProperty("unseenInfo", true);
+    repolish();
     show();
     setToolTip(i18n("<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>").arg(hBody).arg(appName));
     startIconNotification();
@@ -550,10 +558,28 @@ BE::InfoCenter::removeSummery(uint id)
     mySummaries.remove(id);
 }
 
+void
+BE::InfoCenter::repolish()
+{
+    if (!iAmDirty)
+        QMetaObject::invokeMethod(this, "_repolish", Qt::QueuedConnection);
+    iAmDirty = true;
+}
+
+void
+BE::InfoCenter::_repolish()
+{
+    iAmDirty = false;
+    style()->unpolish(this);
+    style()->polish(this);
+}
+
 QDBusObjectPath
 BE::InfoCenter::requestView(const QString &appName, const QString &appIconName, int capabilities)
 {
     show();
+    setProperty("unseenInfo", true);
+    repolish();
     return myInfoDialog->insertJob(appIconName, appName, capabilities);
 }
 
