@@ -514,11 +514,10 @@ BE::MediaTray::addDevice( const Solid::Device &dev )
         return;
 
     QList<Device*> devices = findChildren<Device*>();
-    foreach (Device *device, devices)
-    {
-        if (device->drive() == drv)
-        {
+    foreach (Device *device, devices) {
+        if (device->drive() == drv) {
             device->setVolume(false, dev.udi());
+            device->show();
             return;
         }
     }
