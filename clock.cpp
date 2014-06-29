@@ -41,10 +41,6 @@ static BE::CalendarWidget *gs_calendar = 0;
 BE::CalendarWidget::CalendarWidget(QWidget *parent) : QCalendarWidget(parent)
 {
     connect(this, SIGNAL(activated(const QDate&)), SLOT(runActionOn(const QDate&)));
-    QFont fnt(font());
-//     fnt.setPointSize(grp.readEntry("FontSize", 17));
-    fnt.setPointSize(17);
-    setFont(fnt);
     configure();
     setFirstDayOfWeek(QLocale::system().firstDayOfWeek());
     if (QAbstractItemView *view = findChild<QAbstractItemView*>("qt_calendar_calendarview"))
@@ -59,14 +55,18 @@ BE::CalendarWidget::CalendarWidget(QWidget *parent) : QCalendarWidget(parent)
         btn->setIcon(QIcon());
         btn->setText(">");
     }
-    adjustSize();
 }
 
 void BE::CalendarWidget::configure()
 {
     KConfigGroup grp = KSharedConfig::openConfig("be.shell")->group("BE::Calendar");
     myCommand = grp.readEntry("Command", QString());
-    setGridVisible(grp.readEntry("ShowGrid", true));
+    setGridVisible(grp.readEntry("ShowGrid", false));
+    QFont fnt(font());
+    fnt.setPointSize(grp.readEntry("FontSize", 17));
+    setFont(fnt);
+    adjustSize();
+    resize(size()*grp.readEntry("SizeFactor", 1.618));
     iNeedToReconfigure = false;
 }
 
