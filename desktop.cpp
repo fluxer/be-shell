@@ -404,86 +404,110 @@ private:
     int originalValue;
 };
 
-class BE::WallpaperDesktopDialog : public QDialog
+BE::WallpaperDesktopDialog::WallpaperDesktopDialog( QWidget *parent ) : QDialog(parent)
 {
-public:
-    WallpaperDesktopDialog( QWidget *parent ) : QDialog(parent)
-    {
-        setWindowTitle(i18n("Select Desktops"));
-        new QVBoxLayout(this);
+    setWindowTitle(i18n("Select Desktops"));
+    new QVBoxLayout(this);
 
-        QLabel *hint = new QLabel(i18n("(ctrl: All, alt: Current, shift: force Scale & Crop)"), this);
-        QPalette pal = hint->palette();
-        QColor c = pal.color(hint->foregroundRole()); c.setAlpha(2*c.alpha()/3);
-        pal.setColor(hint->foregroundRole(), c);
-        hint->setPalette(pal);
-        layout()->addWidget(hint);
 
-        layout()->addWidget(new QLabel(i18n("Set myWallpaper on:"), this));
+    layout()->addWidget(filename = new QLabel(i18n("Wallpaper %1 on").arg("wallpaper"), this));
+    QFont fnt = filename->font();
+    fnt.setPointSize(fnt.pointSize()*1.618);
+    fnt.setBold(true);
+    filename->setFont(fnt);
 
-        all = new QRadioButton(i18n("All Desktops"), this);
-        layout()->addWidget(all);
+    all = new QRadioButton(i18n("All Desktops (Ctrl)"), this);
+    all->setAutoExclusive(false);
+    connect(all, SIGNAL(clicked(bool)), SLOT(toggleSelection(bool)));
+    layout()->addWidget(all);
 
-        current = new QRadioButton(i18n("Current Desktop"), this);
-        layout()->addWidget(current);
+    current = new QRadioButton(i18n("Current Desktop (Alt)"), this);
+    current->setAutoExclusive(false);
+    connect(current, SIGNAL(clicked(bool)), SLOT(toggleSelection(bool)));
+    layout()->addWidget(current);
 
-        list = new QGroupBox(i18n("Individual Desktops"), this);
-        connect (list, SIGNAL(toggled(bool)), all, SLOT(setDisabled(bool)) );
-        connect (list, SIGNAL(toggled(bool)), current, SLOT(setDisabled(bool)) );
-        new QVBoxLayout(list);
-        desk = new QCheckBox*[KWindowSystem::numberOfDesktops()];
-        for (int i = 0; i < KWindowSystem::numberOfDesktops(); ++i)
-            list->layout()->addWidget(desk[i] = new QCheckBox(i18n("Desktop %1").arg(i+1), list));
-        list->setCheckable(true);
-        layout()->addWidget(list);
+    list = new QGroupBox(i18n("Individual Desktops"), this);
+    new QVBoxLayout(list);
+    list->setCheckable(true);
+    connect(list, SIGNAL(clicked(bool)), SLOT(toggleSelection(bool)));
+    layout()->addWidget(list);
 
-        QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel, Qt::Horizontal, this);
-        connect (buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-        connect (buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-        layout()->addWidget(buttonBox);
+    QLabel *hint = new QLabel(i18n("Hint: press Shift to use Scale & Crop™"), this);
+    QPalette pal = hint->palette();
+    QColor c = pal.color(hint->foregroundRole()); c.setAlpha(2*c.alpha()/3);
+    pal.setColor(hint->foregroundRole(), c);
+    hint->setPalette(pal);
+    layout()->addWidget(hint);
 
-        adjustSize();
-        const int s = qMax(width(), height());
-        resize(4*s/3,s);
-//         dlg.move(QCursor::pos());
+    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel, Qt::Horizontal, this);
+    connect (buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect (buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+    layout()->addWidget(buttonBox);
+
+    adjustSize();
+}
+
+void BE::WallpaperDesktopDialog::setWallpaper(const QString &name)
+{
+    filename->setText(i18n("Wallpaper %1 on").arg(name));
+}
+
+void BE::WallpaperDesktopDialog::toggleSelection(bool b)
+{
+    if (!b) { // enforce radio-a-like behavior (no self toggle)
+        if (sender() == list)
+            list->setChecked(true);
+        else if (sender() == all)
+            all->setChecked(true);
+        else if (sender() == current)
+            current->setChecked(true);
+        return;
     }
-    ~WallpaperDesktopDialog()
-    {
-        delete [] desk; // radios are deleted by Qt
-    }
 
-    QList<int> ask()
-    {
-        QList<int> desks;
-        for (int i = 0; i < KWindowSystem::numberOfDesktops(); ++i)
-            desk[i]->setChecked(false);
-        list->setChecked(false);
+    if (sender() != all)
+        all->setChecked(false);
+    if (sender() != current)
         current->setChecked(false);
-        all->setChecked(true);
+    if (sender() != list)
+        list->setChecked(false);
+}
 
-        exec();
-        if (result() == Accepted)
-        {
-            if (list->isChecked())
-            {
-                for (int i = 0; i < KWindowSystem::numberOfDesktops(); ++i)
-                    if (desk[i]->isChecked())
-                        desks << i+1;
-                    if (desks.isEmpty())
-                        desks << AllDesktops;
-            }
-            else if (current->isChecked())
-                desks << KWindowSystem::currentDesktop();
-            else
-                desks << AllDesktops;
-        }
-        return desks;
+QList<int> BE::WallpaperDesktopDialog::ask()
+{
+    QList<int> desks;
+    const int numberOfDesktops = KWindowSystem::numberOfDesktops();
+    while (desk.count() > numberOfDesktops)
+        delete desk.takeLast();
+    for (int i = desk.count(); i < numberOfDesktops; ++i) {
+        desk << new QCheckBox(i18n("Desktop %1").arg(i+1), list);
+        list->layout()->addWidget(desk.last());
     }
-private:
-    QCheckBox **desk;
-    QGroupBox *list;
-    QRadioButton *all, *current;
-};
+    for (int i = 0; i < desk.count(); ++i)
+        desk.at(i)->setChecked(false);
+    list->setChecked(false);
+    current->setChecked(false);
+    all->setChecked(true);
+
+    QPointer<WallpaperDesktopDialog> that = this;
+    exec();
+    if (!that)
+        return desks;
+
+    if (result() == Accepted) {
+        if (list->isChecked()) {
+            for (int i = 0; i < KWindowSystem::numberOfDesktops(); ++i)
+                if (desk[i]->isChecked())
+                    desks << i+1;
+                if (desks.isEmpty())
+                    desks << AllDesktops;
+        } else if (current->isChecked()) {
+            desks << KWindowSystem::currentDesktop();
+        } else {
+            desks << AllDesktops;
+        }
+    }
+    return desks;
+}
 
 class BE::Corner : public QWidget
 {
@@ -668,7 +692,7 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
     wpSettings.mode->addAction( i18n("Tile = ") )->setData(400);
     wpSettings.mode->addAction( i18n("Stretch (drop aspect)") )->setData(500);
     wpSettings.mode->addAction( i18n("Maximal (keep aspect)") )->setData(600);
-    wpSettings.mode->addAction( i18n("Scale && Crop (tm)") )->setData(700);
+    wpSettings.mode->addAction( i18n("Scale && Crop™") )->setData(700);
     foreach (QAction *act, wpSettings.mode->actions())
         act->setCheckable(true);
     connect(wpSettings.mode, SIGNAL(triggered(QAction*)), this, SLOT(changeWallpaperMode(QAction*)));
@@ -768,7 +792,6 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
 void
 BE::Desk::configure( KConfigGroup *grp )
 {
-    delete myWpDialog; myWpDialog = 0;
     for (int i = 0; i < Qt::MidButton; ++i) {
         delete myMouseActionMenu[i];
         myMouseActionMenu[i] = NULL;
@@ -1277,8 +1300,8 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
     if (file.isEmpty())
         return; // "none" is ok - [empty] is not but might result from skipped dialog
 
+    KUrl url(file);
     if (file.compare("none", Qt::CaseInsensitive)) {
-        KUrl url(file);
         if (!url.isLocalFile())
         {
             file = KGlobal::dirs()->locateLocal("data","be.shell/myWallpaper");
@@ -1295,6 +1318,7 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
         if (!myWpDialog)
         {
             myWpDialog = new WallpaperDesktopDialog(this);
+            myWpDialog->setWallpaper(url.fileName());
             myWpDialog->setStyleSheet(QString());
         }
         desks = myWpDialog->ask();

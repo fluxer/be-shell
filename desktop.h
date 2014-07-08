@@ -23,6 +23,7 @@
 
 #include <QCache>
 #include <QDateTime>
+#include <QDialog>
 #include <QHash>
 #include <QPixmap>
 #include <QPoint>
@@ -31,10 +32,12 @@
 
 #include "be.plugged.h"
 
-class TopBar;
-class BottomBar;
 class Config;
+class QCheckBox;
 class QGridLayout;
+class QGroupBox;
+class QLabel;
+class QRadioButton;
 class KDirWatch;
 class KConfigGroup;
 
@@ -93,7 +96,22 @@ public:
 
 class Corner;
 class CornerDialog;
-class WallpaperDesktopDialog;
+
+class WallpaperDesktopDialog : public QDialog
+{
+    Q_OBJECT
+public:
+    WallpaperDesktopDialog(QWidget *parent);
+    void setWallpaper(const QString &name);
+    QList<int> ask();
+private slots:
+    void toggleSelection(bool);
+private:
+    QList<QCheckBox*> desk;
+    QGroupBox *list;
+    QRadioButton *all, *current;
+    QLabel *filename;
+};
 
 class Desk : public QWidget, public Plugged
 {
