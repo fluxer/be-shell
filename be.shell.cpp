@@ -1555,7 +1555,6 @@ BE::Shell::windowList() { return instance ? instance->myWindowList : 0L; }
 static volatile sig_atomic_t fatal_error_in_progress = 0;
 static void handle_crash(int sig)
 {
-    qDebug() << "crash" << sig;
     if (fatal_error_in_progress)
         raise(sig);
     fatal_error_in_progress = 1;
@@ -1572,10 +1571,24 @@ static void handle_crash(int sig)
     signal(sig, SIG_DFL);
     raise(sig);
 }
+
+void signalHandler(int signal)
+{
+    if (signal == SIGTERM || signal == SIGQUIT || signal == SIGINT) {
+        QApplication::quit();
+    }
+}
+
 #endif
 
 int main (int argc, char *argv[])
 {
+//     signal(SIGHUP, signalHandler);
+    signal(SIGTERM, signalHandler);
+    signal(SIGQUIT, signalHandler);
+    signal(SIGINT, signalHandler);
+    // SIGSEG by KCrash
+
     KAboutData aboutData( "be.shell", 0, ki18n("BE::shell"), "0.1", ki18n("A lightweight Desktop shell for KDE4"),
                           KAboutData::License_GPL, ki18n("(c) 2009"), ki18n("Some about text..."),
                           "http://www.kde.org", "thomas.luebking@web.de");
