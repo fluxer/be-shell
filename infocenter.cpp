@@ -18,16 +18,22 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
+static const int infocenterCacheVersion = 1;
+
 #include "infocenter.h"
 #include "dbus_info.h"
 
 #include "be.shell.h"
 
+#include <QApplication>
 #include <QDateTime>
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDBusReply>
 // #include <QDBusPendingCall>
+#include <QDesktopServices>
+#include <QDir>
+#include <QFile>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
@@ -86,6 +92,30 @@ BE::InfoDialog::InfoDialog(QWidget *parent) : QDialog(parent, Qt::Dialog|Qt::Fra
 
     vbl->addWidget(sa);
     vbl->addLayout(hbl);
+
+    QFile cache(QDesktopServices::storageLocation(QDesktopServices::CacheLocation) + "/infocenter");
+    if (cache.open(QIODevice::ReadOnly)) {
+        int cacheVersion;
+        QDataStream stream(&cache);
+        stream >> cacheVersion;
+        if (cacheVersion == infocenterCacheVersion) {
+            QString buffer1, buffer2, buffer3;
+            uint uid, hash;
+            stream >> buffer1;
+            log->setHtml(buffer1);
+            while (!stream.atEnd()) {
+                stream >> uid >> buffer1 >> buffer2 >> buffer3 >> hash;
+                insertNote(uid, buffer1, buffer2, buffer3, hash);
+            }
+            QMetaObject::invokeMethod(this, "labelRequest", Qt::QueuedConnection,
+                                      Q_ARG(QString, notes->count() == 1 && notes->widget(0) == log ? " [l] " : " [i] "));
+        } else {
+            qDebug() << "Mismatching InfoCenter cache version. Not restoring";
+        }
+        cache.close();
+    }
+
+    connect(qApp, SIGNAL(aboutToQuit()), SLOT(storeMessages()));
 }
 
 void
@@ -130,6 +160,27 @@ BE::InfoDialog::closeCurrent()
             emit notificationClosed( i.key(), 2 );
             noteDict.erase(i);
         }
+    }
+}
+
+void
+BE::InfoDialog::storeMessages()
+{
+    const QString path = QDesktopServices::storageLocation(QDesktopServices::CacheLocation);
+    QDir().mkpath(path);
+    QFile cache(path + "/infocenter");
+//     cache.setPermissions(QFileDevice::ReadOwner|QFileDevice::WriteOwner); // Qt5
+    if (cache.open(QIODevice::WriteOnly)) {
+        QDataStream stream(&cache);
+        stream << infocenterCacheVersion;
+        stream << log->toHtml(); // log
+        for (int i = 0; i < notes->count(); ++i) {
+            if (Note *note = dynamic_cast<Note*>(notes->widget(i)))
+                stream << noteDict.key(note, 0) <<
+                          notes->itemIcon(i).name() << notes->itemText(i) << note->text() <<
+                          note->hash;
+        }
+        cache.close();
     }
 }
 
@@ -505,6 +556,10 @@ BE::InfoCenter::notify( const QString &appName, uint replacesId, const QString &
                         const QString &appIcon, const QString &summary, const QString &body,
                         const QStringList &actions, const QVariantMap &hints, int timeout )
 {
+    Q_UNUSED(eventId);
+    Q_UNUSED(actions);
+    Q_UNUSED(hints);
+    Q_UNUSED(timeout);
 //     qDebug() << "Got notified" << appName << replacesId << eventId << appIcon << summary << body << actions  << hints << timeout;
     uint hash = qHash(appName + appIcon + summary + body);
     QString hBody = body;

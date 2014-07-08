@@ -58,6 +58,7 @@ signals:
     void labelRequest( const QString& );
 private slots:
     void closeCurrent();
+    void storeMessages();
     void updateJobSummary();
 private:
     QHash<uint, Note*> noteDict;
