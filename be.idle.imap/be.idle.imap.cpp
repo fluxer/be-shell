@@ -26,14 +26,26 @@
 #include <QThread>
 #include <QTimer>
 
+#include <signal.h>
+#include <unistd.h>
+
 #include "be.idle.imap.h"
 
 #include <QtDebug>
 
 static QList<Idler*> s_idlers;
 
+void signalHandler(int signal)
+{
+    if (signal == SIGHUP) {
+        foreach(Idler *i, s_idlers)
+            i->restart();
+    }
+}
+
 int main (int argc, char **argv)
 {
+    signal(SIGHUP, signalHandler);
     QCoreApplication a(argc, argv);
     new IdleManager(&a);
     return a.exec();
@@ -166,6 +178,7 @@ QSslError::SslError sslError(QString string) {
 
 Idler::Idler(QObject *parent, const Account &account) :
 QSslSocket(parent)
+, m_recent(0)
 , m_canIdle(false)
 , m_loggedIn(false)
 , m_idling(false)
@@ -324,6 +337,7 @@ void Idler::checkUnseen()
 void
 Idler::reIdle()
 {
+
     m_idling = !m_idling;
     if (m_idling) {
 //         qDebug() << "idle another 4.5 minutes" << m_account.id;
@@ -336,7 +350,10 @@ Idler::reIdle()
 //         qDebug() << "stopped idling" << m_account.id;
         // sync data - this will cause another re-idle, getting us into above branch
         // we wait a second to not confuse the server
-        QTimer::singleShot(500, this, SLOT(checkUnseen()));
+        usleep(500000);
+        checkUnseen();
+        // QTimer::singleShot(500, this, SLOT(checkUnseen())); doesn't work on SIGHUP invocation
+        // it's threaded and the system should buffer the socket, so this is "fine"
     }
 }
 

@@ -56,6 +56,7 @@ public:
     ~Idler();
     inline const QString &account() const { return m_account.id; }
     inline int recentMails() const { return m_recent; }
+    inline void restart() { m_recent = 0; reIdle(); }
 signals:
     void newMail();
     void lostConnection(QString);
