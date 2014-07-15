@@ -545,6 +545,25 @@ BE::MediaTray::configure(KConfigGroup *grp)
     QMetaObject::invokeMethod(this, "updateSolidActions", Qt::QueuedConnection);
 }
 
+QString
+BE::MediaTray::debug(const QString &pluginName, const QString &parameter) const
+{
+    QString ret;
+    if (pluginName == name()) {
+        QList<Device*> devices = findChildren<Device*>();
+        foreach (Device *device, devices) {
+            const QRect geo = device->geometry();
+            QString label = device->text();
+            if (label.isEmpty())
+                label = device->toolTip();
+            ret += label + ": " + QString::number(geo.width()) + 'x' + QString::number(geo.height()) +
+                   '+' + QString::number(geo.x()) + '+' + QString::number(geo.y()) +
+                   QString(device->isVisibleTo(const_cast<BE::MediaTray*>(this)) ? ", shown" : ", hidden");
+        }
+    }
+    return ret;
+}
+
 void
 BE::MediaTray::removeDevice( const QString &udi )
 {

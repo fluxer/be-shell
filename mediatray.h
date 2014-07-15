@@ -83,6 +83,7 @@ class MediaTray : public QFrame, public Plugged
 public:
     MediaTray( QWidget *parent );
     void configure( KConfigGroup *grp );
+    QString debug(const QString &pluginName, const QString &parameter) const;
     void saveSettings( KConfigGroup *grp );
     void themeChanged();
     static QString ejectCommand() { return ourEjectCommand; };
