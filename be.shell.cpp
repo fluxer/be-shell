@@ -922,6 +922,20 @@ BE::Shell::callThemeChangeEventFor(BE::Plugged *p)
     return true;
 }
 
+QString
+BE::Shell::debug(const QString &pluginName, const QString &parameter) const
+{
+    if (pluginName == "Shell") {
+        // TODO global be::shell debug
+        return QString();
+    }
+    QString ret;
+    for (QList<Plugged*>::const_iterator it = myPlugs.begin(), end = myPlugs.end(); it != end; ++it) {
+        ret += (*it)->debug(pluginName, parameter);
+    }
+    return ret;
+}
+
 QRect
 BE::Shell::desktopGeometry(int screen)
 {

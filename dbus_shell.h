@@ -61,6 +61,7 @@ public:
     ShellAdaptor(BE::Shell *shell) : QDBusAbstractAdaptor(shell), myShell(shell) { }
 
 public slots:
+    QString debug(const QString &pluginName, const QString &parameter = QString()) { return myShell->debug(pluginName, parameter); }
     Q_NOREPLY void hidePanel(const QString &name) { myShell->setPanelVisible(name, 0); }
     Q_NOREPLY void reconfigure() { myShell->configure(); }
     Q_NOREPLY void showWindowList(int x, int y) { myShell->myWindowList->popup(QPoint(x,y)); }

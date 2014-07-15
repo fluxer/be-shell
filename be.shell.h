@@ -98,6 +98,7 @@ private slots:
     void configure();
     void contextWindowAction(QAction*);
     void contextWindowToDesktop(QAction*);
+    QString debug(const QString &pluginName, const QString &parameter) const;
     void resetCompositing();
     void setTheme(const QString &);
     void setPanelVisible(const QString &name, char vis);

@@ -42,6 +42,7 @@ public:
     virtual ~Plugged() {}
     void configure();
     virtual void configure( KConfigGroup *grp ) { (void)grp; }
+    virtual QString debug(const QString &pluginName, const QString &parameter) const { Q_UNUSED(pluginName); Q_UNUSED(parameter); return QString(); }
     QWidget *desktop() const;
     inline const QString &name() const { return myName; }
     Qt::Orientation orientation() const;

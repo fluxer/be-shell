@@ -449,6 +449,20 @@ BE::Panel::configure( KConfigGroup *grp )
     updateSlideHint();
 }
 
+QString
+BE::Panel::debug(const QString &pluginName, const QString &parameter) const
+{
+    if (pluginName == name()) {
+        // TODO: panel debug
+        return QString();
+    }
+    QString ret;
+    for (QList<Plugged*>::const_iterator it = myPlugs.begin(), end = myPlugs.end(); it != end; ++it) {
+        ret += (*it)->debug(pluginName, parameter);
+    }
+    return ret;
+}
+
 void
 BE::Panel::updateSlideHint() {
     static Atom atom = 0;

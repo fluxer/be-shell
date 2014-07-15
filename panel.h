@@ -44,6 +44,7 @@ public:
     BE::Plugged *addStretch(int s);
     inline int castsShadow() const { return isVisible() && iCastAShadow; }
     void configure( KConfigGroup *grp );
+    QString debug(const QString &pluginName, const QString &parameter) const;
     inline QPixmap *effectBgPix() const { return myBgPix; }
     inline int layer() const { return myLayer; }
     Qt::Orientation orientation() const;
