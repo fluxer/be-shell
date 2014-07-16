@@ -503,6 +503,17 @@ BE::MediaTray::MediaTray( QWidget *parent ) : QFrame(parent), BE::Plugged(parent
     QMetaObject::invokeMethod(this, "collectDevices", Qt::QueuedConnection);
 }
 
+#define LOGGING 0
+#if LOGGING
+static const int LOG_MAX = 200;
+static int LOG_CUR = 0;
+static int LOG_NEXT() { ++LOG_CUR; LOG_CUR = LOG_CUR%(LOG_MAX+1); return LOG_CUR - 1; }
+static QString debugLog[LOG_MAX];
+#define LOG_ADD debugLog[LOG_NEXT()] = QDateTime::currentDateTime().toString() + " " +
+#else
+#define LOG_ADD //
+#endif
+
 void
 BE::MediaTray::addDevice( const Solid::Device &dev )
 {
@@ -510,18 +521,22 @@ BE::MediaTray::addDevice( const Solid::Device &dev )
         return;
 
     Solid::StorageDrive *drv = drive4(dev);
-    if ( !(drv && (drv->isHotpluggable() || drv->isRemovable())) )
+    if ( !(drv && (drv->isHotpluggable() || drv->isRemovable())) ) {
+        LOG_ADD "addDevice, not removable: " + QString::number(drv ? drv->driveType() : -1);
         return;
+    }
 
     QList<Device*> devices = findChildren<Device*>();
     foreach (Device *device, devices) {
         if (device->drive() == drv) {
+            LOG_ADD "addDevice, replace: " + device->toolTip();
             device->setVolume(false, dev.udi());
             device->show();
             return;
         }
     }
 
+    LOG_ADD "addDevice, add new: " + QString::number(drv->driveType());
     layout()->addWidget(new Device(this, dev, drv));
 }
 
@@ -550,15 +565,24 @@ BE::MediaTray::debug(const QString &pluginName, const QString &parameter) const
 {
     QString ret;
     if (pluginName == name()) {
-        QList<Device*> devices = findChildren<Device*>();
-        foreach (Device *device, devices) {
-            const QRect geo = device->geometry();
-            QString label = device->text();
-            if (label.isEmpty())
-                label = device->toolTip();
-            ret += label + ": " + QString::number(geo.width()) + 'x' + QString::number(geo.height()) +
-                   '+' + QString::number(geo.x()) + '+' + QString::number(geo.y()) +
-                   QString(device->isVisibleTo(const_cast<BE::MediaTray*>(this)) ? ", shown" : ", hidden");
+        if (parameter == "list") {
+            QList<Device*> devices = findChildren<Device*>();
+            foreach (Device *device, devices) {
+                const QRect geo = device->geometry();
+                QString label = device->text();
+                if (label.isEmpty())
+                    label = device->toolTip();
+                ret += label + ": " + QString::number(geo.width()) + 'x' + QString::number(geo.height()) +
+                    '+' + QString::number(geo.x()) + '+' + QString::number(geo.y()) +
+                    QString(device->isVisibleTo(const_cast<BE::MediaTray*>(this)) ? ", shown" : ", hidden");
+            }
+#if LOGGING
+        } else if (parameter == "log") {
+            for (int i = 0; i < LOG_MAX; ++i) {
+                if (!debugLog[i].isEmpty())
+                    ret += debugLog[i] + '\n';
+            }
+#endif
         }
     }
     return ret;
@@ -574,8 +598,10 @@ BE::MediaTray::removeDevice( const QString &udi )
         {
             if (device->isEjectable())
                 device->setEmpty();
-            else
+            else {
+                LOG_ADD "removeDevice, delete: " + device->toolTip();
                 device->deleteLater();
+            }
             break;
         }
     }
