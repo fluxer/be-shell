@@ -61,6 +61,17 @@ QString BE::MediaTray::ourEjectCommand("eject");
 
 Q_DECLARE_METATYPE(Solid::Predicate)
 
+#define LOGGING 0
+#if LOGGING
+static const int LOG_MAX = 200;
+static int LOG_CUR = 0;
+static int LOG_NEXT() { ++LOG_CUR; LOG_CUR = LOG_CUR%(LOG_MAX+1); return LOG_CUR - 1; }
+static QString debugLog[LOG_MAX];
+#define LOG_ADD debugLog[LOG_NEXT()] = QDateTime::currentDateTime().toString() + " " +
+#else
+#define LOG_ADD //
+#endif
+
 static QString sizeString(qulonglong n)
 {
     QString suffix = " bytes";
@@ -93,9 +104,10 @@ static Solid::StorageDrive *drive4(const Solid::Device &device)
 }
 
 BE::Device::Device( QWidget *parent, const Solid::Device &dev, Solid::StorageDrive *drv) :
-QToolButton(parent)
+QToolButton(parent), deleted(false)
 {
     if (!dev.isValid()) {
+        LOG_ADD "Device constructor, invalid device. Deleting: " + dev.udi();
         deleteLater();
         return;
     }
@@ -113,15 +125,15 @@ QToolButton(parent)
     if (const Solid::StorageAccess *acc = dev.as<Solid::StorageAccess>())
         connect(acc, SIGNAL(accessibilityChanged(bool,const QString&)), SLOT(setVolume(bool,const QString&)));
 
-    if (dev.as<Solid::StorageVolume>())
+    if (dev.as<Solid::StorageVolume>()) {
         setVolume(false, dev.udi());
-    else if (ejectable)
-    {
+    } else if (ejectable) {
         myDriveUdi = dev.udi();
         setEmpty();
-    }
-    else
+    } else {
+        LOG_ADD "Device constructor, no volume & not ejectable. Deleting: " + dev.udi();
         deleteLater();
+    }
 
     show();
 }
@@ -176,15 +188,21 @@ BE::Device::setVolume(bool, const QString &udi)
     const Solid::Device dev(udi);
 
     const Solid::StorageVolume *vol = dev.as<Solid::StorageVolume>();
-    if (!vol)
-    {
-        ejectable ? setEmpty() : deleteLater();
+    if (!vol) {
+        if (ejectable) {
+            setEmpty();
+        } else {
+            LOG_ADD "setVolume, no volume and not ejectable. Deleting: " + udi;
+            deleteLater();
+        }
         return;
     }
     const Solid::StorageAccess *acc = dev.as<Solid::StorageAccess>();
     if (!(acc || ejectable)) { // somehow invalid
-        if (myUdi.isEmpty()) // do not replace god with junk
+        if (myUdi.isEmpty()) { // do not replace god with junk
+            LOG_ADD "setVolume, empty udi. Deleting.";
             deleteLater(); // but get rid of junk
+        }
         return;
     }
 
@@ -503,17 +521,6 @@ BE::MediaTray::MediaTray( QWidget *parent ) : QFrame(parent), BE::Plugged(parent
     QMetaObject::invokeMethod(this, "collectDevices", Qt::QueuedConnection);
 }
 
-#define LOGGING 0
-#if LOGGING
-static const int LOG_MAX = 200;
-static int LOG_CUR = 0;
-static int LOG_NEXT() { ++LOG_CUR; LOG_CUR = LOG_CUR%(LOG_MAX+1); return LOG_CUR - 1; }
-static QString debugLog[LOG_MAX];
-#define LOG_ADD debugLog[LOG_NEXT()] = QDateTime::currentDateTime().toString() + " " +
-#else
-#define LOG_ADD //
-#endif
-
 void
 BE::MediaTray::addDevice( const Solid::Device &dev )
 {
@@ -522,21 +529,23 @@ BE::MediaTray::addDevice( const Solid::Device &dev )
 
     Solid::StorageDrive *drv = drive4(dev);
     if ( !(drv && (drv->isHotpluggable() || drv->isRemovable())) ) {
-        LOG_ADD "addDevice, not removable: " + QString::number(drv ? drv->driveType() : -1);
+        LOG_ADD "addDevice, not removable: " + QString::number(drv ? drv->driveType() : -1) + ", " + dev.udi();
         return;
     }
 
     QList<Device*> devices = findChildren<Device*>();
     foreach (Device *device, devices) {
+        if (device->isDeleted())
+            continue;
         if (device->drive() == drv) {
-            LOG_ADD "addDevice, replace: " + device->toolTip();
+            LOG_ADD "addDevice, replace: " + dev.udi() + ", " + device->udi() + ", " + device->toolTip();
             device->setVolume(false, dev.udi());
             device->show();
             return;
         }
     }
 
-    LOG_ADD "addDevice, add new: " + QString::number(drv->driveType());
+    LOG_ADD "addDevice, add new: " + dev.udi() + ", " + QString::number(drv->driveType());
     layout()->addWidget(new Device(this, dev, drv));
 }
 
@@ -597,8 +606,7 @@ BE::MediaTray::removeDevice( const QString &udi )
             if (device->isEjectable())
                 device->setEmpty();
             else {
-                LOG_ADD "removeDevice, delete: " + device->toolTip();
-                device->setParent(NULL);
+                LOG_ADD "removeDevice, delete: " + udi + ", " + device->toolTip();
                 device->deleteLater();
             }
             break;

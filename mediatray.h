@@ -43,14 +43,16 @@ public:
     void setEmpty();
     void setMounted( bool mounted, const QString &path = QString() );
 
-    inline bool isEjectable() { return ejectable; }
-    inline const Solid::StorageDrive *drive() { return myDrv; }
-    inline const QString &udi() { return myUdi; }
-    inline const QString &iconString() { return myIcon; }
+    inline bool isDeleted() const { return deleted; }
+    inline bool isEjectable() const { return ejectable; }
+    inline const Solid::StorageDrive *drive() const { return myDrv; }
+    inline const QString &udi() const { return myUdi; }
+    inline const QString &iconString() const { return myIcon; }
     static void updateSolidActions();
 
 public slots:
     void setVolume(bool, const QString &udi);
+    void deleteLater() { deleted = true; QToolButton::deleteLater(); }
 
 protected:
     void mousePressEvent(QMouseEvent *ev);
@@ -72,7 +74,7 @@ private:
     static QList<QAction*> ourSolidActions;
     QPointer<Solid::StorageDrive> myDrv;
     QString myUdi, myDriveUdi, myProduct, myLabel, myPath, myIcon;
-    bool ejectable;
+    bool ejectable, deleted;
     qulonglong myCapacity;
 };
 
