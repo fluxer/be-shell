@@ -592,14 +592,13 @@ void
 BE::MediaTray::removeDevice( const QString &udi )
 {
     QList<Device*> devices = findChildren<Device*>();
-    foreach (Device *device, devices)
-    {
-        if (device->udi() == udi)
-        {
+    foreach (Device *device, devices) {
+        if (device->udi() == udi) {
             if (device->isEjectable())
                 device->setEmpty();
             else {
                 LOG_ADD "removeDevice, delete: " + device->toolTip();
+                device->setParent(NULL);
                 device->deleteLater();
             }
             break;
