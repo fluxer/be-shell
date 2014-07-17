@@ -250,7 +250,7 @@ BE::InfoDialog::insertNote(uint uid, const QString &icon, QString title, const Q
         notes->setItemIcon(id, KIcon(icon));
         note->setText(body);
     }
-//     notes->adjustSize();
+
     return uid;
 }
 
@@ -557,15 +557,15 @@ BE::InfoCenter::notify( const QString &appName, uint replacesId, const QString &
     uint hash = qHash(appName + appIcon + summary + body);
     QString hBody = body;
     hBody.replace('\n', "<br>");
-    uint id = myInfoDialog->insertNote(replacesId, appIcon, i18n("Message from %1").arg(appName) +
-                                      " ( " + QDateTime::currentDateTime().toString(Qt::TextDate) + " )",
+    const QString dateTime = QDateTime::currentDateTime().toString(Qt::TextDate);
+    uint id = myInfoDialog->insertNote(replacesId, appIcon, appName + ", " + dateTime,
                                         "<html>" + hBody + "</html>", hash);
     mySummaries[id] = summary.isEmpty() ? body.left(80).append("...") : summary;
     setText( " [i] " /*+ QTime::currentTime().toString("h:mm")*/ );
     setProperty("unseenInfo", true);
     repolish();
     show();
-    setToolTip(i18n("<html>Last message:<p>%1</p><p align=\"right\">from %2</p></html>").arg(hBody).arg(appName));
+    setToolTip(QString("<html>%1<p>%2</p><p align=\"right\">--- %3</p></html>").arg(dateTime).arg(hBody).arg(appName));
     startIconNotification();
     QTimer::singleShot(6000, this, SLOT(stopIconNotification()));
 
