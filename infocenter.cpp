@@ -187,16 +187,10 @@ BE::InfoDialog::storeMessages()
 void
 BE::InfoDialog::setVisible(bool show)
 {
-    if ( show )
-    {
-//         if ( myGeometry.isValid() )
-//             setGeometry(myGeometry);
-        if ( notes->currentWidget() == log && (!log->document() || log->document()->isEmpty()) && notes->count() > 1 )
-            notes->setCurrentIndex( 1 );
-        layout()->update();
+    if (show) {
+        if (notes->currentWidget() == log && (!log->document() || log->document()->isEmpty()) && notes->count() > 1)
+            notes->setCurrentIndex(1);
     }
-//     else
-//         myGeometry = geometry();
     QDialog::setVisible(show);
     if (!show)
         emit closed();
@@ -256,7 +250,7 @@ BE::InfoDialog::insertNote(uint uid, const QString &icon, QString title, const Q
         notes->setItemIcon(id, KIcon(icon));
         note->setText(body);
     }
-    notes->adjustSize();
+//     notes->adjustSize();
     return uid;
 }
 
@@ -522,12 +516,11 @@ BE::InfoCenter::conditionalHide()
 }
 
 void
-BE::InfoCenter::configure( KConfigGroup *grp )
+BE::InfoCenter::configure(KConfigGroup *grp)
 {
     QRect geo = grp->readEntry( "Geometry", QRect());
     if (geo.isValid())
         myInfoDialog->setGeometry(geo);
-//     myInfoDialog->myGeometry = grp->readEntry( "Geometry", QRect());
 }
 
 void
@@ -642,7 +635,6 @@ void
 BE::InfoCenter::saveSettings( KConfigGroup *grp )
 {
     grp->writeEntry( "Geometry", myInfoDialog->geometry());
-//     grp->writeEntry( "Geometry", myInfoDialog->myGeometry);
 }
 
 void
