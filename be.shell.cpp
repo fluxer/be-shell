@@ -1374,12 +1374,11 @@ BE::Shell::setTheme(const QString &t)
     myTheme = t;
     delete myStyleWatcher; myStyleWatcher = 0;
     QString file = KGlobal::dirs()->locate("data","be.shell/Themes/" + myTheme + "/style.css");
-    qApp->setStyleSheet( QString() );
-    if( !file.isEmpty() )
+    qApp->setStyleSheet(QString());
+    if (!file.isEmpty())
         updateStyleSheet(file);
 
-    foreach (Plugged *p, myPlugs)
-    {
+    foreach (Plugged *p, myPlugs) {
         if ((currentThemeChangeHandler = dynamic_cast<QWidget*>(p)))
             p->themeChanged();
     }
@@ -1516,11 +1515,12 @@ void
 BE::Shell::updateStyleSheet(const QString &filename)
 {
     QFile file(filename);
-    if ( file.open(QIODevice::ReadOnly) )
-    {
-        qApp->setStyleSheet( QString() );
+    if (file.open(QIODevice::ReadOnly)) {
+        qApp->setStyleSheet(QString());
+
         QString sheet = file.readAll().replace("${base}", filename.left(filename.length() - 10).toLocal8Bit());
         int cs = 0, ce;
+
         // get rid of comments, just override them
         while ((cs = sheet.indexOf("/*", cs)) > -1) {
             if ((ce = sheet.indexOf("*/", cs)) > cs)
@@ -1532,13 +1532,13 @@ BE::Shell::updateStyleSheet(const QString &filename)
         parse(ShadowPadding, &sheet, &myShadowPadding);
         parse(ShadowBorder, &sheet, &myShadowBorder);
 
-        qApp->setStyleSheet( sheet );
+        qApp->setStyleSheet(sheet);
         emit styleSheetChanged();
     }
     delete myStyleWatcher;
     myStyleWatcher = new QFileSystemWatcher(this);
     myStyleWatcher->addPath(filename);
-    connect( myStyleWatcher, SIGNAL(fileChanged(const QString &)), this, SLOT(updateStyleSheet(const QString &)) );
+    connect(myStyleWatcher, SIGNAL(fileChanged(const QString &)), this, SLOT(updateStyleSheet(const QString &)));
 }
 
 void
