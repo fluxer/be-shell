@@ -1625,10 +1625,12 @@ int main (int argc, char *argv[])
         return 0;
     }
     if (args->isSet("restart")) {
+        QStringList args = KCmdLineArgs::allArguments();
+        args.removeAll("--restart");
         QDBusInterface be_shell("org.kde.be.shell", "/MainApplication", "org.kde.KApplication", QDBusConnection::sessionBus());
         be_shell.call(QLatin1String("quit"));
         usleep(500000);
-        BE::Shell::run("be.shell");
+        QProcess::startDetached(args.at(0), args.mid(1));
         return 0;
     }
     args->clear();
