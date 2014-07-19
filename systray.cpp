@@ -327,6 +327,7 @@ protected:
 
 static int damageEventBase = 0;
 static QCoreApplication::EventFilter formerX11EventFilter = 0;
+static bool gs_filteringEvents = false;
 static BE::SysTray *s_instance = 0;
 
 BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent), nastyOnesAreVisible(false)
@@ -360,8 +361,9 @@ BE::SysTray::~SysTray() {
         s_instance = 0;
     }
     delete myConfigMenu;
-    if (formerX11EventFilter)
+//     if (formerX11EventFilter)
         QCoreApplication::instance()->setEventFilter(formerX11EventFilter);
+        gs_filteringEvents = false;
 }
 
 namespace BE {
@@ -392,7 +394,10 @@ BE::SysTray::init()
     net_tray_visual_atom = XInternAtom(dpy, "_NET_SYSTEM_TRAY_VISUAL", False);
 
 //     formerX11EventFilter = QCoreApplication::instance()->setEventFilter(((QCoreApplication::EventFilter)&BE::SysTray::x11EventFilter));
-    formerX11EventFilter = QCoreApplication::instance()->setEventFilter(x11EventFilter);
+    if (!gs_filteringEvents) {
+        formerX11EventFilter = QCoreApplication::instance()->setEventFilter(x11EventFilter);
+        gs_filteringEvents = true;
+    }
 
     XSetSelectionOwner(dpy, net_selection_atom, winId(), CurrentTime);
 
