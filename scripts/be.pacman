@@ -15,19 +15,18 @@ ADDRESS="`tr '\0' '\n' < /proc/${PID}/environ | grep DBUS_SESSION_BUS_ADDRESS | 
 qdbus --address "$ADDRESS" org.kde.be.shell /Pacman setText "$COUNT"
 qdbus --address "$ADDRESS" org.kde.be.shell /Pacman setToolTip "$UPDATES"
 
-file="`kde4-config --path data`"
-file="${file%%:*}be.shell/pacman.xml"
-
 # comment the exit call to write a menu for the button to update single packages
 # could need a fancy dialog driven script (kdesu)
- exit
+exit
 
-echo '<menu>' > "$file"
+XML="<menu>"
 IFS=$'\n'
 for package in $UPDATES; do
-   echo "<action label=\""$package"\" exec=\"kdesu /usr/bin/pacman -Sy ${package%% *}\"/>" >> "$file"
+   XML="${XML}<action label=\""$package"\" exec=\"kdesu /usr/bin/pacman -Sy ${package%% *}\"/>"
 done
 unset IFS
-echo '<separator/>' >> "$file"
-echo "<action label=\"Update all\" exec=\"sudo /usr/bin/pacman -Syu\"/>" >> "$file"
-echo '</menu>' >> "$file"
+XML="${XML}<separator/><action label=\"Update all\" exec=\"sudo /usr/bin/pacman -Syu\"/></menu>"
+
+file="`kde4-config --path data`"
+file="${file%%:*}be.shell/pacman.xml"
+echo  "${XML}" > "$file"
