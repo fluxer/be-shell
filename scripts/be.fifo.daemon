@@ -31,14 +31,16 @@ case "$1" in
     exit
 esac
 
-trap 'rm "$LOCK_FILE"; exit' INT TERM EXIT
+trap 'rm "$LOCK_FILE"; trap - INT TERM EXIT; kill 0' INT TERM EXIT
 
 if [ ! -p "$FIFO_FILE" ]; then
     rm "$FIFO_FILE"
     mkfifo "$FIFO_FILE"
 fi
 
-daemon_func
+while true; do
+    daemon_func
+done
 
 rm "$LOCK_FILE"
 trap - INT TERM EXIT
