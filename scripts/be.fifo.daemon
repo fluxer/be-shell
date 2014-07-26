@@ -8,10 +8,26 @@ LOCK_FILE="${FIFO_FILE}.lock"
 
 # DAEMONIZE ---------------------------------
 
+KILL_CHAIN=""
+
+build_chain() {
+    for CPID in `ps --ppid $1 -o pid --no-headers`; do
+        KILL_CHAIN="${KILL_CHAIN} ${CPID}"
+        build_chain $CPID
+    done
+}
+
+kill_chain() {
+    build_chain $1
+    kill $KILL_CHAIN
+}
+
 case "$1" in
   start)
     if [ ! -e "$LOCK_FILE" ]; then
-        nohup $0 "daemon" >/dev/null 2>&1  &
+        # NOTICE: setsid is required, because *some* distribution with a weird ... upstart ...
+        # mechanism keeps the *entire session* under a user init process, thus in a common PGID by default
+        setsid nohup $0 "daemon" >/dev/null 2>&1  &
         echo $! > "$LOCK_FILE"
     fi
     exit
@@ -20,7 +36,8 @@ case "$1" in
     if [ -e "$LOCK_FILE" ]; then
         pid=$(cat "$LOCK_FILE")
         kill $pid
-        pkill -P $pid
+        # above could fail. That's not a problem per se, but kill the entire group to be sure
+        kill -TERM -`ps --pid $pid -o "%r" --no-headers`
     fi
     exit
     ;;
@@ -32,6 +49,7 @@ case "$1" in
 esac
 
 trap 'rm "$LOCK_FILE"; trap - INT TERM EXIT; kill 0' INT TERM EXIT
+# trap 'rm "$LOCK_FILE"; trap - INT TERM EXIT; kill_chain $$; exit' INT TERM EXIT
 
 if [ ! -p "$FIFO_FILE" ]; then
     rm "$FIFO_FILE"
