@@ -8,20 +8,6 @@ LOCK_FILE="${FIFO_FILE}.lock"
 
 # DAEMONIZE ---------------------------------
 
-KILL_CHAIN=""
-
-build_chain() {
-    for CPID in `ps --ppid $1 -o pid --no-headers`; do
-        KILL_CHAIN="${KILL_CHAIN} ${CPID}"
-        build_chain $CPID
-    done
-}
-
-kill_chain() {
-    build_chain $1
-    kill $KILL_CHAIN
-}
-
 case "$1" in
   start)
     if [ ! -e "$LOCK_FILE" ]; then
@@ -49,7 +35,6 @@ case "$1" in
 esac
 
 trap 'rm "$LOCK_FILE"; trap - INT TERM EXIT; kill 0' INT TERM EXIT
-# trap 'rm "$LOCK_FILE"; trap - INT TERM EXIT; kill_chain $$; exit' INT TERM EXIT
 
 if [ ! -p "$FIFO_FILE" ]; then
     rm "$FIFO_FILE"
