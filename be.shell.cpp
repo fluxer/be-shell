@@ -1240,12 +1240,13 @@ nextWindow: continue;
                 QString title = info.visibleIconName();
                 if (isMinimized(info.state(), info.mappingState()))
                     title = "( " + title + " )";
-                title = "    " + title;
+//                 title = "    " + title;
                 if (title.length() > 52)
                     title = title.left(22) + "..." + title.right(22);
                 act = popup->addAction( KWindowSystem::icon(id, 32, 32, false ), title, instance, SLOT(setActiveWindow()) );
                 act->setData((uint)id);
                 act->setDisabled(id == KWindowSystem::activeWindow());
+                act->setIconVisibleInMenu(true);
                 needSep = true;
             }
         }
