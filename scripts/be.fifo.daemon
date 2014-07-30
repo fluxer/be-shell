@@ -21,9 +21,17 @@ case "$1" in
   stop)
     if [ -e "$LOCK_FILE" ]; then
         pid=$(cat "$LOCK_FILE")
-        kill $pid
-        # above could fail. That's not a problem per se, but kill the entire group to be sure
-        kill -TERM -`ps --pid $pid -o "%r" --no-headers`
+        pid="${pid// }"
+        if [ -z "$pid" ]; then
+            echo "Error: could not read daemon PID from $LOCK_FILE"
+        else
+            pgid=`ps --pid $pid -o "%r" --no-headers`
+            pgid="${pgid// }"
+            echo "Trying to kill PID: $pid and group: $pgid"
+            kill $pid
+            # above could fail. That's not a problem per se, but kill the entire group to be sure
+            kill -TERM -${pgid}
+        fi
     fi
     exit
     ;;
