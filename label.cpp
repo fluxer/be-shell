@@ -91,33 +91,26 @@ BE::Label::configure( KConfigGroup *grp )
             connect( myProcess, SIGNAL(finished(int,QProcess::ExitStatus)), SLOT(updateContents()) );
         else
             connect( myProcess, SIGNAL(readyReadStandardOutput()), SLOT(updateContents()) );
-    }
-    else
-    {
+    } else {
         QString file = grp->readEntry("FiFo", QString());
-        if (!file.isEmpty())
-        {
+        if (!file.isEmpty()) {
             file.replace("$HOME", _home).replace("$USER", _user);
-            if (QFile::exists(file) && isFiFo(file)) {
-                if (int fd = open(CHAR(file), O_RDWR|O_ASYNC|O_NONBLOCK))
-                {
+            if ((QFile::exists(file) && isFiFo(file)) ||
+                (mkfifo(CHAR(file), S_IRUSR|S_IWUSR) == 0)) {
+                if (int fd = open(CHAR(file), O_RDWR|O_ASYNC|O_NONBLOCK)) {
                     myFiFo = new QFile(this);
-                    if (myFiFo->open(fd, QIODevice::ReadWrite, QFile::AutoCloseHandle))
-                    {
+                    if (myFiFo->open(fd, QIODevice::ReadWrite, QFile::AutoCloseHandle)) {
                         QSocketNotifier *snr = new QSocketNotifier(myFiFo->handle(), QSocketNotifier::Read, myFiFo);
                         connect (snr, SIGNAL(activated(int)), SLOT(readFiFo()));
-                    }
-                    else
-                    {
+                    } else {
                         delete myFiFo; myFiFo = 0;
                     }
                 }
             }
-            else
-                qWarning("*** BE::Shell Label *** \"%s\": the FiFo %s does not exist!", CHAR(name()), CHAR(file) );
-        }
-        else
-        {
+            else {
+                qWarning("*** BE::Shell Label *** \"%s\": the FiFo %s does not exist nor could be created!", CHAR(name()), CHAR(file));
+            }
+        } else {
             myCommand = grp->readEntry("DBus", QString());
             QStringList list = myCommand.split(';');
             if (list.count() < 5)
