@@ -112,6 +112,19 @@ void BE::CalendarWidget::showEvent(QShowEvent *e)
     QCalendarWidget::showEvent(e);
 }
 
+static QString timeToCountDown(const QString &s)
+{
+    QStringList l = s.split(QChar('\''));
+    for (int i = 0; i < l.count(); i += 2) {
+        QString *ls = const_cast<QString*>(&l.at(i));
+        ls->replace('s', '0');
+        ls->replace('m', 's');
+        ls->replace('h', 'm');
+        ls->replace('H', 'm');
+    }
+    return l.join(QChar('\''));
+}
+
 BE::Clock::Clock(QWidget *parent, const QString &pattern ) : QLabel(parent)
 , BE::Plugged(parent)
 , myPattern(pattern)
@@ -145,6 +158,7 @@ BE::Clock::configure( KConfigGroup *grp )
 
     const QString s = myPattern;
     myPattern = grp->readEntry("Pattern", "hh:mm\nddd, MMM d");
+    myCountDownPattern = grp->readEntry("CountDownPattern", timeToCountDown(myPattern));
 
     if (myTimer)
         killTimer(myTimer);
@@ -204,8 +218,11 @@ BE::Clock::configPattern()
     "</dl></html>");
 
     QString text = QInputDialog::getText(this, i18n("Setup Clock pattern"), helpText, QLineEdit::Normal, myPattern, &ok);
-    if ( ok && !text.isEmpty() )
-        { myPattern = text; updateTime(); }
+    if (ok && !text.isEmpty()) {
+        myPattern = text;
+        myCountDownPattern = timeToCountDown(myPattern);
+        updateTime();
+    }
     Plugged::saveSettings();
 }
 
@@ -293,9 +310,11 @@ void
 BE::Clock::updateTime() {
     if (myCountDown > -1) {
         QDateTime dt(QDateTime::currentDateTime());
-        const int h = myCountDown/60;
-        dt.setTime(QTime(h, myCountDown - 60*h));
-        setText( dt.toString(myPattern) );
+        const int h = myCountDown/3600;
+        const int m = (myCountDown - 3600*h)/60;
+        const int s = myCountDown - (3600*h + 60*m);
+        dt.setTime(QTime(h, m, s));
+        setText( dt.toString(myCountDownPattern) );
     }
     else
         setText( QDateTime::currentDateTime().addSecs(myTzSecOffset).toString(myPattern) );

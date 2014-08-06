@@ -69,7 +69,7 @@ private slots:
     void startCountDown();
     void updateTime();
 private:
-    QString myPattern;
+    QString myPattern, myCountDownPattern;
     int myTimer, myCountDown;
     Precision myPrecision;
     qint64 myTzSecOffset;
