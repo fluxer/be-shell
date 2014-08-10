@@ -25,7 +25,6 @@
 #include <QCheckBox>
 #include <QDBusConnection>
 #include <QDBusInterface>
-#include <QDBusPendingCall>
 #include <QDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -98,7 +97,7 @@ BE::WmCtrl::buttonClicked()
         grabMouse(); break;
     case 'E': // presentWindows
         QDBusInterface("org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component",
-                       QDBusConnection::sessionBus()).asyncCall("invokeShortcut", "ExposeAll"); break;
+                       QDBusConnection::sessionBus()).call(QDBus::NoBlock, "invokeShortcut", "ExposeAll"); break;
     default:
         qDebug() << name() << "invalid button" << type;
     }
