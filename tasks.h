@@ -21,6 +21,7 @@
 #ifndef TASKS_H
 #define TASKS_H
 
+class QDBusError;
 class QLabel;
 #include "be.plugged.h"
 #include "button.h"
@@ -82,7 +83,9 @@ private slots:
     void highlightWindow(QAction *a);
     void _repolish();
     void raiseForDnD();
+    void showWindowList(const QDBusError &);
     void toggleSticky();
+    void tryExpose(const QStringList &loadedEffects);
     void updateStates();
 private:
     bool iStick, iAmImportant, iAmMinimized, iAmDirty;

@@ -20,6 +20,8 @@
 
 #include <QApplication>
 #include <QBoxLayout>
+#include <QDBusConnection>
+#include <QDBusInterface>
 #include <QDragEnterEvent>
 #include <QDragLeaveEvent>
 #include <QDropEvent>
@@ -338,13 +340,34 @@ BE::Task::mouseReleaseEvent(QMouseEvent *me)
             repolish();
             requestAttention(0);
         }
-        if (menu())
-            showWindowList();
+        if (menu()) {
+            KWindowSystem::forceActiveWindow(myWindows.at(0));
+            XSync(QX11Info::display(), false);
+            QDBusInterface("org.kde.KWin", "/KWin", "org.kde.KWin",
+                       QDBusConnection::sessionBus()).callWithCallback("loadedEffects", QList<QVariant>(),
+                                                                       this, SLOT(tryExpose(QStringList)), SLOT(showWindowList(QDBusError)));
+        }
         else if (count())
             toggleState(myWindows.at(0));
     }
     else
         BE::Button::mouseReleaseEvent(me);
+}
+
+void
+BE::Task::tryExpose(const QStringList &loadedEffects)
+{
+    if (loadedEffects.contains("kwin4_effect_presentwindows"))
+        QDBusInterface("org.kde.kglobalaccel", "/component/kwin", "org.kde.kglobalaccel.Component",
+                       QDBusConnection::sessionBus()).call(QDBus::NoBlock, "invokeShortcut", "ExposeClass");
+    else
+        showWindowList();
+}
+
+void
+BE::Task::showWindowList(const QDBusError &)
+{
+    showWindowList();
 }
 
 void
