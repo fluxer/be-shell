@@ -783,8 +783,9 @@ BE::Panel::mouseMoveEvent(QMouseEvent *me)
         return;
     }
 
-    if (me->buttons() == Qt::NoButton)
-    {
+    if (myLength < 1) {
+        return;
+    } else  if (me->buttons() == Qt::NoButton) {
         if (!rect().contains(me->pos()))
         {
             if (myMoveResizeMode != Qt::ArrowCursor)
@@ -817,9 +818,7 @@ BE::Panel::mouseMoveEvent(QMouseEvent *me)
         }
         if (myMoveResizeMode != newMode)
             setCursor(myMoveResizeMode = newMode);
-    }
-    else if (me->buttons() == Qt::LeftButton)
-    {
+    } else if (me->buttons() == Qt::LeftButton) {
 //         const QRect screen = QApplication::desktop()->screenGeometry(myScreen);
         const QRect screen = BE::Shell::desktopGeometry(myScreen);
         switch (myMoveResizeMode)
@@ -833,13 +832,12 @@ BE::Panel::mouseMoveEvent(QMouseEvent *me)
             {
                 const int oldLength = myLength;
                 const int d = 100*(startPos.x() - me->pos().x())/screen.width();
-                if (me->pos().x() < width()/2)
-                {
+                if (me->pos().x() < width()/2) {
                     myOffset = qMax(0, myOffset-d);
                     myLength = qMin(100-myOffset, myLength+d);
-                }
-                else
+                } else {
                     myLength = qMin(100, myLength - d);
+                }
                 if (oldLength == myLength)
                     break; // avoid startPos update, this changes percentwise
             }
@@ -856,13 +854,12 @@ BE::Panel::mouseMoveEvent(QMouseEvent *me)
             {
                 const int oldLength = myLength;
                 const int d = 100*(startPos.y() - me->pos().y())/screen.height();
-                if (me->pos().y() < height()/2)
-                {
+                if (me->pos().y() < height()/2) {
                     myOffset = qMax(0, myOffset-d);
                     myLength = qMin(100-myOffset, myLength+d);
-                }
-                else
+                } else {
                     myLength = qMin(100, myLength - d);
+                }
                 if (oldLength == myLength)
                     break; // avoid startPos update, this changes percentwise
             }
@@ -1066,12 +1063,11 @@ BE::Panel::updateName()
     }
     QString name = names[myPosition];
     int n = 2*(orientation() == Qt::Horizontal);
-    if (myLength < 100)
-    {
+    if (qAbs(myLength) < 100) {
         if (myOffset > 0)
-            name.prepend( (myOffset+myLength < 100) ? "Central" : names[n+1] );
+            name.prepend((myOffset + qAbs(myLength) < 100) ? "Central" : names[n+1]);
         else
-            name.prepend( names[n] );
+            name.prepend(names[n]);
     }
     name.append("Panel");
     const QString formerName = objectName();
@@ -1156,13 +1152,19 @@ BE::Panel::desktopResized()
         off = screen.height() - mySize;
     default:
     case Top:
-        setFixedSize( screen.width()*myLength/100, mySize );
+        if (myLength > 0)
+            setFixedSize(screen.width()*myLength/100, mySize);
+        else
+            setFixedSize(-myLength, mySize);
         move(screen.x() + screen.width()*myOffset/100, screen.y() + off );
         break;
     case Right:
         off = screen.width() - mySize;
     case Left:
-        setFixedSize( mySize, screen.height()*myLength/100 );
+        if (myLength > 0)
+            setFixedSize(mySize, screen.height()*myLength/100);
+        else
+            setFixedSize(mySize, -myLength);
         move(screen.x() + off, screen.y() + screen.height()*myOffset/100);
         break;
     }
