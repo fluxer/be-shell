@@ -20,6 +20,7 @@
 
 #include "systray.h"
 #include "flowlayout.h"
+#include "pixlabel.h"
 
 #include <unistd.h>
 
@@ -29,7 +30,6 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QHeaderView>
-#include <QLabel>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
@@ -219,17 +219,17 @@ class SysTrayIcon : public QWidget
 {
 public:
     enum Feature { Custom = 1<<0, InputShape = 1<<1, Curtain = 1<<2 };
-    SysTrayIcon(WId id, SysTray *parent) : QWidget(parent), nasty(false), fallback(false)
-    {
+    SysTrayIcon(WId id, SysTray *parent) : QWidget(parent)
+    , nasty(false)
+    , fallback(false)
+    , iTriedToGrow(false)
+    , myResizeDelay(0) {
         setContentsMargins(0, 0, 0, 0);
-        setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        setMinimumSize(16,16);
         setFocusPolicy(Qt::ClickFocus);
 
         iName = KWindowInfo(id, NET::WMName).name();
 
-        curtain = new QLabel( this );
-        curtain->setScaledContents(true);
+        curtain = new PixLabel( this );
         curtain->setAttribute(Qt::WA_TranslucentBackground, false);
         curtain->setAttribute(Qt::WA_DontCreateNativeAncestors, true);
         curtain->setAttribute(Qt::WA_NativeWindow, true);
@@ -259,7 +259,8 @@ public:
         wmPix = KWindowSystem::icon(id, 128, 128, false );
         updateIcon();
     }
-
+    int heightForWidth(int w) const { return w; }
+    QSize sizeHint() const { return QSize(22,22); }
     void fixStack() {
         XRaiseWindow(QX11Info::display(), curtain->winId());
     }
@@ -269,8 +270,7 @@ public:
     void release() {
         XReparentWindow(QX11Info::display(), cId(), QX11Info::appRootWindow(), 0, 0);
     }
-    void setFallBack( bool on )
-    {
+    void setFallBack(bool on) {
         if (fallback == on)
             return;
         fallback = on;
@@ -280,10 +280,9 @@ public:
     }
     inline static void setSize(int s) { ourSize = s; };
     void syncToRedirected() { if (!bed) return; bed->syncToRedirected(); curtain->repaint(); }
-    void updateIcon()
-    {
+    void updateIcon() {
         QIcon icn = BE::Plugged::themeIcon(iName, parentWidget(), false);
-        curtain->setPixmap(icn.isNull() ? wmPix : icn.pixmap(128));
+        curtain->setIcon(icn.isNull() ? wmPix : icn);
     }
     bool nasty, fallback;
 protected:
@@ -299,20 +298,42 @@ protected:
         return false;
     }
 
-    void resizeEvent( QResizeEvent *re )
-    {
-        if ( width() == height() )
-        {
+    void resizeEvent( QResizeEvent *re ) {
+        if (width() == height()) {
             QWidget::resizeEvent(re);
 //             XResizeWindow(QX11Info::display(), cId(), width(), height() );
 //             XMapRaised(QX11Info::display(), cId());
             bed->setFixedSize(size());
             curtain->setFixedSize(size());
+            if (myResizeDelay)
+                killTimer(myResizeDelay);
+            myResizeDelay = startTimer(150);
+        } else if (iTriedToGrow) {
+            iTriedToGrow = false;
+            const int s = qMin(myShrinkSize, qMin(width(), height()));
+            resize(s, s);
+        } else {
+            iTriedToGrow = true;
+            myShrinkSize = qMin(width(), height());
+            const int s = qMax(width(), height());
+            resize(s, s);
         }
-        else if (width() > height())
-            setMaximumWidth(height());
-        else
-            setMaximumHeight(width());
+    }
+
+    void showEvent(QShowEvent *se) {
+        QWidget::showEvent(se);
+        bed->setFixedSize(size());
+        curtain->setFixedSize(size());
+    }
+
+    void timerEvent(QTimerEvent *te) {
+        if (te->timerId() == myResizeDelay) {
+            killTimer(myResizeDelay);
+            myResizeDelay = 0;
+            iTriedToGrow = false;
+        } else {
+            QWidget::timerEvent(te);
+        }
     }
 
 protected:
@@ -320,7 +341,11 @@ protected:
     QString iName;
     X11EmbedContainer *bed;
     QPixmap wmPix;
-    QLabel *curtain;
+    PixLabel *curtain;
+private:
+    bool iTriedToGrow;
+    int myShrinkSize;
+    int myResizeDelay;
 };
 
 }
@@ -674,26 +699,14 @@ BE::SysTray::updateUnthemed()
     while (i != myIcons.end())
     {
         BE::SysTrayIcon *icon = *i;
-        if (!icon) { i = myIcons.erase(i); continue; }
-        
+        if (!icon) {
+            i = myIcons.erase(i);
+            continue;
+        }
         icon->setFallBack(unthemedOnes.contains(icon->name()));
         ++i;
     }
 }
-
-
-// void BE::SysTray::resizeEvent( QResizeEvent * )
-// {
-//     QList< QPointer<SysTrayIcon> >::iterator i = myIcons.begin();
-//     while (i != myIcons.end())
-//     {
-//         BE::SysTrayIcon *icon = *i;
-//         if (!icon) { i = myIcons.erase(i); continue; }
-//         
-//         icon->setFixedSize( height(), height() );
-//         ++i;
-//     }
-// }
 
 bool BE::SysTray::x11Event(XEvent *event)
 {

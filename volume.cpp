@@ -29,7 +29,6 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
@@ -114,7 +113,7 @@ BE::Volume::OSD::show(int total, int done)
     TouchWheel::blockClose(false);
 }
 
-BE::Volume::Volume( QWidget *parent ) : QLabel(parent), BE::Plugged( parent )
+BE::Volume::Volume( QWidget *parent ) : PixLabel(parent), BE::Plugged( parent )
 , myValue(-1)
 , myUnmutedValue(-1)
 {
@@ -300,7 +299,7 @@ void BE::Volume::updateValue()
     else
         icn = themeIcon("audio-volume-high");
     int s = contentsRect().height();
-    setPixmap(icn.pixmap(s, s));
+    setIcon(icn);
 }
 
 void BE::Volume::up()

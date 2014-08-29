@@ -1,6 +1,6 @@
 /**************************************************************************
-*   Copyright (C) 2009 by Thomas Luebking                                  *
-*   thomas.luebking@web.de                                                *
+*   Copyright (C) 2014 by Thomas Luebking                                 *
+*   thomas.luebking@gmail.com                                             *
 *                                                                         *
 *   This program is free software; you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
@@ -18,54 +18,27 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#ifndef VOLUME_H
-#define VOLUME_H
+#ifndef PIXLABEL_H
+#define PIXLABEL_H
 
-class KConfigGroup;
-class QProcess;
+#include <QIcon>
+#include <QLabel>
 
-#include "pixlabel.h"
-#include "be.plugged.h"
-
-namespace BE {
-
-class Volume : public PixLabel, public Plugged
+class PixLabel : public QLabel
 {
-    class OSD : public QWidget
-    {
-    public:
-        OSD(QWidget *parent = 0);
-        void show(int total, int done);
-    protected:
-        void paintEvent(QPaintEvent *ev);
-    private:
-        int myProgress, myTarget;
-        QTimer *hideTimer;
-    };
-
-    Q_OBJECT
 public:
-    Volume(QWidget *parent = 0);
-    void configure( KConfigGroup *grp );
-    void themeChanged();
+    PixLabel(QWidget *parent);
+    void setIcon(const QIcon &icn);
+    bool hasScaledContents() { return true; }
+    int heightForWidth(int w) const;
 protected:
-    void mousePressEvent(QMouseEvent *ev);
-    void wheelEvent(QWheelEvent *ev);
-private slots:
-    void down();
-    void launchMixer();
-    void toggleMute();
-    void sync();
-    void up();
+    void resizeEvent(QResizeEvent *re);
+    void timerEvent(QTimerEvent *te);
 private:
-    void read(QProcess &amixer);
-    void updateValue();
-    void set(int v, QChar dir = QChar());
-    QString myChannel, myMixerCommand, myDevice;
-    bool iAmMuted;
-    int myStep, myValue, myUnmutedValue, myPollInterval, myMaxVolume;
-    OSD *myOSD;
-    QTimer *syncTimer;
+    void setScaledContents(bool) {}
+    int myScaleDelay;
+    QIcon myIcn;
+    bool iTriedToGrow;
 };
-}
-#endif // VOLUME_H
+
+#endif // PIXLABEL_H
