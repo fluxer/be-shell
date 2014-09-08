@@ -19,6 +19,7 @@
 ***************************************************************************/
 
 #include "systray.h"
+#include "be.shell.h"
 #include "flowlayout.h"
 #include "pixlabel.h"
 
@@ -221,10 +222,9 @@ public:
     enum Feature { Custom = 1<<0, InputShape = 1<<1, Curtain = 1<<2 };
     SysTrayIcon(WId id, SysTray *parent) : QWidget(parent)
     , nasty(false)
-    , fallback(false)
-    , iTriedToGrow(false)
-    , myResizeDelay(0) {
+    , fallback(false) {
         setContentsMargins(0, 0, 0, 0);
+        setFixedSize(ourSize, ourSize);
         setFocusPolicy(Qt::ClickFocus);
 
         iName = KWindowInfo(id, NET::WMName).name();
@@ -299,42 +299,13 @@ protected:
     }
 
     void resizeEvent( QResizeEvent *re ) {
-        if (width() == height()) {
             QWidget::resizeEvent(re);
 //             XResizeWindow(QX11Info::display(), cId(), width(), height() );
 //             XMapRaised(QX11Info::display(), cId());
             bed->setFixedSize(size());
             curtain->setFixedSize(size());
-            if (myResizeDelay)
-                killTimer(myResizeDelay);
-            myResizeDelay = startTimer(150);
-        } else if (iTriedToGrow) {
-            iTriedToGrow = false;
-            const int s = qMin(myShrinkSize, qMin(width(), height()));
-            resize(s, s);
-        } else {
-            iTriedToGrow = true;
-            myShrinkSize = qMin(width(), height());
-            const int s = qMax(width(), height());
-            resize(s, s);
-        }
     }
 
-    void showEvent(QShowEvent *se) {
-        QWidget::showEvent(se);
-        bed->setFixedSize(size());
-        curtain->setFixedSize(size());
-    }
-
-    void timerEvent(QTimerEvent *te) {
-        if (te->timerId() == myResizeDelay) {
-            killTimer(myResizeDelay);
-            myResizeDelay = 0;
-            iTriedToGrow = false;
-        } else {
-            QWidget::timerEvent(te);
-        }
-    }
 
 protected:
     static int ourSize;
@@ -342,10 +313,6 @@ protected:
     X11EmbedContainer *bed;
     QPixmap wmPix;
     PixLabel *curtain;
-private:
-    bool iTriedToGrow;
-    int myShrinkSize;
-    int myResizeDelay;
 };
 
 }
@@ -354,6 +321,7 @@ static int damageEventBase = 0;
 static QCoreApplication::EventFilter formerX11EventFilter = 0;
 static bool gs_filteringEvents = false;
 static BE::SysTray *s_instance = 0;
+int BE::SysTrayIcon::ourSize = 22;
 
 BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent), nastyOnesAreVisible(false)
 {
@@ -374,8 +342,8 @@ BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent), nas
     connect (qApp, SIGNAL(aboutToQuit()), SLOT(releaseIcons()));
 
     FlowLayout *l = new FlowLayout(this);
-    l->setContentsMargins(3, 1, 3, 1);
-    l->setSpacing(2);
+    l->setContentsMargins(0, 0, 0, 0);
+    l->setAlignment(Qt::AlignCenter);
     QTimer::singleShot(0, this, SLOT(init()));
     int errorBase;
     XDamageQueryExtension(QX11Info::display(), &damageEventBase, &errorBase);
@@ -666,6 +634,25 @@ BE::SysTray::mousePressEvent(QMouseEvent *ev)
     }
     else
         QFrame::mousePressEvent(ev);
+}
+
+void
+BE::SysTray::resizeEvent(QResizeEvent *ev)
+{
+    QFrame::resizeEvent(ev);
+    int l,t,r,b;
+    BE::Shell::getContentsMargins(this, &l, &t, &r, &b);
+    const int s = orientation() == Qt::Horizontal ? height() - (t+b) : width() - (l+r);
+    SysTrayIcon::setSize(s);
+    QList< QPointer<SysTrayIcon> >::iterator i = myIcons.begin();
+    while (i != myIcons.end()) {
+        BE::SysTrayIcon *icon = *i;
+        if (!icon)
+            { i = myIcons.erase(i); continue; }
+
+        icon->setFixedSize(s,s);
+        ++i;
+    }
 }
 
 void

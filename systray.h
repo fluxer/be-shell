@@ -43,7 +43,7 @@ public:
     void configure( KConfigGroup *grp );
     void saveSettings( KConfigGroup *grp );
 protected:
-//     void resizeEvent(QResizeEvent *ev);
+    void resizeEvent(QResizeEvent *ev);
     void mousePressEvent(QMouseEvent *);
     bool x11Event(XEvent *event);
 private:
