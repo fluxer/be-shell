@@ -65,6 +65,7 @@ private:
     QList< QPointer<SysTrayIcon> > myIcons;
     QStringList nastyOnes, unthemedOnes;
     bool nastyOnesAreVisible;
+    int myIconSize;
 };
 }
 

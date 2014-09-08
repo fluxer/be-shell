@@ -35,6 +35,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPixmap>
+#include <QSpinBox>
 #include <QTimer>
 #include <QTreeWidget>
 #include <QVBoxLayout>
@@ -323,7 +324,9 @@ static bool gs_filteringEvents = false;
 static BE::SysTray *s_instance = 0;
 int BE::SysTrayIcon::ourSize = 22;
 
-BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent), nastyOnesAreVisible(false)
+BE::SysTray::SysTray(QWidget *parent) : QFrame(parent), BE::Plugged(parent)
+, nastyOnesAreVisible(false)
+, myIconSize(0)
 {
     if (s_instance) {
         deleteLater();
@@ -446,6 +449,12 @@ BE::SysTray::configure( KConfigGroup *grp )
     if (spacing < 0)
         spacing = 2;
     static_cast<FlowLayout*>(layout())->setSpacing(spacing);
+
+    spacing = myIconSize;
+    myIconSize = grp->readEntry("IconSize", 0);
+    if (spacing != myIconSize)
+        resizeEvent(NULL);
+
     QStringList oldOnes = nastyOnes;
     nastyOnes = grp->readEntry("NastyIcons", QStringList());
     if (nastyOnes != oldOnes)
@@ -568,8 +577,7 @@ BE::SysTray::configureIcons()
 
     QMap<QString,int> icons;
     QList< QPointer<SysTrayIcon> >::iterator it = myIcons.begin();
-    while (it != myIcons.end())
-    {
+    while (it != myIcons.end()) {
         BE::SysTrayIcon *icon = *it;
         if (!icon)
             { it = myIcons.erase(it); continue; }
@@ -583,8 +591,8 @@ BE::SysTray::configureIcons()
     foreach (QString s, nastyOnes)
         icons[s] |= 2;
 
-    for (QMap<QString, int>::const_iterator it = icons.constBegin(), end = icons.constEnd(); it != end; ++it)
-    {
+    for (QMap<QString, int>::const_iterator it = icons.constBegin(),
+                                            end = icons.constEnd(); it != end; ++it) {
         QTreeWidgetItem *item = new QTreeWidgetItem( QStringList() << it.key() << i18n("Nasty") << i18n("Unthemed"));
         item->setCheckState(2, it.value() & 1 ? Qt::Checked : Qt::Unchecked );
         item->setCheckState(1, it.value() & 2 ? Qt::Checked : Qt::Unchecked );
@@ -596,6 +604,17 @@ BE::SysTray::configureIcons()
     tree->sortItems( 0, Qt::AscendingOrder );
     d->layout()->addWidget(tree);
 
+    QHBoxLayout *hbl = new QHBoxLayout;
+    static_cast<QVBoxLayout*>(d->layout())->addLayout(hbl);
+    hbl->addWidget(new QLabel(i18n("Icon Size"), this));
+    QSpinBox *iconSize;
+    hbl->addWidget(iconSize = new QSpinBox(this));
+    iconSize->setRange(0, 256);
+    iconSize->setSingleStep(1);
+    iconSize->setSuffix("px");
+    iconSize->setSpecialValueText(i18n("Automatic"));
+    iconSize->setValue(myIconSize);
+
     QDialogButtonBox *dbb = new QDialogButtonBox( QDialogButtonBox::Ok|QDialogButtonBox::Cancel, Qt::Horizontal, d );
     d->layout()->addWidget(dbb);
     connect (dbb, SIGNAL(accepted()), d, SLOT(accept()));
@@ -604,19 +623,19 @@ BE::SysTray::configureIcons()
     d->exec();
     d->hide();
 
-    if (d->result() == QDialog::Accepted)
-    {
+    if (d->result() == QDialog::Accepted) {
+        myIconSize = iconSize->value();
         nastyOnes.clear();
         unthemedOnes.clear();
         const int n = tree->topLevelItemCount();
-        for (int i = 0; i < n; ++i)
-        {
+        for (int i = 0; i < n; ++i) {
             QTreeWidgetItem *item = tree->topLevelItem(i);
             if (item->checkState(1) == Qt::Checked)
                 nastyOnes << item->text(0);
             if (item->checkState(2) == Qt::Checked)
                 unthemedOnes << item->text(0);
         }
+        resizeEvent(NULL);
         toggleNastyOnes(nastyOnesAreVisible);
         updateUnthemed();
         Plugged::saveSettings();
@@ -639,10 +658,16 @@ BE::SysTray::mousePressEvent(QMouseEvent *ev)
 void
 BE::SysTray::resizeEvent(QResizeEvent *ev)
 {
-    QFrame::resizeEvent(ev);
-    int l,t,r,b;
-    BE::Shell::getContentsMargins(this, &l, &t, &r, &b);
-    const int s = orientation() == Qt::Horizontal ? height() - (t+b) : width() - (l+r);
+    if (ev)
+        QFrame::resizeEvent(ev);
+    int s;
+    if (myIconSize) {
+        s = myIconSize;
+    } else {
+        int l,t,r,b;
+        BE::Shell::getContentsMargins(this, &l, &t, &r, &b);
+        s = orientation() == Qt::Horizontal ? height() - (t+b) : width() - (l+r);
+    }
     SysTrayIcon::setSize(s);
     QList< QPointer<SysTrayIcon> >::iterator i = myIcons.begin();
     while (i != myIcons.end()) {
@@ -658,8 +683,9 @@ BE::SysTray::resizeEvent(QResizeEvent *ev)
 void
 BE::SysTray::saveSettings( KConfigGroup *grp )
 {
-    grp->writeEntry( "NastyIcons", nastyOnes);
-    grp->writeEntry( "FallbackIcons", unthemedOnes);
+    grp->writeEntry("NastyIcons", nastyOnes);
+    grp->writeEntry("FallbackIcons", unthemedOnes);
+    grp->writeEntry("IconSize", myIconSize);
 }
 
 
