@@ -116,7 +116,7 @@ QToolButton(parent), deleted(false)
         updateSolidActions();
 
 //         setPopupMode( QToolButton::MenuButtonPopup );
-    setMinimumSize(16,16);
+//     setMinimumSize(16,16);
 
     myProduct = dev.product();
     myDrv = drv ? drv : drive4(dev);
@@ -512,7 +512,7 @@ BE::MediaTray::MediaTray( QWidget *parent ) : QFrame(parent), BE::Plugged(parent
 {
     setObjectName("MediaTray");
     FlowLayout *l = new FlowLayout(this);
-    l->setContentsMargins(3, 1, 3, 1);
+    l->setContentsMargins(0, 0, 0, 0);
     l->setSpacing(2);
     connect(Solid::DeviceNotifier::instance(), SIGNAL(deviceAdded(const QString&)), this, SLOT(addDevice(const QString&)));
     connect(Solid::DeviceNotifier::instance(), SIGNAL(deviceRemoved(const QString&)), this, SLOT(removeDevice(const QString&)));

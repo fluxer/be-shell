@@ -19,8 +19,8 @@
 ***************************************************************************/
 
 #include "flowlayout.h"
+#include "be.shell.h"
 #include <QWidget>
-#include <QtDebug>
 
 BE::FlowLayout::FlowLayout(QWidget *parent) : QGridLayout(parent), internalInvalidation(false) {}
 
@@ -28,10 +28,8 @@ void
 BE::FlowLayout::addItem(QLayoutItem *item)
 {
     for (int r = 0; r < rowCount(); ++r)
-    for (int c = 0; c < columnCount(); ++c)
-    {
-        if (!itemAtPosition(r,c))
-        {
+    for (int c = 0; c < columnCount(); ++c) {
+        if (!itemAtPosition(r,c)) {
             QGridLayout::addItem(item, r, c);
             return;
         }
@@ -44,8 +42,7 @@ void
 BE::FlowLayout::invalidate()
 {
     QGridLayout::invalidate();
-    if (internalInvalidation)
-    {
+    if (internalInvalidation) {
         internalInvalidation = false;
         return;
     }
@@ -57,17 +54,16 @@ BE::FlowLayout::invalidate()
 
     QLayoutItem *item;
     int left, right, top, bottom;
-    getContentsMargins(&left, &top, &right, &bottom);
+    BE::Shell::getContentsMargins(pw, &left, &top, &right, &bottom);
     const int pww = pw->maximumWidth()-(left+right);
-    
+
     QList<QLayoutItem*> items;
     QList<QLayoutItem*> inItems;
     int r = 0, c = 0;
     for (r = 0; r < rowCount(); ++r)
     for (c = 0; c < columnCount(); ++c)
-        if ((item = itemAtPosition(r, c)))
-        {
-            if (item->widget() && !item->widget()->isVisible())
+        if ((item = itemAtPosition(r, c))) {
+            if (item->widget() && !item->widget()->isVisibleTo(pw))
                 inItems << item;
             else
                 items << item;
@@ -75,17 +71,15 @@ BE::FlowLayout::invalidate()
         }
 
     r = 0; c = 0; int w = 0;
-    while (!items.isEmpty())
-    {
+    while (!items.isEmpty()) {
         item = items.takeFirst();
-        if (w + item->minimumSize().width() >= pww)
+        if (w + item->minimumSize().width() > pww)
             { ++r; w = 0; c = 0; }
         internalInvalidation = true; QGridLayout::addItem(item, r, c);
         w += item->minimumSize().width() + spacing();
         ++c;
     }
-    while (!inItems.isEmpty())
-    {
+    while (!inItems.isEmpty()) {
         internalInvalidation = true; QGridLayout::addItem(inItems.takeFirst(), r, ++c);
     }
 

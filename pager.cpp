@@ -42,6 +42,7 @@ BE::Pager::Pager(QWidget *parent) : QFrame(parent), BE::Plugged(parent)
     myLayout = new FlowLayout(this);
     myLayout->setSpacing(0);
     myLayout->setMargin(0);
+    myLayout->setContentsMargins(0, 0, 0, 0);
 
     myConfigMenu = new QMenu(this);
     iShowNames = new QAction(i18n("Show desktop names"), this);
