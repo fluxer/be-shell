@@ -42,6 +42,7 @@ protected:
     void enterEvent(QEvent *e);
     void leaveEvent(QEvent *e);
     void timerEvent(QTimerEvent *te);
+    void wheelEvent(QWheelEvent *we);
 private slots:
     void protectedExec(const QString &cmd);
     void updateContents();

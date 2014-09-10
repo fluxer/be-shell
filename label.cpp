@@ -32,6 +32,7 @@
 #include <QTimer>
 #include <QTimerEvent>
 #include <QUrl>
+#include <QWheelEvent>
 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -232,6 +233,25 @@ BE::Label::timerEvent(QTimerEvent *te)
     }
     if ( !myReplyIsPending )
         poll();
+}
+
+void
+BE::Label::wheelEvent(QWheelEvent *we)
+{
+    QLabel::wheelEvent(we);
+    QSize hint = sizeHint();
+    if (hint.height() > height() || hint.height() > width()) {
+        we->accept();
+        int delta = we->delta() > 0 ? 32 : -32;
+        int l,t,r,b;
+        getContentsMargins(&l, &t, &r, &b);
+        hint -= QSize(l,t);
+        if (we->orientation() == Qt::Horizontal || hint.height() <= height())
+            l = qMax(width() - hint.width(), qMin(0, l + delta));
+        else
+            t = qMax(height() - hint.height(), qMin(0, t + delta));
+        setContentsMargins(l, t, r, b);
+    }
 }
 
 void
