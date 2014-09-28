@@ -268,28 +268,28 @@ BE::CpuMeter::poll()
         return;
 
     myFile.reset();
-    for (int i = 0; i<8;++i)
-    {
+    for (int i = 0; i < 8; ++i) {
         QString line = myFile.readLine();
-        if (line.startsWith(myCpu))
-        {
+        if (line.startsWith(myCpu)) {
             QStringList list = line.split(' ', QString::SkipEmptyParts);
-            if (list.count() > 7) // probably valid line ;-)
-            {
+            if (list.count() > 7) { // probably valid line ;-)
                 if (list.at(0) != myCpu)
                     continue;
+
                 myIdleTime[0] = myIdleTime[1];
                 myCpuTime[0]  = myCpuTime[1];
-                myCpuTime[1] = 0;
-                for (int i = 1; i < 8; ++i)
-                {
-                    if (i == 4)
-                        myCpuTime[1] += (myIdleTime[1] = list[i].toInt());
-                    else
-                        myCpuTime[1] += list[i].toInt();
+                myCpuTime[1] = myIdleTime[1] = 0;
+
+                for (int i = 1; i < 8; ++i) {
+                    const int time = list[i].toInt();
+                    if (i == 4 || i == 5) // 4: idle, 5: iowait
+                        myIdleTime[1] += time;
+                    myCpuTime[1] += time;
                 }
+
                 if (myCpuTime[0] == myCpuTime[1])
                     break; // there's sth. severely! wrong here
+
                 const int v = 1000-1000*(myIdleTime[1]-myIdleTime[0])/(myCpuTime[1]-myCpuTime[0]);
                 setValues( (value(1)+2*v)/3, (v+3*value(1))/4 );
                 setLabel(QString::number( 100.0*percent(1), 'f', 1 ));
