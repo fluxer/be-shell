@@ -150,7 +150,8 @@ BE::Shell::Shell(QObject *parent) : QObject(parent), myStyleWatcher(0L)
     QDBusConnection::sessionBus().registerService("org.kde.screensaver");
     QDBusConnection::sessionBus().registerObject("/ScreenSaver", this);
 
-    QMetaObject::invokeMethod(this, "launchRunner");
+    QMetaObject::invokeMethod(this, "launchRunner", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, "fixPanelOrder", Qt::QueuedConnection);
 }
 
 BE::Shell::~Shell()
@@ -656,6 +657,15 @@ BE::Shell::editThemeSheet()
     KRun::runUrl( file, "text/plain", 0 );
 }
 
+void BE::Shell::fixPanelOrder()
+{
+    for (QList<Plugged*>::iterator it = myPlugs.begin(), end = myPlugs.end(); it != end; ++it) {
+        if (BE::Panel *panel = dynamic_cast<BE::Panel*>(*it))
+            panel->raise();
+    }
+}
+
+
 void
 BE::Shell::launchRunner()
 {
@@ -927,10 +937,14 @@ BE::Shell::debug(const QString &pluginName, const QString &parameter) const
 {
     if (pluginName == "Shell") {
         // TODO global be::shell debug
-        return QString();
+        QString ret;
+        foreach (const QObject *o, instance->myDesk->children())
+            ret += "; " + o->objectName() + " (" + o->metaObject()->className() + ")";
+        return ret;
     }
+
     QString ret;
-    for (QList<Plugged*>::const_iterator it = myPlugs.begin(), end = myPlugs.end(); it != end; ++it) {
+    for (QList<Plugged*>::const_iterator it = myPlugs.constBegin(), end = myPlugs.constEnd(); it != end; ++it) {
         ret += (*it)->debug(pluginName, parameter);
     }
     return ret;

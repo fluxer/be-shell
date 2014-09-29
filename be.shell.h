@@ -120,6 +120,7 @@ private slots:
     void runFromAction();
     void editConfig();
     void editThemeSheet();
+    void fixPanelOrder();
     void launchRunner();
     void populateMenu();
     void populateScreenMenu();
