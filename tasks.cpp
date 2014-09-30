@@ -797,14 +797,13 @@ BE::Task::updateStates()
 BE::Tasks::Tasks(QWidget *parent) : QFrame(parent), BE::Plugged(parent)
 {
     iStackNow = iStack = true;
-    setLayout(new QBoxLayout(QBoxLayout::LeftToRight, this));
+    myOrientation = Plugged::orientation();
+
+    setLayout(new QBoxLayout(myOrientation == Qt::Horizontal ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom, this));
     layout()->setAlignment(Qt::AlignCenter);
     layout()->setContentsMargins(0, 0, 0, 0);
 
     setFocusPolicy( Qt::ClickFocus );
-
-    myOrientation = Plugged::orientation();
-
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     connect( parent, SIGNAL(orientationChanged(Qt::Orientation)), SLOT(orientationChanged(Qt::Orientation)) );
