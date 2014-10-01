@@ -291,6 +291,12 @@ BE::Button::resizeEvent(QResizeEvent */*re*/)
     if (toolButtonStyle() != Qt::ToolButtonIconOnly)
         bsz = fontMetrics().size(Qt::TextSingleLine, text());
 
+    int l,t,w,h;
+    BE::Shell::getContentsMargins(this, &l, &t, &w, &h);
+    w = width() - (l+w);
+    h = height() - (t+h);
+
+    int s = 0;
     int i = 0;
     for (i = 0; i < 10; ++i) {
         QSize sz(bsz);
@@ -301,14 +307,18 @@ BE::Button::resizeEvent(QResizeEvent */*re*/)
         } else if (toolButtonStyle() == Qt::ToolButtonIconOnly) {
             sz = QSize(iconSizes[i], iconSizes[i]);
         }
-        sz = style()->sizeFromContents(QStyle::CT_ToolButton, &opt, sz, this);
-        if (sz.width() > width() || sz.height() > height()) {
+        sz = style()->sizeFromContents(QStyle::CT_ToolButton, &opt, sz, this); // 250x45 ...
+        if (sz.width() > w || sz.height() > h || // requires more space than we have
+            sz.width() < iconSizes[i] || sz.height() < iconSizes[i]) { // iconsize > maximum width/height
+            if (i && iconSizes[i-1] < iconSize().width())
+                s = iconSizes[i] - qMax(sz.width() - w, sz.height() - h);
 //             if (i) --i; // greedy
             break;
         }
     }
 
-    int s = iconSizes[i];
+    if (!s)
+        s = iconSizes[i];
     if (myRecursionGuard.isValid() && myRecursionGuard.elapsed() < 30 && myLastIconSize == s) {
         s = (s + iconSize().width())/2; // there's a fight in the layout - seek for convergence
     }
