@@ -125,6 +125,7 @@ private slots:
     void populateMenu();
     void populateScreenMenu();
     void populateWindowList();
+    void reloadTheme();
     void setActiveWindow();
     void setCurrentDesktop();
     void setTheme(QAction *);

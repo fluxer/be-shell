@@ -1373,6 +1373,12 @@ BE::Shell::setPanelVisible(const QString &name, char vis)
 }
 
 void
+BE::Shell::reloadTheme()
+{
+    setTheme(myTheme);
+}
+
+void
 BE::Shell::setTheme(QAction *action)
 {
     if (action)
@@ -1389,8 +1395,12 @@ BE::Shell::setTheme(const QString &t)
     myTheme = t;
     delete myStyleWatcher; myStyleWatcher = 0;
     QString file = KGlobal::dirs()->locate("data","be.shell/Themes/" + myTheme + "/style.css");
-    qApp->setStyleSheet(QString());
-    if (!file.isEmpty())
+
+    if (file.isEmpty())
+        file = KGlobal::dirs()->locate("data","be.shell/Themes/" + myTheme + "/style.css.d");
+    if (file.isEmpty())
+        qApp->setStyleSheet(QString());
+    else
         updateStyleSheet(file);
 
     foreach (Plugged *p, myPlugs) {
@@ -1530,10 +1540,37 @@ void
 BE::Shell::updateStyleSheet(const QString &filename)
 {
     QFile file(filename);
-    if (file.open(QIODevice::ReadOnly)) {
+    bool fileIsDir = false;
+    QDir dir;
+    if (QFileInfo(file).isDir()) {
+        dir = QDir(filename);
+        fileIsDir = true;
+    } else {
+        dir = QDir(filename + ".d");
+    }
+
+    QString sheet;
+
+    if (dir.exists()) {
+        QStringList fileNames = dir.entryList(QStringList() << "*.css",
+                                              QDir::Files|QDir::NoDotAndDotDot|QDir::Readable,
+                                              QDir::Name);
+        foreach (const QString &fn, fileNames) {
+            const QString fp = dir.absoluteFilePath(fn);
+            QFile file(fp);
+            if (file.open(QIODevice::ReadOnly)) {
+                sheet += file.readAll().replace("${base}", dir.absolutePath().toLocal8Bit());
+            }
+        }
+    }
+
+    if (!fileIsDir && file.open(QIODevice::ReadOnly)) {
+        sheet += file.readAll().replace("${base}", filename.left(filename.length() - 10).toLocal8Bit());
+    }
+
+    if (!sheet.isEmpty()) {
         qApp->setStyleSheet(QString());
 
-        QString sheet = file.readAll().replace("${base}", filename.left(filename.length() - 10).toLocal8Bit());
         int cs = 0, ce;
 
         // get rid of comments, just override them
@@ -1547,13 +1584,23 @@ BE::Shell::updateStyleSheet(const QString &filename)
         parse(ShadowPadding, &sheet, &myShadowPadding);
         parse(ShadowBorder, &sheet, &myShadowBorder);
 
-        qApp->setStyleSheet(sheet);
-        emit styleSheetChanged();
     }
+
+    qApp->setStyleSheet(sheet);
+    emit styleSheetChanged();
+
     delete myStyleWatcher;
     myStyleWatcher = new QFileSystemWatcher(this);
     myStyleWatcher->addPath(filename);
-    connect(myStyleWatcher, SIGNAL(fileChanged(const QString &)), this, SLOT(updateStyleSheet(const QString &)));
+    if (fileIsDir) {
+        connect(myStyleWatcher, SIGNAL(directoryChanged(const QString &)), SLOT(updateStyleSheet(const QString &)));
+    } else {
+        connect(myStyleWatcher, SIGNAL(fileChanged(const QString &)), SLOT(updateStyleSheet(const QString &)));
+        if (dir.exists()) {
+            myStyleWatcher->addPath(dir.absolutePath());
+            connect(myStyleWatcher, SIGNAL(directoryChanged(const QString &)), SLOT(reloadTheme()));
+        }
+    }
 }
 
 void
