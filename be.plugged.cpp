@@ -143,10 +143,9 @@ BE::Plugged::themeIcon(const QString &icon, const QWidget *w, bool tryKDE)
 {
     QStringList path;
     while (w && (w->windowType() & Qt::Desktop) != Qt::Window) {
-        if (const Plugged *p = dynamic_cast<const Plugged*>(w)) {
+        if (const Plugged *p = dynamic_cast<const Plugged*>(w))
             path.prepend(p->name());
-            w = w->parentWidget();
-        }
+        w = w->parentWidget();
     }
     QString file;
     while (!path.isEmpty()) {
