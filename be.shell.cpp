@@ -88,7 +88,7 @@ static Atom kdeWindowHighlight = 0;
 
 static BE::Shell *instance = 0;
 
-BE::Shell::Shell(QObject *parent) : QObject(parent), myStyleWatcher(0L)
+BE::Shell::Shell(QObject *parent) : QObject(parent), myStyleWatcher(0L), myThemeReloadTimeout(0L)
 {
     if (instance)
     {
@@ -1379,6 +1379,17 @@ BE::Shell::reloadTheme()
 }
 
 void
+BE::Shell::scheduleThemeReload()
+{
+    if (!myThemeReloadTimeout) {
+        myThemeReloadTimeout = new QTimer(this);
+        myThemeReloadTimeout->setSingleShot(true);
+        connect (myThemeReloadTimeout, SIGNAL(timeout()), SLOT(reloadTheme()));
+    }
+    myThemeReloadTimeout->start(100);
+}
+
+void
 BE::Shell::setTheme(QAction *action)
 {
     if (action)
@@ -1598,7 +1609,7 @@ BE::Shell::updateStyleSheet(const QString &filename)
         connect(myStyleWatcher, SIGNAL(fileChanged(const QString &)), SLOT(updateStyleSheet(const QString &)));
         if (dir.exists()) {
             myStyleWatcher->addPath(dir.absolutePath());
-            connect(myStyleWatcher, SIGNAL(directoryChanged(const QString &)), SLOT(reloadTheme()));
+            connect(myStyleWatcher, SIGNAL(directoryChanged(const QString &)), SLOT(scheduleThemeReload()));
         }
     }
 }

@@ -126,6 +126,7 @@ private slots:
     void populateScreenMenu();
     void populateWindowList();
     void reloadTheme();
+    void scheduleThemeReload();
     void setActiveWindow();
     void setCurrentDesktop();
     void setTheme(QAction *);
@@ -142,6 +143,7 @@ private:
     QStringList myPanels;
     bool iAmTouchy;
     QMap<QString, QVariant> myShadowRadius, myShadowPadding, myShadowBorder;
+    QTimer *myThemeReloadTimeout;
 };
 }
 
