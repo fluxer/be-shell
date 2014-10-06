@@ -41,6 +41,7 @@ public:
 protected:
     void enterEvent(QEvent *e);
     void leaveEvent(QEvent *e);
+    void mousePressEvent(QMouseEvent *me);
     void timerEvent(QTimerEvent *te);
     void wheelEvent(QWheelEvent *we);
 private slots:

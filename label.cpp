@@ -27,6 +27,7 @@
 #include <QDBusConnection>
 #include <QDBusPendingCallWatcher>
 #include <QFile>
+#include <QMovie>
 #include <QProcess>
 #include <QtDBus>
 #include <QTimer>
@@ -68,6 +69,7 @@ BE::Label::configure( KConfigGroup *grp )
     delete myDBus; myDBus = 0;
     delete myDBusArgs; myDBusArgs = 0;
     delete myFiFo; myFiFo = 0;
+    delete movie(); setMovie(NULL);
     myPollInterval = grp->readEntry("PollInterval", 1000);
     myLines = grp->readEntry("Lines", -1);
     myCommand = grp->readEntry("Exec", QString());
@@ -82,10 +84,33 @@ BE::Label::configure( KConfigGroup *grp )
 
     QString _home, _user;
     char *env;
-    if ((env = getenv("HOME"))) _home = QString::fromLocal8Bit(env);
-    if ((env = getenv("USER"))) _user = QString::fromLocal8Bit(env);
-    if (!myCommand.isEmpty())
-    {
+    if ((env = getenv("HOME")))
+        _home = QString::fromLocal8Bit(env);
+    if ((env = getenv("USER")))
+        _user = QString::fromLocal8Bit(env);
+    QString movie = grp->readEntry("Anicon", QString());
+    QString image = grp->readEntry("Image", QString());
+    if (!movie.isEmpty()) {
+        movie.replace("$HOME", _home).replace("$USER", _user);
+        myCommand = QString();
+        QMovie *M = new QMovie(movie, QByteArray(), this); // see Fritz Lang's "M"!
+        if (M->isValid()) {
+            M->setCacheMode(QMovie::CacheAll);
+            connect(M, SIGNAL(finished()), M, SLOT(start()));
+            setMovie(M);
+            QMetaObject::invokeMethod(M, "start", Qt::QueuedConnection);
+        } else {
+            delete M;
+            if (QFile::exists(movie))
+                qWarning() << movie << " is NOT a supported animation format!\nSupported formats:\n" << QMovie::supportedFormats();
+            else
+                qWarning() << "The path " << movie << " does not exist...";
+        }
+    } else if (!image.isEmpty()) {
+        image.replace("$HOME", _home).replace("$USER", _user);
+        myCommand = QString();
+        setPixmap(QPixmap(image));
+    } else if (!myCommand.isEmpty()) {
         myCommand.replace("$HOME", _home).replace("$USER", _user);
         myProcess = new QProcess(this);
         if ( myPollInterval )
@@ -158,8 +183,7 @@ BE::Label::configure( KConfigGroup *grp )
 
     if (myTimer)
         killTimer(myTimer);
-    if (!myFiFo && !myCommand.isEmpty())
-    {
+    if (!myFiFo && !myCommand.isEmpty()) {
         if (myPollInterval)
             myTimer = startTimer(myPollInterval);
         poll();
@@ -223,6 +247,15 @@ BE::Label::leaveEvent(QEvent *e)
     myToolTipTimer->start(512);
 }
 
+void
+BE::Label::mousePressEvent(QMouseEvent *me)
+{
+    if (movie() && me->button() == Qt::LeftButton) {
+        movie()->setPaused(movie()->state() != QMovie::Paused);
+    } else {
+        QLabel::mousePressEvent(me);
+    }
+}
 
 void
 BE::Label::timerEvent(QTimerEvent *te)
@@ -240,16 +273,18 @@ BE::Label::wheelEvent(QWheelEvent *we)
 {
     QLabel::wheelEvent(we);
     QSize hint = sizeHint();
-    if (hint.height() > height() || hint.height() > width()) {
+    int l,t,r,b;
+    getContentsMargins(&l, &t, &r, &b);
+    int cth = height() - (qMax(t,0) + qMax(b,0));
+    int ctw =  width() - (qMax(l,0) + qMax(r,0));
+    if (hint.height() > cth || hint.height() > ctw) {
         we->accept();
         int delta = we->delta() > 0 ? 32 : -32;
-        int l,t,r,b;
-        getContentsMargins(&l, &t, &r, &b);
-        hint -= QSize(l,t);
-        if (we->orientation() == Qt::Horizontal || hint.height() <= height())
-            l = qMax(width() - hint.width(), qMin(0, l + delta));
+        hint -= QSize(l+r,t+b);
+        if (we->orientation() == Qt::Horizontal || hint.height() <= cth)
+            l = qMax(ctw - hint.width(), qMin(0, l + delta));
         else
-            t = qMax(height() - hint.height(), qMin(0, t + delta));
+            t = qMax(cth - hint.height(), qMin(0, t + delta));
         setContentsMargins(l, t, r, b);
     }
 }
