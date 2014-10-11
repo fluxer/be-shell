@@ -70,6 +70,7 @@ BE::Label::configure( KConfigGroup *grp )
     delete myDBusArgs; myDBusArgs = 0;
     delete myFiFo; myFiFo = 0;
     delete movie(); setMovie(NULL);
+    setCursor(Qt::ArrowCursor);
     myPollInterval = grp->readEntry("PollInterval", 1000);
     myLines = grp->readEntry("Lines", -1);
     myCommand = grp->readEntry("Exec", QString());
@@ -95,10 +96,14 @@ BE::Label::configure( KConfigGroup *grp )
         myCommand = QString();
         QMovie *M = new QMovie(movie, QByteArray(), this); // see Fritz Lang's "M"!
         if (M->isValid()) {
+            iStartMovieOnShow = grp->readEntry("AniconStartOnShow", false);
             M->setCacheMode(QMovie::CacheAll);
-            connect(M, SIGNAL(finished()), M, SLOT(start()));
             setMovie(M);
-            QMetaObject::invokeMethod(M, "start", Qt::QueuedConnection);
+            setCursor(Qt::PointingHandCursor);
+            myMovieLoops = grp->readEntry("AniconLoops", -2);
+            if (myMovieLoops != 0) { // no hand start
+                QMetaObject::invokeMethod(this, "startMovie", Qt::QueuedConnection);
+            }
         } else {
             delete M;
             if (QFile::exists(movie))
@@ -248,12 +253,70 @@ BE::Label::leaveEvent(QEvent *e)
 }
 
 void
+BE::Label::hideEvent(QHideEvent *he)
+{
+    if (movie() && movie()->state() == QMovie::Running) {
+        movie()->setPaused(true);
+    }
+    QLabel::hideEvent(he);
+}
+
+void
 BE::Label::mousePressEvent(QMouseEvent *me)
 {
     if (movie() && me->button() == Qt::LeftButton) {
-        movie()->setPaused(movie()->state() != QMovie::Paused);
+        if (movie()->state() == QMovie::NotRunning) {
+            startMovie();
+        } else {
+            movie()->setPaused(movie()->state() != QMovie::Paused);
+        }
     } else {
         QLabel::mousePressEvent(me);
+    }
+}
+
+void
+BE::Label::showEvent(QShowEvent *se)
+{
+    if (QMovie *M = movie()) { // see it everyday!
+        if (iStartMovieOnShow) {
+            stopMovie();
+            startMovie();
+        } else if (M->state() == QMovie::Paused) {
+            M->setPaused(false);
+        }
+    }
+    QLabel::showEvent(se);
+}
+
+void
+BE::Label::startMovie()
+{
+    if (QMovie *M = movie()) { // see Fritz Lang's "M" one more time!
+        if (M->state() != QMovie::NotRunning)
+            return;
+        if (myMovieLoops > -2 && M->loopCount() != -1) { // make infinite
+            connect(M, SIGNAL(finished()), M, SLOT(start()));
+        }
+        M->start();
+        if (!isVisible())
+            M->setPaused(true);
+        if (myMovieLoops > 0) { // fixed playback time
+            M->jumpToNextFrame();
+            int timeout = M->nextFrameDelay();
+            timeout = myMovieLoops * M->frameCount() * timeout - timeout/2;
+            M->jumpToFrame(0);
+            QTimer::singleShot(timeout, this, SLOT(stopMovie()));
+        }
+    }
+}
+
+void
+BE::Label::stopMovie()
+{
+    if (QMovie *M = movie()) { // see Fritz Lang's "M" even another time!
+        disconnect(M, SIGNAL(finished()), M, SLOT(start()));
+        M->stop();
     }
 }
 

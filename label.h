@@ -40,23 +40,28 @@ public:
     void configure( KConfigGroup *grp );
 protected:
     void enterEvent(QEvent *e);
+    void hideEvent(QHideEvent *he);
     void leaveEvent(QEvent *e);
     void mousePressEvent(QMouseEvent *me);
+    void showEvent(QShowEvent *se);
     void timerEvent(QTimerEvent *te);
     void wheelEvent(QWheelEvent *we);
 private slots:
     void protectedExec(const QString &cmd);
     void updateContents();
     void readFiFo();
+    void startMovie();
+    void stopMovie();
 private:
     void poll();
-    int myTimer, myPollInterval, myLines;
+    int myTimer, myPollInterval, myLines, myMovieLoops;
     QString myCommand;
     QProcess *myProcess;
     QDBusInterface *myDBus;
     QList<QVariant> *myDBusArgs;
     QStringList myPermittedCommands;
     bool myReplyIsPending;
+    bool iStartMovieOnShow;
     QFile *myFiFo;
     Label *myToolTip;
     QTimer *myToolTipTimer;
