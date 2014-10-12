@@ -74,6 +74,7 @@ private:
     Precision myPrecision;
     qint64 myTzSecOffset;
     QMenu *myConfigMenu;
+    QString myTakeOff; // countdown exec
 };
 
 }

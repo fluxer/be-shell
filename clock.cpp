@@ -159,6 +159,7 @@ BE::Clock::configure( KConfigGroup *grp )
     const QString s = myPattern;
     myPattern = grp->readEntry("Pattern", "hh:mm\nddd, MMM d");
     myCountDownPattern = grp->readEntry("CountDownPattern", timeToCountDown(myPattern));
+    myTakeOff = grp->readEntry("TakeOff", QString());
 
     if (myTimer)
         killTimer(myTimer);
@@ -315,6 +316,8 @@ BE::Clock::updateTime() {
         const int s = myCountDown - (3600*h + 60*m);
         dt.setTime(QTime(h, m, s));
         setText( dt.toString(myCountDownPattern) );
+        if (!myCountDown && !myTakeOff.isEmpty())
+            BE::Shell::run(myTakeOff);
     }
     else
         setText( QDateTime::currentDateTime().addSecs(myTzSecOffset).toString(myPattern) );
