@@ -186,7 +186,7 @@ private:
 };
 } //namespace
 
-BE::DeskIcon::DeskIcon( const QString &path, QWidget *parent ) : QToolButton( parent ), myUrl(path)
+BE::DeskIcon::DeskIcon( const QString &path, BE::Desk *parent ) : QToolButton( parent ), myUrl(path)
 {
 //     setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
     setCursor(Qt::PointingHandCursor);
@@ -196,24 +196,21 @@ BE::DeskIcon::DeskIcon( const QString &path, QWidget *parent ) : QToolButton( pa
 
 void BE::DeskIcon::updateIcon()
 {
-    if( KDesktopFile::isDesktopFile(myUrl) )
-    {
+    if( KDesktopFile::isDesktopFile(myUrl) ) {
         KDesktopFile ds(myUrl);
-        setIcon(DesktopIcon( ds.readIcon(), ourSize.width() ));
+        setIcon(DesktopIcon(ds.readIcon(), 512));
 //         setText(ds.readName());
         setToolTip(ds.readName());
         myName = ds.readName();
-    }
-    else
-    {
+    } else {
         QFileInfo fileInfo(myUrl);
         KUrlPixmapProvider imgLoader;
-        setIcon(imgLoader.pixmapFor( myUrl, ourSize.width() ));
+        setIcon(imgLoader.pixmapFor(myUrl, 512));
 //         setText(fileInfo.fileName());
         setToolTip(fileInfo.fileName());
         myName = fileInfo.fileName();
     }
-    myNameWidth = QFontMetrics(font()).width(myName) + 2*style()->pixelMetric( QStyle::PM_ToolTipLabelFrameWidth );
+//     myNameWidth = QFontMetrics(font()).width(myName) + 2*style()->pixelMetric(QStyle::PM_ToolTipLabelFrameWidth);
 //     setFixedSize(size);
     update();
 }
@@ -259,12 +256,14 @@ void BE::DeskIcon::mouseMoveEvent(QMouseEvent * ev)
 void BE::DeskIcon::mouseReleaseEvent(QMouseEvent *ev)
 {
     QToolButton::mouseReleaseEvent(ev);
-    if (testAttribute(Qt::WA_UnderMouse))
-    {
+    if (testAttribute(Qt::WA_UnderMouse)) {
         if (isClick)
             new KRun( KUrl(myUrl), this);
-//         else
-//             update location in the config file...
+        else {
+            if (ev->modifiers() & Qt::ControlModifier)
+                snapToGrid();
+            static_cast<Desk*>(parent())->scheduleSave();
+        }
     }
     isClick = false;
 }
@@ -275,30 +274,43 @@ void BE::DeskIcon::setSize(int s)
 }
 
 void
-BE::Desk::fileCreated( const QString &path )
+BE::DeskIcon::snapToGrid()
+{
+    const QRect &container = static_cast<Desk*>(parent())->iconRect();
+    const int dx = width() + static_cast<Desk*>(parent())->iconMargin();
+    const int dy = height() + static_cast<Desk*>(parent())->iconMargin();
+    const int lx = qMin(container.right() - dx, x());
+    const int ly = qMin(container.bottom() - dy, y());
+
+    int tx = container.x() + (lx/dx)*dx;
+    if (lx - tx > dx/2)
+        tx += dx;
+    int ty = container.y() + (ly/dy)*dy;
+    if (ly - ty > dy/2)
+        ty += dy;
+    move(tx, ty);
+}
+
+void
+BE::Desk::fileCreated(const QString &path)
 {
     if (!myIcons.areShown)
         return;
 
-    const int d = 4*DeskIcon::size().height()/3;
-    if ( myIcons.lastPos.y() > myIcons.rect.bottom() - d )
-    {
-        myIcons.lastPos.ry() = myIcons.rect.top();
-        myIcons.lastPos.rx() += d;
-    }
-
     QString url = QFileInfo(path).absoluteFilePath();
-    IconList::iterator i = myIcons.list.find(url);
-    if ( i == myIcons.list.end() )
-    {
-        i = myIcons.list.insert(url, new DeskIcon( url, this ));
-        (*i)->move( myIcons.lastPos );
-        (*i)->show();
+    quint64 hash = qHash(url);
+    IconList::iterator it = myIcons.list.find(hash);
+    if (it != myIcons.list.end()) {
+        if (it->first) {
+            it->first->updateIcon();
+        } else {
+            it->first = new DeskIcon(url, this);
+        }
+    } else {
+        it = myIcons.list.insert(hash, QPair<DeskIcon*,QPoint>(new DeskIcon(url, this), nextIconSlot()));
     }
-    else
-        (*i)->updateIcon();
-
-    myIcons.lastPos.ry() += d;
+    it->first->move(it->second);
+    it->first->show();
 }
 
 void
@@ -306,38 +318,110 @@ BE::Desk::fileDeleted( const QString &path )
 {
     if (!myIcons.areShown)
         return;
-    delete myIcons.list.take( QFileInfo(path).absoluteFilePath() );
+
+    IconList::iterator it = myIcons.list.find(qHash(QFileInfo(path).absoluteFilePath()));
+    if (it != myIcons.list.end()) {
+        delete it->first;
+        it->first = NULL;
+    }
 }
 
 void
-BE::Desk::fileChanged( const QString &path )
+BE::Desk::fileChanged(const QString &path)
 {
-    if ( !myIcons.areShown )
+    if (!myIcons.areShown)
         return;
 
-    IconList::iterator i = myIcons.list.find( QFileInfo(path).absoluteFilePath() );
-    if (i != myIcons.list.end())
-        (*i)->updateIcon();
+    IconList::iterator it = myIcons.list.find(qHash(QFileInfo(path).absoluteFilePath()));
+    if (it != myIcons.list.end() && it->first)
+        it->first->updateIcon();
 }
 
 void
 BE::Desk::populate( const QString &path )
 {
-    myIcons.lastPos = myIcons.rect.topLeft();
+    if (myIcons.areShown) {
+        QDir desktopDir(path);
+        QFileInfoList files = desktopDir.entryInfoList( QDir::AllEntries | QDir::NoDotAndDotDot );
+        foreach(const QFileInfo &file, files)
+            fileCreated(file.absoluteFilePath());
+        // get rid of orphans
+        IconList::iterator it = myIcons.list.begin();
+        while (it != myIcons.list.end()) {
+            if (it->first)
+                ++it;
+            else
+                it = myIcons.list.erase(it);
+        }
+    } else {
+        for (IconList::iterator it = myIcons.list.begin(),
+                               end = myIcons.list.end(); it != end; ++it) {
+            if (it->first) {
+                it->second = it->first->pos();
+                delete it->first;
+                it->first = NULL;
+            }
+        }
+    }
+}
 
-    if (!myIcons.areShown)
-    {
-        IconList::iterator i = myIcons.list.begin();
-        while (i != myIcons.list.end())
-            { delete *i; *i = 0; i = myIcons.list.erase(i); }
-        myIcons.list.clear(); // rebuild hash
-        return;
+
+QPoint
+BE::Desk::nextIconSlot(QPoint lastSlot, int *overlap)
+{
+    if (lastSlot.x() < 0 || lastSlot.y() < 0)
+        lastSlot = myIcons.rect.topLeft();
+
+    QSize iconSize;
+    for (IconList::const_iterator it = myIcons.list.constBegin(),
+                                    end = myIcons.list.constEnd(); it != end; ++it) {
+        if (it->first && it->first->isVisibleTo(this)) {
+            iconSize = it->first->geometry().size();
+            if (!iconSize.isNull())
+                break;
+        }
     }
 
-    QDir desktopDir( path );
-    QFileInfoList files = desktopDir.entryInfoList( QDir::AllEntries | QDir::NoDotAndDotDot );
-    foreach(const QFileInfo &file, files)
-        fileCreated(file.absoluteFilePath());
+    if (iconSize.isNull()) {
+        if (overlap)
+            *overlap = __INT_MAX__;
+        return lastSlot;
+    }
+
+    QPoint bestSlot = lastSlot;
+    int bestSlotOverlap = iconSize.width()*iconSize.height();
+    QRect geo(lastSlot, iconSize);
+    while (true) {
+        int maxOverlap = 0;
+        for (IconList::const_iterator it = myIcons.list.constBegin(),
+                                    end = myIcons.list.constEnd(); it != end; ++it) {
+            if (!(it->first && it->first->isVisibleTo(this)))
+                continue;
+            const QRect r = geo & it->first->geometry();
+            const int a = r.width()*r.height();
+            if (a > maxOverlap)
+                maxOverlap = a;
+        }
+        if (maxOverlap < bestSlotOverlap) {
+            bestSlotOverlap = maxOverlap;
+            bestSlot = geo.topLeft();
+            if (!bestSlotOverlap)
+                break;
+        }
+        if (geo.y() + 2*iconSize.height() + myIcons.margin > myIcons.rect.bottom()) {
+            if (geo.x() + 2*iconSize.width() + myIcons.margin > myIcons.rect.right()) {
+                break;
+            } else {
+                geo.translate(iconSize.width() + myIcons.margin,0);
+            }
+            geo.moveTop(myIcons.rect.top());
+        } else {
+            geo.translate(0,iconSize.height() + myIcons.margin);
+        }
+    }
+    if (overlap)
+        *overlap = bestSlotOverlap;
+    return bestSlot;
 }
 
 void
@@ -346,19 +430,68 @@ BE::Desk::reArrangeIcons()
     if (!myIcons.areShown)
         return;
 
-    const int d = 4*DeskIcon::size().height()/3;
-    myIcons.lastPos = myIcons.rect.topLeft();
-    for (IconList::iterator it = myIcons.list.begin(), end = myIcons.list.end(); it != end; ++it) {
-        if ( myIcons.lastPos.y() > myIcons.rect.bottom() - d )
-        {
-            myIcons.lastPos.ry() = myIcons.rect.top();
-            myIcons.lastPos.rx() += d;
-        }
-        (*it)->move( myIcons.lastPos );
-        myIcons.lastPos.ry() += d;
+    int overlap;
+    QPoint lastSlot = myIcons.rect.topLeft();
+
+    setUpdatesEnabled(false);
+    for (IconList::iterator it = myIcons.list.begin(),
+                           end = myIcons.list.end(); it != end; ++it) {
+        if (!(it->first && it->first->isVisibleTo(this)))
+            continue;
+        if (myIcons.rect.contains(it->first->geometry()))
+            continue;
+        it->first->hide();
+        lastSlot = nextIconSlot(lastSlot, &overlap);
+        it->first->move(lastSlot);
+        it->first->show();
+        if (overlap) // no ideal match, start from the beginning every time
+            lastSlot = myIcons.rect.topLeft();
     }
+    setUpdatesEnabled(true);
 }
 
+
+void
+BE::Desk::snapIconsToGrid()
+{
+    setUpdatesEnabled(false);
+    for (IconList::iterator it = myIcons.list.begin(),
+                           end = myIcons.list.end(); it != end; ++it) {
+        if (it->first) {
+            it->first->snapToGrid();
+            for (IconList::const_iterator it2 = myIcons.list.constBegin(),
+                           end = myIcons.list.constEnd(); it2 != end; ++it2) {
+                if (it2->first && it2->first != it->first && it2->first->geometry() == it->first->geometry()) {
+                    it->first->move(nextIconSlot(it->first->geometry().topLeft()));
+                    break;
+                }
+            }
+        }
+    }
+    setUpdatesEnabled(true);
+    BE::Plugged::saveSettings();
+}
+
+
+void
+BE::Desk::setIconSize(QAction *act)
+{
+    const int size = act->data().toInt();
+    if (DeskIcon::size().height() == size)
+        return;
+    DeskIcon::setSize(size);
+    setUpdatesEnabled(false);
+    QSize qsz(size,size);
+    for (IconList::iterator it = myIcons.list.begin(),
+                           end = myIcons.list.end(); it != end; ++it) {
+        if (it->first) {
+            it->first->setIconSize(qsz);
+            it->first->adjustSize();
+        }
+    }
+    setUpdatesEnabled(true);
+    BE::Plugged::saveSettings();
+}
 
 class BE::CornerDialog : public QDialog
 {
@@ -649,6 +782,7 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
 , myCorners( 0 )
 , myFadingWallpaper(NULL)
 , myFadingWallpaperTimer(NULL)
+, mySaveSchedule(NULL)
 , myFadingWallpaperStep(0)
 , myFadingWallpaperSteps(8)
 , iAmRedirected(false)
@@ -750,8 +884,17 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
 
     configMenu()->addAction( i18n("Rounded corners..."), this, SLOT(setRoundCorners()) );
 
-    myIcons.menuItem = configMenu()->addAction( i18n("Icons"), this, SLOT(toggleIconsVisible(bool)) );
+    menu = configMenu()->addMenu(i18n("Icons"));
+    myIcons.menuItem = menu->addAction(i18n("Visible"), this, SLOT(toggleIconsVisible(bool)));
     myIcons.menuItem->setCheckable(true);
+    menu->addSeparator();
+    menu->addAction(i18n("Align\t(Ctrl+Drag)"), this, SLOT(snapIconsToGrid()));
+    menu = menu->addMenu(i18n("Size"));
+    const int IconSizes[10] = {16, 22, 32, 48, 64, 72, 96, 128, 256, 512};
+    for (int i = 0; i < 10; ++i) {
+        menu->addAction(QString::number(IconSizes[i]))->setData(IconSizes[i]);
+    }
+    connect(menu, SIGNAL(triggered(QAction*)), SLOT(setIconSize(QAction*)));
 
     myRootBlurRadius = 0;
 
@@ -807,6 +950,10 @@ BE::Desk::configure( KConfigGroup *grp )
     myMouseAction[Qt::RightButton-1] = grp->readEntry("RMBAction", "menu:BE::Config");
     myMouseAction[Qt::MidButton-1] = grp->readEntry("MMBAction", "menu:windowlist");
 
+    myIcons.margin = grp->readEntry("IconMargin", 8);
+    QAction act(this);
+    act.setData(grp->readEntry("IconSize", 64));
+    setIconSize(&act);
     QStringList l = grp->readEntry("IconAreaPaddings", QStringList());
     bool needIconShift = false;
     if (l.count() < 4)
@@ -816,6 +963,29 @@ BE::Desk::configure( KConfigGroup *grp )
             int p = l.at(i).toInt();
             needIconShift = needIconShift || myIconPaddings[i] != p;
             myIconPaddings[i] = p;
+        }
+    }
+
+    const QStringList iconPos = grp->readEntry("IconPos", QString()).split(',', QString::SkipEmptyParts);
+    foreach (const QString &pos, iconPos) {
+        const QStringList fields = pos.split(':', QString::KeepEmptyParts);
+        quint64 hash;
+        int x,y;
+        bool ok = fields.count() == 3;
+        if (ok) hash = fields.at(0).toULongLong(&ok, 16);
+        if (ok) x = fields.at(1).toInt(&ok);
+        if (ok) y = fields.at(2).toInt(&ok);
+        if (!ok) {
+            qDebug() << "invalid icon position restored" << pos;
+            continue;
+        }
+        IconList::iterator it = myIcons.list.find(hash);
+        if (it == myIcons.list.end()) {
+            myIcons.list.insert(hash, QPair<DeskIcon*,QPoint>(NULL, QPoint(x,y)));
+        } else {
+            it->second = QPoint(x,y);
+            if (it->first)
+                it->first->move(it->second);
         }
     }
 
@@ -1051,47 +1221,54 @@ BE::Desk::saveSettings( KConfigGroup *grp )
             key.startsWith("WallpaperAspect_") || key.startsWith("WallpaperMode_"))
             grp->deleteEntry(key);
     }
-//     grp->writeEntry( "BlurRadius", myRootBlurRadius );
     grp->writeEntry( "Corners", myCorners );
     if (myScreen != QApplication::desktop()->primaryScreen())
         grp->writeEntry( "Screen", myScreen );
-//     grp->writeEntry( "ShadowOpacity", myShadowOpacity );
-//     grp->writeEntry( "HaloColor", myHaloColor );
-//     grp->writeEntry( "Rootpaper", iRootTheWallpaper );
-    grp->writeEntry( "ShowIcons", myIcons.areShown );
+    grp->writeEntry("ShowIcons", myIcons.areShown);
+    grp->writeEntry("IconSize", DeskIcon::size().height());
+    QString iconPos;
+    for (IconList::const_iterator it = myIcons.list.constBegin(),
+                                 end = myIcons.list.constEnd(); it != end; ++it) {
+        const QPoint pos = it->first ? it->first->pos() : it->second;
+        iconPos += QString::number(it.key(), 16) + ':' + QString::number(pos.x())
+                                                 + ':' + QString::number(pos.y()) + ',';
+    }
+    grp->writeEntry("IconPos", iconPos);
     grp->writeEntry( "Tint", myTint );
-//     grp->writeEntry( "WallpaperFadeSteps", myFadingWallpaperSteps);
     grp->writeEntry( "Wallpaper", myWallpaper.file );
-//     grp->writeEntry( "WallpaperDefaultAlign", (int)myWallpaperDefaultAlign );
-//     grp->writeEntry( "WallpaperDefaultMode", (int)myWallpaperDefaultMode );
     grp->writeEntry( "WallpaperAlign", (int)myWallpaper.align );
-//     if (wpSettings.area.isValid())
-//         grp->writeEntry( "WallpaperArea", wpSettings.area );
     grp->writeEntry( "WallpaperAspect", (float)myWallpaper.aspect );
     grp->writeEntry( "WallpaperMode", (int)myWallpaper.mode );
     Wallpapers::const_iterator i;
-    for (i = myWallpapers.constBegin(); i != myWallpapers.constEnd(); ++i)
-    {
+    for (i = myWallpapers.constBegin(); i != myWallpapers.constEnd(); ++i) {
         grp->writeEntry( QString("Wallpaper_%1").arg(i.key()), i.value().file );
         grp->writeEntry( QString("WallpaperAlign_%1").arg(i.key()), (int)i.value().align );
         grp->writeEntry( QString("WallpaperAspect_%1").arg(i.key()), (float)i.value().aspect );
         grp->writeEntry( QString("WallpaperMode_%1").arg(i.key()), (int)i.value().mode );
     }
-//     grp->writeEntry("WheelOnLMB", iWheelOnClickOnly);
-//     grp->writeEntry("LMBAction", myMouseAction[Qt::LeftButton-1]);
-//     grp->writeEntry("RMBAction", myMouseAction[Qt::RightButton-1]);
-//     grp->writeEntry("MMBAction", myMouseAction[Qt::MidButton-1]);
-//     grp->writeEntry( "TrashCan", bool(myTrash.can) );
-    if (myTrash.can)
-    {
+    if (myTrash.can) {
         grp->writeEntry( "TrashSize", myTrash.can->width());
         grp->writeEntry( "TrashX", myTrash.can->geometry().x());
         grp->writeEntry( "TrashY", myTrash.can->geometry().y());
     }
-//     grp->writeEntry( "IconAreaPaddings", QStringList() <<   QString::number(myIconPaddings[0]) <<
-//                                                             QString::number(myIconPaddings[1]) <<
-//                                                             QString::number(myIconPaddings[2]) <<
-//                                                             QString::number(myIconPaddings[3]) );
+}
+
+void
+BE::Desk::scheduleSave()
+{
+    if (!mySaveSchedule) {
+        mySaveSchedule = new QTimer(this);
+        mySaveSchedule->setInterval(30*1000); // 30 seconds? a minute? more?
+        mySaveSchedule->setSingleShot(true);
+        connect(mySaveSchedule, SIGNAL(timeout()), SLOT(callSaveSettings()));
+    }
+    mySaveSchedule->start();
+}
+
+void
+BE::Desk::callSaveSettings()
+{
+    BE::Plugged::saveSettings();
 }
 
 void

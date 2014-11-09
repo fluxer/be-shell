@@ -47,14 +47,17 @@ enum WallpaperMode { Heuristic = -1, Invalid = 0, Plain = 1, Tiled, ScaleV, Scal
 const int AllDesktops = -1;
 const int AskForDesktops = -2;
 
+class Desk;
+
 class DeskIcon : public QToolButton
 {
     Q_OBJECT
 public:
-    DeskIcon( const QString &path, QWidget *parent );
+    DeskIcon(const QString &path, Desk *parent);
     void updateIcon();
     static void setSize(int size);
     inline static QSize size() { return ourSize; };
+    void snapToGrid();
 
 protected:
     void enterEvent(QEvent *ev);
@@ -120,8 +123,11 @@ public:
     Desk( QWidget *parent = 0 );
     void registrate( BE::Panel * );
     void configure( KConfigGroup *grp );
+    int iconMargin() const { return myIcons.margin; }
+    const QRect &iconRect() const { return myIcons.rect; }
     const QRegion &panelFreeRegion() const { return myPanelFreeRegion; }
     void saveSettings( KConfigGroup *grp );
+    void scheduleSave();
     inline int screen() { return myScreen; }
     Q_INVOKABLE void setRedirected(bool b) { iAmRedirected = b; }
 public slots:
@@ -163,6 +169,7 @@ private:
 
 private:
     friend class DeskAdaptor;
+    QPoint nextIconSlot(QPoint lastSlot = QPoint(-1,-1), int *overlap = NULL);
     void setWallpaper( QString file, int mode = 700, int desktop = -1 );
     void toggleDesktopShown();
     void triggerMouseAction(QMouseEvent *me);
@@ -172,6 +179,7 @@ private:
 
 private slots:
     void bindScreenMenu();
+    void callSaveSettings();
     void changeWallpaperAlignment( QAction *action );
     void changeWallpaperAspect( QAction *action );
     void changeWallpaperMode( QAction *action );
@@ -184,8 +192,10 @@ private slots:
     void finishSetWallpaper();
     void kcmshell4(QAction *);
     void selectWallpaper();
+    void setIconSize(QAction*);
     void setOnScreen( QAction *action );
     void setRoundCorners();
+    void snapIconsToGrid();
     void storeTrashPosition();
     void toggleDesktopHighlighted();
     void toggleIconsVisible( bool );
@@ -195,14 +205,14 @@ private slots:
 
 private:
 
-    typedef QHash<QString,DeskIcon*> IconList;
+    typedef QHash<quint64, QPair<DeskIcon*,QPoint> > IconList;
 
     struct Icons {
         bool areShown;
-        QPoint lastPos;
         IconList list;
         QRect rect;
         QAction *menuItem;
+        int margin;
     } myIcons;
 
     int myIconPaddings[4];
@@ -232,6 +242,7 @@ private:
     WallpaperMode myWallpaperDefaultMode;
     QPixmap *myFadingWallpaper;
     QTimer *myFadingWallpaperTimer;
+    QTimer *mySaveSchedule;
     int myFadingWallpaperStep, myFadingWallpaperSteps;
     bool iAmRedirected;
 
