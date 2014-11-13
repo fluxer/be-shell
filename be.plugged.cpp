@@ -154,7 +154,8 @@ BE::Plugged::themeIcon(const QString &icon, const QWidget *w, bool tryKDE)
             break;
         path.removeLast();
     }
-    file = KGlobal::dirs()->locate("data","be.shell/Themes/" + theme() + "/" + icon + ".png");
+    if (file.isEmpty())
+        file = KGlobal::dirs()->locate("data","be.shell/Themes/" + theme() + "/" + icon + ".png");
     QIcon icn(file);
     if (tryKDE && icn.isNull())
         return KIcon(icon);
