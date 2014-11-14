@@ -1409,7 +1409,10 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     }
     else
     {
-        switch (wp->mode)
+        int wp_mode = wp->mode;
+        if (wp_mode == Composed) // for composing big wallpapers w/overlay, we preserve the aspect
+            wp_mode = (img.width() < sz.width() || img.height() < sz.height()) ? Scale : ScaleAndCrop;
+        switch (wp_mode)
         {
         case Tiled: {
             // make tile at least 32x32, painting performance thing.
@@ -1437,7 +1440,6 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
         case ScaleH:
             img = img.scaled( sz.width(), img.height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation ); break;
         case Scale:
-        case Composed:
             img = img.scaled( sz, Qt::IgnoreAspectRatio, Qt::SmoothTransformation );
             break;
         case Maximal:
