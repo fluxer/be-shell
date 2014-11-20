@@ -133,16 +133,17 @@ protected:
         }
         static int xspeed[9] = {-1, 0, 1, -1, 0 , 1, -1, 0, 1 };
         static int counter = 0;
+        static QSize sz(24,24);
         if (++counter > 10) {
             for (int i = 0; i < 9; ++i)
                 xspeed[i] = qMax(-4, qMin(4, xspeed[i] + int((random() % 3) - 1)));
             counter = 0;
         }
         int speed = random() % 8;
-        int moved = 0;
+        lastFlakeRects = flakeRects;
+        flakeRects = QRegion();
         for (int i = 0; i < NUM_FLAKES; ++i) {
             if ((snowflakes[i].speed & 15) > speed) {
-                ++moved;
                 snowflakes[i].y += 1;
             }
             if (snowflakes[i].y > height())
@@ -152,15 +153,15 @@ protected:
                 snowflakes[i].x -= width();
             else if (snowflakes[i].x < 0)
                 snowflakes[i].x += width();
+            flakeRects |= QRect(QPoint(snowflakes[i].x, snowflakes[i].y), sz);
         }
-        update();
+        update(lastFlakeRects|flakeRects);
     }
-    void paintEvent(QPaintEvent */*pe*/) {
+    void paintEvent(QPaintEvent *pe) {
         if (snowflakes) {
             QPainter p(this);
+            p.setClipRegion(pe->region());
             p.drawPixmap(0,0,buffer);
-            p.setClipRegion(static_cast<BE::Desk*>(parent())->panelFreeRegion());
-//             p.fillRect(rect(), Qt::red);
             int n = NUM_FLAKES/3;
             int i;
             for (i = 0; i < n; ++i)
@@ -179,6 +180,8 @@ private:
         uchar type;
         char speed;
     };
+    QRegion lastFlakeRects;
+    QRegion flakeRects;
     Snowflake *snowflakes;
     QPixmap buffer;
     QPixmap flake[9];
