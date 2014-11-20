@@ -661,6 +661,7 @@ void BE::Run::execute( const QString &exec/*Line*/ )
             layout()->addWidget(myOutput = new QTextBrowser(this));
             myOutput->setFocusPolicy(Qt::NoFocus);
             myOutput->setObjectName("TextShell");
+//             myOutput->setWordWrapMode(QTextOption::NoWrap);
         }
         myOutput->document()->clear();
         m_tree->hide();
@@ -866,11 +867,20 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
     switch (ke->key())
     {
     case Qt::Key_Enter:
-    case Qt::Key_Return:
-        if ( !item || item->isHidden() )
+    case Qt::Key_Return: {
+        bool execCmd = true;
+        if (item) {
+            QTreeWidgetItem *dad = item;
+            while (dad && !dad->isHidden()) {
+                dad = dad->parent();
+            }
+            execCmd = bool(dad); // there's a hidden (ancestor) item
+        }
+        if (execCmd)
             { execute( m_shell->text() ); return false; }
         else
             { slotItemActivated(item, 0); return true; }
+    }
     case Qt::Key_PageUp:
     case Qt::Key_Up:
         if (myOutput && myOutput->isVisible())
