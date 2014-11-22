@@ -295,7 +295,7 @@ BE::Run::installPathCompleter()
     m_binCompleter = new QCompleter(binaries, 0);
     m_binCompleter->setCompletionMode(QCompleter::InlineCompletion);
     m_binCompleter->moveToThread(QApplication::instance()->thread());
-    m_binCompleter->setParent(m_shell);
+    m_binCompleter->setParent(this);
     m_shell->setCompleter(m_binCompleter);
 }
 
@@ -851,9 +851,23 @@ void BE::Run::slotCurrentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *
     }
 }
 
+void BE::Run::restoreBinCompleter()
+{
+    m_shell->setCompleter(m_binCompleter);
+}
+
 bool BE::Run::eventFilter( QObject *o, QEvent *ev )
 {
-    if (o != m_shell || ev->type() != QEvent::KeyPress)
+    if (ev->type() != QEvent::KeyPress)
+        return false;
+
+    if (o == m_shell->completer()->popup() && m_shell->completer() != m_binCompleter) {
+        if (static_cast<QKeyEvent*>(ev)->key() == Qt::Key_Escape)
+            QMetaObject::invokeMethod(this, "restoreBinCompleter", Qt::QueuedConnection);
+        return false;
+    }
+
+    if (o != m_shell)
         return false;
 
     m_inactive = false;
@@ -958,6 +972,8 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
         }
         return true;
     case Qt::Key_Tab: {
+        if (m_shell->completer() != m_binCompleter)
+            return false;
         if (!m_shell->text().startsWith('=')) {
             QRegExp sep("[\\s:|]+");
             const QString lastToken = m_shell->text().left(m_shell->selectionStart()).section(sep, -1);
@@ -988,6 +1004,19 @@ bool BE::Run::eventFilter( QObject *o, QEvent *ev )
                 ++tabPressCount;
             }
             return true;
+        }
+    }
+    case Qt::Key_R: {
+        if (ke->modifiers() & Qt::ControlModifier) {
+            if (m_shell->completer() == m_binCompleter) {
+                m_shell->setCompleter(new QCompleter(m_history, m_shell));
+                m_shell->completer()->popup()->installEventFilter(this);
+            } else {
+                m_shell->setCompleter(m_binCompleter);
+            }
+            return true;
+        } else {
+            return false;
         }
     }
     default:
@@ -1200,7 +1229,7 @@ void BE::Run::updateFavorites()
 
 void BE::Run::filter( const QString &string )
 {
-    if (string.startsWith(':') || string.startsWith('=')) {
+    if (string.startsWith(':') || string.startsWith('=') || m_shell->completer() != m_binCompleter) {
         m_tree->setCurrentItem(NULL, 0);
         return; // IO command - no filtering. Doesn't make sense
     }

@@ -67,6 +67,7 @@ private slots:
     void pipeIOProc();
     void releaseTrigger();
     void resetShellPalette();
+    void restoreBinCompleter();
     void slotItemActivated(QTreeWidgetItem*, int);
     void slotCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*);
     void slotRepopulate();
