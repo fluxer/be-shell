@@ -175,7 +175,7 @@ private:
     void triggerMouseAction(QMouseEvent *me);
     void reArrangeIcons();
     void tint(QColor color);
-    void merryXmas();
+    void merryXmas(uint flakes = 150, uint fps = 10);
 
 private slots:
     void bindScreenMenu();

@@ -46,6 +46,7 @@ public slots:
     Q_NOREPLY void refresh() { myDesk->update(); }
     Q_NOREPLY void tint( const QString &color ) { myDesk->tint(QColor(color)); }
     Q_NOREPLY void merryXmas() { myDesk->merryXmas(); }
+    Q_NOREPLY void merryXmas(uint flakes, uint fps) { myDesk->merryXmas(flakes, fps); }
     int winId() { return myDesk->winId(); }
 };
 }

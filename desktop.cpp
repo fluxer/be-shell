@@ -77,15 +77,14 @@ static QPoint dragStart;
 
 namespace BE {
 class Snow : public QWidget {
-#define NUM_FLAKES 200
 public:
-    Snow(QWidget *parent) : QWidget(parent) {
+    Snow(QWidget *parent, uint flakes, uint fps) : QWidget(parent), numFlakes(flakes) {
 //         setAttribute(Qt::WA_NoSystemBackground);
         setAttribute(Qt::WA_OpaquePaintEvent);
         setGeometry(0,0,parent->width(),parent->height());
-        snowflakes = new Snowflake[NUM_FLAKES];
+        snowflakes = new Snowflake[numFlakes];
         srandom(QDateTime::currentDateTime().toTime_t()/*20131224*/);
-        for (int i = 0; i < NUM_FLAKES; ++i) {
+        for (uint i = 0; i < numFlakes; ++i) {
             snowflakes[i].y = - (random() % height());
             snowflakes[i].x = random() % width();
             snowflakes[i].type = random() % 3;
@@ -117,7 +116,7 @@ public:
         }
         buffer = QPixmap(size());
         parent->render(&buffer, QPoint(), QRegion(), QWidget::DrawWindowBackground);
-        myTimer = startTimer(100);
+        myTimer = startTimer(1000/fps);
     }
     ~Snow() {
         killTimer(myTimer);
@@ -142,7 +141,7 @@ protected:
         int speed = random() % 8;
         lastFlakeRects = flakeRects;
         flakeRects = QRegion();
-        for (int i = 0; i < NUM_FLAKES; ++i) {
+        for (uint i = 0; i < numFlakes; ++i) {
             if ((snowflakes[i].speed & 15) > speed) {
                 snowflakes[i].y += 1;
             }
@@ -162,14 +161,14 @@ protected:
             QPainter p(this);
             p.setClipRegion(pe->region());
             p.drawPixmap(0,0,buffer);
-            int n = NUM_FLAKES/3;
-            int i;
+            uint n = numFlakes/3;
+            uint i;
             for (i = 0; i < n; ++i)
                 p.drawPixmap(snowflakes[i].x, snowflakes[i].y, flake[snowflakes[i].type]);
             n *= 2;
             for (; i < n; ++i)
                 p.drawPixmap(snowflakes[i].x, snowflakes[i].y, flake[snowflakes[i].type + 3]);
-            for (; i < NUM_FLAKES; ++i)
+            for (; i < numFlakes; ++i)
                 p.drawPixmap(snowflakes[i].x, snowflakes[i].y, flake[snowflakes[i].type + 6]);
             p.end();
         }
@@ -186,6 +185,7 @@ private:
     QPixmap buffer;
     QPixmap flake[9];
     int myTimer;
+    uint numFlakes;
 };
 } //namespace
 
@@ -2031,7 +2031,7 @@ BE::Desk::keyPressEvent( QKeyEvent *ke )
     }
 }
 
-void BE::Desk::merryXmas()
+void BE::Desk::merryXmas(uint flakes, uint fps)
 {
     if (QDate::currentDate().month() != 12)
         return;
@@ -2040,7 +2040,7 @@ void BE::Desk::merryXmas()
         delete snow;
         snow = 0;
     } else {
-        snow = new BE::Snow(this);
+        snow = new BE::Snow(this, qMax(1u, flakes), qMin(qMax(1u,fps),30u));
         foreach (QStyle *style, qApp->findChildren<QStyle*>()) {
             if (!style->inherits("QStyleSheetStyle")) {
                 snow->setStyle(style);
