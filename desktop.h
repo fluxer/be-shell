@@ -155,6 +155,7 @@ protected:
     void keyPressEvent( QKeyEvent * );
     void mouseDoubleClickEvent(QMouseEvent*);
     void paintEvent(QPaintEvent*);
+    void themeChanged();
     void wheelEvent(QWheelEvent*);
 
 private:

@@ -1283,6 +1283,17 @@ BE::Desk::configure( KConfigGroup *grp )
 }
 
 void
+BE::Desk::themeChanged()
+{
+    for (IconList::const_iterator it = myIcons.list.constBegin(),
+                                 end = myIcons.list.constEnd(); it != end; ++it) {
+        if (BE::DeskIcon *icon = const_cast<BE::DeskIcon*>(it->first))
+            icon->adjustSize();
+    }
+}
+
+
+void
 BE::Desk::changeWallpaperAspect( QAction *action )
 {
     bool common; Wallpaper &wp = currentWallpaper(&common);
