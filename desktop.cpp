@@ -209,6 +209,7 @@ BE::DeskIcon::DeskIcon( const QString &path, BE::Desk *parent ) : QFrame(parent)
     setCursor(Qt::PointingHandCursor);
     myButton->setIconSize(ourSize);
     updateIcon();
+    adjustSize();
 }
 
 void BE::DeskIcon::updateIcon()
