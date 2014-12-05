@@ -65,6 +65,7 @@
 #include <QStyle>
 #include <QtConcurrentRun>
 #include <QtDBus>
+#include <QToolButton>
 #include <QToolTip>
 #include <QVBoxLayout>
 #include <QX11Info>
@@ -72,6 +73,7 @@
 #include <kdebug.h>
 
 QSize BE::DeskIcon::ourSize(64,64);
+bool BE::DeskIcon::showLabels = true;
 static bool isClick = false;
 static QPoint dragStart;
 
@@ -189,11 +191,23 @@ private:
 };
 } //namespace
 
-BE::DeskIcon::DeskIcon( const QString &path, BE::Desk *parent ) : QToolButton( parent ), myUrl(path)
+BE::DeskIcon::DeskIcon( const QString &path, BE::Desk *parent ) : QFrame(parent), myUrl(path)
 {
-//     setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    layout->addWidget(myButton = new QToolButton(this), 0, Qt::AlignCenter);
+    myButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    myButton->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+
+    layout->addWidget(myLabel = new QLabel(this));
+    myLabel->setAlignment(Qt::AlignCenter);
+    myLabel->setTextFormat(Qt::PlainText);
+    myLabel->setWordWrap(true);
+    setLabelVisible(showLabels);
+
     setCursor(Qt::PointingHandCursor);
-    setIconSize(ourSize);
+    myButton->setIconSize(ourSize);
     updateIcon();
 }
 
@@ -201,51 +215,60 @@ void BE::DeskIcon::updateIcon()
 {
     if( KDesktopFile::isDesktopFile(myUrl) ) {
         KDesktopFile ds(myUrl);
-        setIcon(DesktopIcon(ds.readIcon(), 512));
-//         setText(ds.readName());
-        setToolTip(ds.readName());
+        myButton->setIcon(DesktopIcon(ds.readIcon(), 512));
+        myLabel->setText(ds.readName());
         myName = ds.readName();
     } else {
+//         QImageReader imgRdr(myUrl);
+//         if (imgRdr.canRead()) {
+//             QSize sz = imgRdr.size();
+//             if (sz.isValid()) {
+//                 int s;
+//                 if (sz.width() < sz.height()) {
+//                     s = qMin(512, sz.width());
+//                     sz = QSize(s, sz.height()*s/sz.width());
+//                 } else {
+//                     s = qMin(512, sz.height());
+//                     sz = QSize(sz.width()*s/sz.height(), s);
+//                 }
+//                 imgRdr.setScaledClipRect(QRect((sz.width()-s)/2,(sz.height()-s)/2,s,s));
+//                 imgRdr.setScaledSize(sz);
+//             }
+//             myButton->setIcon(QPixmap::fromImage(imgRdr.read()));
+//         } else {
+            KUrlPixmapProvider imgLoader;
+            myButton->setIcon(imgLoader.pixmapFor(myUrl, 512));
+//         }
         QFileInfo fileInfo(myUrl);
-        KUrlPixmapProvider imgLoader;
-        setIcon(imgLoader.pixmapFor(myUrl, 512));
-//         setText(fileInfo.fileName());
-        setToolTip(fileInfo.fileName());
+        myLabel->setText(fileInfo.fileName());
         myName = fileInfo.fileName();
     }
-//     myNameWidth = QFontMetrics(font()).width(myName) + 2*style()->pixelMetric(QStyle::PM_ToolTipLabelFrameWidth);
-//     setFixedSize(size);
     update();
 }
 
 void BE::DeskIcon::enterEvent(QEvent *ev)
 {
-    QToolButton::enterEvent(ev);
-//     QPoint pt = mapToGlobal(rect().bottomLeft());
-//     pt.setX( pt.x() + (width()-myNameWidth)/2 - 4 );
-//     pt.setY( pt.y() - 16 );
-//     QToolTip::showText( pt, myName, this );
+    qApp->sendEvent(myButton, ev);
 }
 
 void BE::DeskIcon::leaveEvent(QEvent *ev)
 {
-//     QToolTip::hideText();
-    QToolButton::leaveEvent(ev);
+    qApp->sendEvent(myButton, ev);
 }
 
 void BE::DeskIcon::mousePressEvent(QMouseEvent *ev)
 {
-    QToolButton::mousePressEvent(ev);
-    if (ev->button() == Qt::RightButton)
-    {
+    QFrame::mousePressEvent(ev);
+    if (ev->button() == Qt::RightButton) {
        // KonqPopupMenu menu();
        // menu.exec();
     }
 
-    if (ev->button() == Qt::LeftButton)
-    {
+    if (ev->button() == Qt::LeftButton) {
         isClick = true;
         dragStart = ev->pos();
+        QMouseEvent me(QEvent::MouseButtonPress, QPoint(0,0), ev->button(), ev->buttons(), ev->modifiers());
+        qApp->sendEvent(myButton, &me);
     }
 }
 
@@ -258,20 +281,40 @@ void BE::DeskIcon::mouseMoveEvent(QMouseEvent * ev)
 
 void BE::DeskIcon::mouseReleaseEvent(QMouseEvent *ev)
 {
-    QToolButton::mouseReleaseEvent(ev);
+    QFrame::mouseReleaseEvent(ev);
     if (testAttribute(Qt::WA_UnderMouse)) {
         if (isClick)
             new KRun( KUrl(myUrl), this);
         else {
-            if (ev->modifiers() & Qt::ControlModifier)
+            if (ev->modifiers() & Qt::ControlModifier) {
                 snapToGrid();
+            } else {
+                static_cast<Desk*>(parent())->alignIcon(this);
+            }
             static_cast<Desk*>(parent())->scheduleSave();
         }
     }
     isClick = false;
+    QMouseEvent me(QEvent::MouseButtonRelease, QPoint(0,0), ev->button(), ev->buttons(), ev->modifiers());
+    qApp->sendEvent(myButton, &me);
 }
 
-void BE::DeskIcon::setSize(int s)
+void
+BE::DeskIcon::setIconSize(const QSize &size)
+{
+    myButton->setIconSize(size);
+}
+
+void
+BE::DeskIcon::setLabelVisible(bool b)
+{
+    myLabel->setVisible(b);
+    setToolTip(b ? QString() : myLabel->text());
+    adjustSize();
+}
+
+void
+BE::DeskIcon::setSize(int s)
 {
     ourSize = QSize(s,s);
 }
@@ -279,6 +322,8 @@ void BE::DeskIcon::setSize(int s)
 void
 BE::DeskIcon::snapToGrid()
 {
+    if (showLabels)
+        return;
     const QRect &container = static_cast<Desk*>(parent())->iconRect();
     const int dx = width() + static_cast<Desk*>(parent())->iconMargin();
     const int dy = height() + static_cast<Desk*>(parent())->iconMargin();
@@ -292,6 +337,95 @@ BE::DeskIcon::snapToGrid()
     if (ly - ty > dy/2)
         ty += dy;
     move(tx, ty);
+}
+
+void
+BE::Desk::alignIcon(BE::DeskIcon *icon)
+{
+    QPoint target(-1,-1);
+    const int d = iconMargin();
+    QRect geo = icon->geometry();
+    BE::DeskIcon *touching = 0;
+    for (IconList::iterator it = myIcons.list.begin(),
+                           end = myIcons.list.end(); it != end; ++it) {
+        if (it->first && it->first != icon) {
+            const QRect geo2 = it->first->geometry();
+            if (target.x() < 0 &&
+                geo.x() - d < geo2.right() && geo.x() + d > geo2.right() &&
+                (geo.y() + geo.height()/2 > geo2.y() && geo.y() + geo.height()/2 < geo2.bottom())) {
+                target.rx() = geo2.right() + d;
+                if (!touching)
+                    touching = it->first;
+            }
+            if (target.y() < 0 &&
+                geo.y() - d < geo2.bottom() && geo.y() + d > geo2.bottom() &&
+                (geo.x() + geo.width()/2 > geo2.x() && geo.x() + geo.width()/2 < geo2.right())) {
+                target.ry() = geo2.bottom() + d;
+                if (!touching)
+                    touching = it->first;
+            }
+        }
+        if (target.x() > -1 && target.y() > -1)
+            break;
+    }
+
+    if (target.x() < 0 || target.y() < 0) {
+        for (IconList::iterator it = myIcons.list.begin(),
+                               end = myIcons.list.end(); it != end; ++it) {
+            if (it->first && it->first != icon) {
+                const QRect geo2 = it->first->geometry();
+                if (target.x() < 0 &&
+                    geo.right() + d > geo2.x() && geo.right() - d < geo2.x() &&
+                    (geo.y() + geo.height()/2 > geo2.y() && geo.y() + geo.height()/2 < geo2.bottom())) {
+                    target.rx() = geo2.x() - (d + geo.width());
+                    if (!touching)
+                        touching = it->first;
+                }
+                if (target.y() < 0 &&
+                    geo.bottom() + d > geo2.y() && geo.bottom() - d < geo2.y() &&
+                    (geo.x() + geo.width()/2 > geo2.x() && geo.x() + geo.width()/2 < geo2.right())) {
+                    target.ry() = geo2.y() - (d + geo.height());
+                    if (!touching)
+                        touching = it->first;
+                }
+            }
+            if (target.x() > -1 && target.y() > -1)
+                break;
+        }
+    }
+
+    if (touching) {
+        const QRect geo2 = touching->geometry();
+        if (target.x() < 0) {
+            if (qAbs(geo.x() - geo2.x()) < d)
+                target.rx() = geo2.x();
+            else if (qAbs(geo.right() - geo2.right()) < d)
+                target.rx() = geo2.right() - geo.width();
+        } else if (target.y() < 0) {
+            if (qAbs(geo.y() - geo2.y()) < d)
+                target.ry() = geo2.y();
+            else if (qAbs(geo.bottom() - geo2.bottom()) < d)
+                target.ry() = geo2.bottom() - geo.height();
+        }
+    }
+
+    if (target.x() < 0 || target.y() < 0) {
+        const QPoint tl = iconRect().topLeft();
+        QPoint p1 = icon->pos() - tl;
+        QPoint p2((p1.x()/d)*d, (p1.y()/d)*d);
+        p2 = p1 - p2;
+        p1 = icon->pos() - p2;
+        if (p2.x() > d/2)
+            p1.rx() += d;
+        if (p2.y() > d/2)
+            p1.ry() += d;
+        if (target.x() < 0)
+            target.rx() = p1.x();
+        if (target.y() < 0)
+            target.ry() = p1.y();
+    }
+
+    icon->move(target);
 }
 
 void
@@ -891,7 +1025,8 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
     myIcons.menuItem = menu->addAction(i18n("Visible"), this, SLOT(toggleIconsVisible(bool)));
     myIcons.menuItem->setCheckable(true);
     menu->addSeparator();
-    menu->addAction(i18n("Align\t(Ctrl+Drag)"), this, SLOT(snapIconsToGrid()));
+    myIcons.alignTrigger = menu->addAction(i18n("Align\t(Ctrl+Drag)"), this, SLOT(snapIconsToGrid()));
+
     menu = menu->addMenu(i18n("Size"));
     const int IconSizes[10] = {16, 22, 32, 48, 64, 72, 96, 128, 256, 512};
     for (int i = 0; i < 10; ++i) {
@@ -990,6 +1125,14 @@ BE::Desk::configure( KConfigGroup *grp )
             if (it->first)
                 it->first->move(it->second);
         }
+    }
+
+    BE::DeskIcon::showLabels = grp->readEntry("IconLabels", QVariant(true)).toBool();
+    myIcons.alignTrigger->setEnabled(!BE::DeskIcon::showLabels);
+    for (IconList::const_iterator it = myIcons.list.constBegin(),
+                                 end = myIcons.list.constEnd(); it != end; ++it) {
+        if (BE::DeskIcon *icon = const_cast<BE::DeskIcon*>(it->first))
+            icon->setLabelVisible(BE::DeskIcon::showLabels);
     }
 
     b = myIcons.areShown;

@@ -24,11 +24,11 @@
 #include <QCache>
 #include <QDateTime>
 #include <QDialog>
+#include <QFrame>
 #include <QHash>
 #include <QPixmap>
 #include <QPoint>
 #include <QPointer>
-#include <QToolButton>
 
 #include "be.plugged.h"
 
@@ -37,6 +37,7 @@ class QCheckBox;
 class QGridLayout;
 class QGroupBox;
 class QLabel;
+class QToolButton;
 class QRadioButton;
 class KDirWatch;
 class KConfigGroup;
@@ -49,13 +50,16 @@ const int AskForDesktops = -2;
 
 class Desk;
 
-class DeskIcon : public QToolButton
+class DeskIcon : public QFrame
 {
     Q_OBJECT
 public:
     DeskIcon(const QString &path, Desk *parent);
     void updateIcon();
+    void setIconSize(const QSize &size);
     static void setSize(int size);
+    void setLabelVisible(bool);
+    static bool showLabels;
     inline static QSize size() { return ourSize; };
     void snapToGrid();
 
@@ -70,6 +74,8 @@ private:
     QString myUrl, myName;
     int myNameWidth;
     static QSize ourSize;
+    QToolButton *myButton;
+    QLabel *myLabel;
 };
 
 class Panel;
@@ -121,6 +127,7 @@ class Desk : public QWidget, public Plugged
     Q_OBJECT
 public:
     Desk( QWidget *parent = 0 );
+    void alignIcon(BE::DeskIcon *icon);
     void registrate( BE::Panel * );
     void configure( KConfigGroup *grp );
     int iconMargin() const { return myIcons.margin; }
@@ -212,6 +219,7 @@ private:
         IconList list;
         QRect rect;
         QAction *menuItem;
+        QAction *alignTrigger;
         int margin;
     } myIcons;
 
