@@ -34,6 +34,7 @@
 #include <QCompleter>
 #include <QCoreApplication>
 #include <QDBusConnection>
+#include <QDBusInterface>
 #include <QDesktopWidget>
 #include <QDir>
 #include <QKeyEvent>
@@ -644,6 +645,20 @@ void BE::Run::execute( const QString &exec/*Line*/ )
 
     QString exec = elements.join(" ");
 #endif
+    if (exec.startsWith("#setenv ")) {
+        QStringList envs = exec.split(" ", QString::SkipEmptyParts);
+        QDBusInterface launcher("org.kde.klauncher", "/KLauncher", "org.kde.KLauncher", QDBusConnection::sessionBus());
+        foreach (const QString &e, envs) {
+            const int idx = e.indexOf('=');
+            if (idx > 0) {
+                setenv(qPrintable(e.left(idx)), qPrintable(e.mid(idx+1)), 0);
+                launcher.call("setLaunchEnv", e.left(idx), e.mid(idx+1));
+            }
+        }
+        m_shell->clear();
+        flash(Qt::green);
+        return;
+    }
 #if 0
     if ( exec.toLower() == "logout" )
     {
@@ -1229,7 +1244,8 @@ void BE::Run::updateFavorites()
 
 void BE::Run::filter( const QString &string )
 {
-    if (string.startsWith(':') || string.startsWith('=') || m_shell->completer() != m_binCompleter) {
+    if (string.startsWith(':') || string.startsWith('=') || string.startsWith('#') ||
+        m_shell->completer() != m_binCompleter) {
         m_tree->setCurrentItem(NULL, 0);
         return; // IO command - no filtering. Doesn't make sense
     }
