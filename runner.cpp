@@ -1287,14 +1287,34 @@ void BE::Run::filter( const QString &string )
             m_tree->sortItems(1, Qt::DescendingOrder);
             m_tree->expandAll();
         }
-        QTreeWidgetItem *item = m_tree->topLevelItem(0);
-        while (item->childCount())
-            item = item->child(0);
+
+        QTreeWidgetItem *item = NULL;
+        for (int i = 0; i < m_tree->topLevelItemCount(); ++i) {
+            if (m_tree->topLevelItem(i)->isHidden())
+                continue;
+            // found visible top level item, search first visible leaf
+            item = m_tree->topLevelItem(i);
+            while (item->childCount()) {
+                for (int j = 0; j < item->childCount(); ++j) {
+                    if (!item->child(j)->isHidden()) {
+                        item = item->child(j);
+                        break; // continue while loop
+                    }
+                }
+            }
+            break;
+        }
+
+        if (item && item->isHidden())
+            item = NULL;
         m_tree->setCurrentItem(item, 0);
+
     } else {
         m_tree->collapseAll();
-        if (wasFlat)
+        if (wasFlat) {
             m_tree->sortItems(0, Qt::AscendingOrder);
+            m_tree->setCurrentItem(NULL, 0);
+        }
     }
 
     bool showFavorites = string.isEmpty();
