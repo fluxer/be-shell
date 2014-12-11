@@ -68,6 +68,22 @@ static const int TreeLevel = 33, Executable = 34, EntryPath = 35, ExecPath = 36,
 
 
 namespace BE {
+class RunnerItem : public QTreeWidgetItem
+{
+public:
+    RunnerItem(QTreeWidgetItem *parent) : QTreeWidgetItem(parent) {}
+    bool operator<(const QTreeWidgetItem &other) const {
+        if (childCount()) { // group
+            if (!other.childCount())
+                return true; // other is item
+            return text(0) < other.text(0); // both group
+        }
+        if (other.childCount())
+            return false; // other is group, we're not
+        return text(0) < other.text(0); // no groups
+    }
+};
+
 class RunDelegate : public QAbstractItemDelegate
 {
 public:
@@ -1311,7 +1327,7 @@ bool BE::Run::repopulate( KSharedPtr<KServiceGroup> group, QTreeWidgetItem *pare
             KSharedPtr<KService> a = KSharedPtr<KService>::staticCast(p);
             if( a->isApplication() )
             {
-                QTreeWidgetItem *item = new QTreeWidgetItem( parent );
+                QTreeWidgetItem *item = new RunnerItem( parent );
                 item->setIcon( 0, KIcon(a->icon()) );
                 item->setText( 0, a->name() );
                 item->setData( 0, GenericName, a->genericName() );
@@ -1332,7 +1348,7 @@ bool BE::Run::repopulate( KSharedPtr<KServiceGroup> group, QTreeWidgetItem *pare
             if( g->entries(true,true).count() != 0 )
             {
 //                 kDebug() << "Menu" << g->caption() << g->entries(true,true).count();
-                QTreeWidgetItem *item = new QTreeWidgetItem( parent );
+                QTreeWidgetItem *item = new RunnerItem( parent );
                 item->setIcon( 0, KIcon(g->icon()) ); item->setText( 0, g->caption() );
                 item->setData( 0, Executable, false ); item->setData( 0, TreeLevel, level );
                 if (repopulate(g, item))
@@ -1478,7 +1494,7 @@ void BE::Run::slotRepopulate()
     m_tree->setCurrentItem(NULL, 0);
     m_tree->invisibleRootItem()->setData( 0, TreeLevel, -1 );
 
-    favorites = new QTreeWidgetItem( m_tree->invisibleRootItem() );
+    favorites = new RunnerItem( m_tree->invisibleRootItem() );
     /*favorites->setIcon( 0, KIcon(g->icon()) );*/ favorites->setText( 0, i18n("Favorites") );
     favorites->setData( 0, Executable, false ); favorites->setData( 0, TreeLevel, 0 );
 
