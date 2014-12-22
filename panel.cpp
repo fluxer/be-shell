@@ -491,7 +491,7 @@ BE::Panel::updateSlideHint() {
 void
 BE::Panel::validateVisibilityAction()
 {
-    myVisibility->setChecked(isVisible());
+    myVisibility->setChecked(isVisibleTo(parentWidget()));
 }
 
 void
