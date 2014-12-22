@@ -114,6 +114,8 @@ private:
     void rBuildMenu(const QDomElement &node, QWidget *widget);
     static void saveSettings( Plugged *plug );
     void saveSettings();
+    friend class Panel;
+    static bool setPanelVisibleFor(const PlugList &plugs, const QString &name, char vis);
 
 private slots:
     void callFromAction();

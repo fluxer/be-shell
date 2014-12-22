@@ -46,10 +46,13 @@ public:
     void configure( KConfigGroup *grp );
     QString debug(const QString &pluginName, const QString &parameter) const;
     inline QPixmap *effectBgPix() const { return myBgPix; }
+    void fade(bool in);
+    inline bool isNested() const { return iAmNested; }
     inline int layer() const { return myLayer; }
     Qt::Orientation orientation() const;
     inline Position position() { return myPosition; }
     void saveSettings( KConfigGroup *grp );
+    bool setPanelVisible(const QString &name, char vis);
     inline int shadowPadding() const { return myShadowPadding; }
     inline int shadowRadius() const { return myShadowRadius; }
     inline QPen shadowBorder() const { return myShadowBorder; }
@@ -86,6 +89,7 @@ private slots:
     void startMoveResize();
     void setAndSaveVisible( bool on );
     void setOnScreen(QAction*);
+    void slotFadeFinished();
     void themeUpdated();
     void updateEffectBg();
     void updateParent();

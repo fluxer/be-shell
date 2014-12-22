@@ -26,6 +26,7 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QDesktopWidget>
+#include <QGraphicsOpacityEffect>
 #include <QLinearGradient>
 #include <QList>
 #include <QMenu>
@@ -661,6 +662,44 @@ BE::Panel::eventFilter(QObject *o, QEvent *e)
 }
 
 void
+BE::Panel::fade(bool in)
+{
+    if ((myLayer & 1)) {
+        in ? show() : hide();
+        return; // that's a real window - we use the WM animation
+    }
+
+    QGraphicsOpacityEffect *effect = new QGraphicsOpacityEffect(this);
+    setGraphicsEffect(effect);
+
+    QPropertyAnimation *animation = new QPropertyAnimation(effect, "opacity", this);
+    connect(animation, SIGNAL(finished()), SLOT(slotFadeFinished()));
+    animation->setObjectName("beshell_opacityAnimation");
+
+    animation->setEasingCurve(QEasingCurve::InOutCubic);
+    animation->setDuration(333);
+    if (in) {
+        show();
+        connect (animation, SIGNAL(finished()), SLOT(updateEffectBg()));
+        animation->setStartValue(0.0);
+        animation->setEndValue(1.0);
+    }
+    else {
+        connect (animation, SIGNAL(finished()), SLOT(hide()));
+        animation->setStartValue(1.0);
+        animation->setEndValue(0.0);
+    }
+    connect (animation, SIGNAL(valueChanged(QVariant)), SLOT(updateParent()));
+    animation->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void
+BE::Panel::slotFadeFinished()
+{
+    qobject_cast<QWidget*>(sender()->parent())->setGraphicsEffect(0); // deletes old one
+}
+
+void
 BE::Panel::hideEvent( QHideEvent *event )
 {
     int elapsed = myAutoHideTime.isValid() ? myAutoHideTime.elapsed() : 801;
@@ -723,6 +762,8 @@ BE::Panel::showEvent(QShowEvent *e)
         myAutoHideTimer->stop();
     }
     QWidget::showEvent(e);
+    if (iAmNested)
+        return;
     updateEffectBg();
     QSize maxSize = (orientation() == Qt::Horizontal) ? QSize(QWIDGETSIZE_MAX, mySize) : QSize(mySize, QWIDGETSIZE_MAX);
     QList<QWidget*> kids;
@@ -943,6 +984,12 @@ BE::Panel::setAndSaveVisible( bool vis )
 //     Plugged::saveSettings();
     slide(vis);
     QTimer::singleShot(250, this, SLOT(saveMySettings()));
+}
+
+bool
+BE::Panel::setPanelVisible(const QString &name, char vis)
+{
+    return BE::Shell::setPanelVisibleFor(myPlugs, name, vis);
 }
 
 void

@@ -1355,7 +1355,13 @@ BE::Shell::setCurrentDesktop()
 void
 BE::Shell::setPanelVisible(const QString &name, char vis)
 {
-    for (QList<Plugged*>::iterator it = myPlugs.begin(), end = myPlugs.end(); it != end; ++it) {
+    setPanelVisibleFor(myPlugs, name, vis);
+}
+
+bool
+BE::Shell::setPanelVisibleFor(const PlugList &plugs, const QString &name, char vis)
+{
+    for (QList<Plugged*>::const_iterator it = plugs.constBegin(), end = plugs.constEnd(); it != end; ++it) {
         BE::Panel *panel = dynamic_cast<BE::Panel*>(*it);
         if (!panel)
             continue;
@@ -1363,13 +1369,18 @@ BE::Shell::setPanelVisible(const QString &name, char vis)
             const bool v = vis < 0 ? !panel->isVisible() : bool(vis);
             if (v == panel->isVisible())
                 break; // nothing to do
-            if (panel->layer() > 1 || !panel->struts())
+            if (panel->isNested())
+                panel->fade(v);
+            else if (panel->layer() > 1 || !panel->struts())
                 panel->slide(v);
             else
                 panel->setVisible(v);
-            break;
+            return true;
+        } else if (panel->setPanelVisible(name, vis)) {
+            return true;
         }
     }
+    return false;
 }
 
 void
