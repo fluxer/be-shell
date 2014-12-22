@@ -58,6 +58,7 @@ public:
     inline QPen shadowBorder() const { return myShadowBorder; }
     void slide(bool in);
     inline bool struts() const { return iStrut; }
+    void userSetVisible(bool vis);
 public slots:
     void raiseProxy();
 signals:

@@ -978,17 +978,21 @@ BE::Panel::saveSettings( KConfigGroup *grp )
 }
 
 void
-BE::Panel::setAndSaveVisible(bool vis)
+BE::Panel::userSetVisible(bool vis)
 {
     if (vis == isVisible())
         return; // nothing to do
-    if (iAmNested)
+    if (iAmNested || (struts() && !(myLayer & 1)))
         fade(vis);
-    else if (layer() > 1 || !struts())
-        slide(vis);
     else
-        setVisible(vis);
-    QTimer::singleShot(250, this, SLOT(saveMySettings()));
+        slide(vis);
+}
+
+void
+BE::Panel::setAndSaveVisible(bool vis)
+{
+    userSetVisible(vis);
+    QTimer::singleShot(600, this, SLOT(saveMySettings()));
 }
 
 bool

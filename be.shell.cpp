@@ -1366,17 +1366,11 @@ BE::Shell::setPanelVisibleFor(const PlugList &plugs, const QString &name, char v
         if (!panel)
             continue;
         if (panel->name() == name) {
-            const bool v = vis < 0 ? !panel->isVisible() : bool(vis);
-            if (v == panel->isVisible())
-                break; // nothing to do
-            if (panel->isNested())
-                panel->fade(v);
-            else if (panel->layer() > 1 || !panel->struts())
-                panel->slide(v);
-            else
-                panel->setVisible(v);
+            panel->userSetVisible(vis < 0 ? !panel->isVisible() : bool(vis)); // toggle for -1
             return true;
-        } else if (panel->setPanelVisible(name, vis)) {
+        }
+        // try panel children recusrively next
+        if (panel->setPanelVisible(name, vis)) {
             return true;
         }
     }
