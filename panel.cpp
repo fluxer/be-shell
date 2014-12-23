@@ -630,8 +630,7 @@ BE::Panel::slide(bool in)
         animation->setEndValue(geometry());
     }
     connect (animation, SIGNAL(valueChanged(QVariant)), SLOT(updateParent()));
-    connect (animation, SIGNAL(finished()), animation, SLOT(deleteLater()));
-    animation->start();
+    animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void
@@ -689,7 +688,6 @@ BE::Panel::fade(bool in)
         animation->setStartValue(1.0);
         animation->setEndValue(0.0);
     }
-    connect (animation, SIGNAL(valueChanged(QVariant)), SLOT(updateParent()));
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
