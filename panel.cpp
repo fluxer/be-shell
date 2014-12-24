@@ -682,8 +682,7 @@ BE::Panel::fade(bool in)
         connect (animation, SIGNAL(finished()), SLOT(updateEffectBg()));
         animation->setStartValue(0.0);
         animation->setEndValue(1.0);
-    }
-    else {
+    } else {
         connect (animation, SIGNAL(finished()), SLOT(hide()));
         animation->setStartValue(1.0);
         animation->setEndValue(0.0);
@@ -694,7 +693,7 @@ BE::Panel::fade(bool in)
 void
 BE::Panel::slotFadeFinished()
 {
-    qobject_cast<QWidget*>(sender()->parent())->setGraphicsEffect(0); // deletes old one
+    setGraphicsEffect(0); // deletes old one
 }
 
 void
