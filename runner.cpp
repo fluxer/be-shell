@@ -68,11 +68,16 @@ static const int TreeLevel = 33, Executable = 34, EntryPath = 35, ExecPath = 36,
 
 
 namespace BE {
+
+static bool gs_sortByFavor = false;
+
 class RunnerItem : public QTreeWidgetItem
 {
 public:
     RunnerItem(QTreeWidgetItem *parent) : QTreeWidgetItem(parent) {}
     bool operator<(const QTreeWidgetItem &other) const {
+        if (gs_sortByFavor)
+            return data(1, Qt::DisplayRole).toDouble() < other.data(1, Qt::DisplayRole).toDouble();
         if (childCount()) { // group
             if (!other.childCount())
                 return true; // other is item
@@ -1284,7 +1289,9 @@ void BE::Run::filter( const QString &string )
 
     if (m_flat) {
         if (!(inc && wasFlat)) {
+            gs_sortByFavor = true;
             m_tree->sortItems(1, Qt::DescendingOrder);
+            gs_sortByFavor = false;
             m_tree->expandAll();
         }
 
