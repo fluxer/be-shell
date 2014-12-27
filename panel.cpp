@@ -598,36 +598,28 @@ BE::Panel::slide(bool in)
         return; // that's a real window - we use the WM sliding.
     }
 
+    setUpdatesEnabled(false);
     QRect geo(geometry());
-    switch (myPosition)
-    {
+    switch (myPosition) {
         default:
-        case Top:
-            move(geo.x(), geo.top() - geo.height() + 1);
-            break;
-        case Bottom:
-            move(geo.x(), geo.bottom() -  1);
-            break;
-        case Left:
-            move(geo.left() - geo.width() + 1, geo.y());
-            break;
-        case Right:
-            move(geo.right() - 1, geo.y());
-            break;
+        case Top: geo.moveTop(geo.top() - geo.height() + 1); break;
+        case Bottom: geo.moveTop(geo.bottom() -  1); break;
+        case Left: geo.moveLeft(geo.left() - geo.width() + 1); break;
+        case Right: geo.moveLeft(geo.right() - 1); break;
     }
     QPropertyAnimation *animation = new QPropertyAnimation(this, "geometry");
-    animation->setEasingCurve(QEasingCurve::InOutCubic);
+    animation->setEasingCurve(in ? QEasingCurve::OutCubic : QEasingCurve::InCubic);
     animation->setDuration(200);
     if (in) {
-        show();
-        connect (animation, SIGNAL(finished()), SLOT(updateEffectBg()));
-        animation->setStartValue(geometry());
-        animation->setEndValue(geo);
-    }
-    else {
-        connect (animation, SIGNAL(finished()), SLOT(hide()));
         animation->setStartValue(geo);
         animation->setEndValue(geometry());
+        move(geo.topLeft());
+        show();
+        connect (animation, SIGNAL(finished()), SLOT(updateEffectBg()));
+    } else {
+        connect (animation, SIGNAL(finished()), SLOT(hide()));
+        animation->setStartValue(geometry());
+        animation->setEndValue(geo);
     }
     connect (animation, SIGNAL(valueChanged(QVariant)), SLOT(updateParent()));
     animation->start(QAbstractAnimation::DeleteWhenStopped);
@@ -979,7 +971,7 @@ BE::Panel::userSetVisible(bool vis)
 {
     if (vis == isVisible())
         return; // nothing to do
-    if (iAmNested || (struts() && !(myLayer & 1)))
+    if (iAmNested) // || (struts() && !(myLayer & 1)))
         fade(vis);
     else
         slide(vis);
@@ -1244,6 +1236,9 @@ void
 BE::Panel::updateEffectBg()
 {
     delete myBgPix; myBgPix = 0; // ensure the desktop will not paint our effect background
+
+    setUpdatesEnabled(true);
+
     if (!parentWidget())
         return;
 
