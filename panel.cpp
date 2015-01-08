@@ -406,11 +406,23 @@ BE::Panel::configure( KConfigGroup *grp )
 
     bool castedShadow = iCastAShadow;
     iCastAShadow = grp->readEntry("CastShadow", true);
+    uint kstyleFeatureRequest = property("KStyleFeatureRequest").toUInt();
+    bool needsShadow = (myLayer & 1) && iCastAShadow;
+    if (needsShadow == bool(kstyleFeatureRequest & 1)) {
+        needsShadow = false;
+    } else {
+        if (needsShadow)
+            kstyleFeatureRequest |= 1; // "Shadowed"
+        else
+            kstyleFeatureRequest &= ~1; // "Not Shadowed"
+        setProperty("KStyleFeatureRequest", kstyleFeatureRequest);
+        needsShadow = true; // to trigger a repolish
+    }
 
     if ((castedShadow != iCastAShadow || wasVis || updateGeometry) && parentWidget())
         parentWidget()->update(); // necessary?
 
-    if (oldId != myForcedId) {
+    if (oldId != myForcedId || needsShadow) {
         style()->unpolish(this);
         style()->polish(this);
     }

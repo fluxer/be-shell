@@ -2255,7 +2255,8 @@ BE::Desk::paintEvent(QPaintEvent *pe)
             if (panel->effectBgPix() && panel->updatesEnabled())
                 p.drawPixmap(qMax(x,0), qMax(y,0), *panel->effectBgPix());
 
-            if (!(myShadowOpacity && panel->castsShadow()))
+            if (!(myShadowOpacity && panel->castsShadow()) ||
+                ((panel->layer() & 1) && BE::Shell::compositingActive()))
                 continue;
 
             const int radius = panel->shadowRadius();
