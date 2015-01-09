@@ -1467,10 +1467,13 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     ret.targetSize = sz;
     ret.wp = 0;
     QImage tile;
+    QImage center;
 
     QString iFile = file;
     if (iFile.endsWith(".bwp", Qt::CaseInsensitive)) {
-        iFile = KStandardDirs::locateLocal("tmp", "be.shell/base.jpg") + ':' + KStandardDirs::locateLocal("tmp", "be.shell/tile.png");
+        iFile = KStandardDirs::locateLocal("tmp", "be.shell/base.jpg") + ':' +
+                KStandardDirs::locateLocal("tmp", "be.shell/tile.png") + ':' +
+                KStandardDirs::locateLocal("tmp", "be.shell/center.png");
     }
 
     if (mode == Composed || (mode < 0 && iFile.contains(':'))) {
@@ -1479,6 +1482,8 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
         if ( tile.isNull() )
             return ret;
         tile = tile.convertToFormat(QImage::Format_ARGB32);
+        center = QImage(iFile.section(':', 2, 2, QString::SectionSkipEmpty));
+        center = center.convertToFormat(QImage::Format_ARGB32);
         iFile = iFile.section(':', 0, 0, QString::SectionSkipEmpty);
     }
 
@@ -1493,15 +1498,19 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     if (addOverlay) {
         tile = img;
         QString oldFile = wp->file;
+        QString oldCenter;
         if (wp->mode == Composed) {
             oldFile = wp->file.section(':', 0, 0, QString::SectionSkipEmpty);
             img = QImage(oldFile);
+            oldCenter = wp->file.section(':', 2, 2, QString::SectionSkipEmpty);
+            center = QImage(oldCenter);
+            center = center.convertToFormat(QImage::Format_ARGB32);
             BE::Shell::monochromatize(img, myTint);
             tint = false;
         } else {
             img = wp->pix.toImage();
         }
-        file = oldFile + ':' + file;
+        file = oldFile + ':' + file + ':' + oldCenter;
         mode = Composed;
     }
 
@@ -1618,6 +1627,10 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
             img = img.convertToFormat(img.hasAlphaChannel() ? QImage::Format_ARGB32 : QImage::Format_RGB32);
         QPainter p(&img);
         p.fillRect(img.rect(), QBrush(tile));
+        if (!center.isNull()) {
+            QSize d = (img.size() - center.size())/2;
+            p.drawImage(d.width(), d.height(), center);
+        }
         p.end();
     }
     ret.wp = wp;
@@ -1689,6 +1702,11 @@ BE::Desk::setWallpaper(QString file, int mode, int desktop)
             QString tile(KStandardDirs::locateLocal("tmp", "be.shell/tile.png"));
             if ( !KIO::NetAccess::download(url, tile, this) )
                 return; // failed download
+            url = QUrl(file + "/center.png");
+            url.setScheme("tar");
+            QString center(KStandardDirs::locateLocal("tmp", "be.shell/center.png"));
+            if (!KIO::NetAccess::download(url, center, this))
+                QFile::remove(center); // remove old junk
             mode = Composed;
         }
 
