@@ -2,15 +2,15 @@
 
 function join { local IFS="$1"; shift; echo "$*"; }
 
-NONE="`echo $1 | tr -s '[:upper:]' '[:lower:]'`"
+NONE="`tr -s '[:upper:]' '[:lower:]' <<< "$1"`"
 if [ "$NONE" != "none" ]; then
     IFS=':' read -a ELEMENTS <<< "$1"
-    ELEMENTS=(${ELEMENTS[@]/\~\//$HOME/})
+    IFS=':' ELEMENTS=(${ELEMENTS[@]/\~\//$HOME/})
     COUNT=$((${#ELEMENTS[@]} - 1))
     for ((i=0; i < $COUNT; ++i)); do
-        WALLPAPER="${WALLPAPER}`realpath ${ELEMENTS[$i]}`:"
+        WALLPAPER="${WALLPAPER}`realpath "${ELEMENTS[$i]}"`:"
     done
-    WALLPAPER="${WALLPAPER}`realpath ${ELEMENTS[$COUNT]}`"
+    WALLPAPER="${WALLPAPER}`realpath "${ELEMENTS[$COUNT]}"`"
 else
     WALLPAPER="none"
 fi
@@ -18,5 +18,25 @@ fi
 if [ -z "$2" ]; then
     qdbus org.kde.be.shell /Desktop setWallpaper "$WALLPAPER"
 else
-    qdbus org.kde.be.shell /Desktop setWallpaper "$WALLPAPER" "$2"
+    MODE="`tr -s '[:upper:]' '[:lower:]' <<< "$2"`"
+    case $MODE in
+    plain) MODE=1 ;;
+    tiles|tiling) MODE=2 ;;
+    tileh|cols|columns)
+        MODE=3
+        ;;
+    tilev|rows)
+        MODE=4
+        ;;
+    scale|stretch)
+        MODE=5
+        ;;
+    max|maximum)
+        MODE=6
+        ;;
+    scalecrop)
+        MODE=7
+        ;;
+    esac
+    qdbus org.kde.be.shell /Desktop setWallpaper "$WALLPAPER" "$MODE"
 fi
