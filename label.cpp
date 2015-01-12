@@ -199,6 +199,24 @@ void
 BE::Label::protectedExec(const QString &cmd)
 {
     QUrl url(cmd);
+    if (url.scheme() == "dbus") {
+        if (!myPermittedCommands.contains("dbus")) {
+            qWarning() << "***WARNING*** Execution of unpermitted path requested\nPath: " << url.path() <<
+                      "\"PermittedCommands\" *must* contain \"dbus\"" << sender();
+            return;
+        }
+        if (url.path().startsWith("session;")) {
+            QString call = url.path();
+            QPoint pos(QCursor::pos());
+            call.replace("$x", QString::number(pos.x())).replace("$y", QString::number(pos.y()));
+            BE::Shell::call(call);
+        } else {
+            qWarning() << "***WARNING*** DBus call to other bus than session requested\nCall: " << url.path() <<
+                      "The bus *must* be \"session\" for security concerns" << sender();
+        }
+        return;
+    }
+
     if (url.scheme() != "exec") // not for us
         return;
     if (url.path() == "%poll") {
@@ -207,7 +225,7 @@ BE::Label::protectedExec(const QString &cmd)
     }
     if (!myPermittedCommands.contains(url.path())) {
         qWarning() << "***WARNING*** Execution of unpermitted path requested\nPath: " << url.path() << 
-                      "The path *must* be in the \"PermittedCommands\" list of the sender" << sender();;
+                      "The path *must* be in the \"PermittedCommands\" list of the sender" << sender();
         return;
     }
     BE::Shell::run(url.path());
