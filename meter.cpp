@@ -41,7 +41,7 @@ BE::Meter::Meter( QWidget *parent ) : QFrame(parent)
 , myNormalRect(QRectF(-1,-1,2,2))
 {
     setMinimumHeight(2*fontMetrics().height());
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     setRanges(0,0,0,0);
     setValues(0,0);
 }
