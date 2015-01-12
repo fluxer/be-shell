@@ -1491,26 +1491,45 @@ BE::Desk::ImageToWallpaper BE::Desk::loadImage(QString file, int mode, QList<int
     if ( img.isNull() )
         return ret;
 
-    bool addOverlay = mode == Heuristic && !wp->pix.isNull() && img.width() + img.height() < 129 && img.hasAlphaChannel();
+    char addOverlay = 0;
+    if (mode == Heuristic && !wp->pix.isNull() && img.hasAlphaChannel()) {
+        if (img.width() + img.height() < 129)
+            addOverlay = 1;
+        else if (img.width() + img.height() < 1025)
+            addOverlay = 2;
+    }
     bool tint = true;
-    if (addOverlay && (wp->mode == Tiled || wp->mode == ScaleV || wp->mode ==  ScaleH))
-        addOverlay = false; // nope - we replace the current tile instead
+    if (addOverlay == 1 && (wp->mode == Tiled || wp->mode == ScaleV || wp->mode ==  ScaleH))
+        addOverlay = 0; // nope - we replace the current tile instead
     if (addOverlay) {
-        tile = img;
         QString oldFile = wp->file;
-        QString oldCenter;
+        QString centerPath, tilePath;
+        if (addOverlay == 1) {
+            tile = img;
+            tilePath = file;
+        } else {
+            center = img;
+            centerPath = file;
+        }
         if (wp->mode == Composed) {
             oldFile = wp->file.section(':', 0, 0, QString::SectionSkipEmpty);
             img = QImage(oldFile);
-            oldCenter = wp->file.section(':', 2, 2, QString::SectionSkipEmpty);
-            center = QImage(oldCenter);
-            center = center.convertToFormat(QImage::Format_ARGB32);
             BE::Shell::monochromatize(img, myTint);
             tint = false;
+
+            if (addOverlay == 1) {
+                centerPath = wp->file.section(':', 2, 2, QString::SectionSkipEmpty);
+                center = QImage(centerPath);
+                center = center.convertToFormat(QImage::Format_ARGB32);
+            } else {
+                tilePath = wp->file.section(':', 1, 1, QString::SectionSkipEmpty);
+                tile = QImage(tilePath);
+                tile = tile.convertToFormat(QImage::Format_ARGB32);
+            }
         } else {
             img = wp->pix.toImage();
         }
-        file = oldFile + ':' + file + ':' + oldCenter;
+        file = oldFile + ':' + tilePath + ':' + centerPath;
         mode = Composed;
     }
 
