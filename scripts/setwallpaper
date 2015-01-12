@@ -4,8 +4,8 @@ function join { local IFS="$1"; shift; echo "$*"; }
 
 NONE="`tr -s '[:upper:]' '[:lower:]' <<< "$1"`"
 if [ "$NONE" != "none" ]; then
-    IFS=':' read -a ELEMENTS <<< "$1"
-    IFS=':' ELEMENTS=(${ELEMENTS[@]/\~\//$HOME/})
+    PATHS=${1//\~\//$HOME/}
+    IFS=':' read -a ELEMENTS <<< "$PATHS"
     COUNT=$((${#ELEMENTS[@]} - 1))
     for ((i=0; i < $COUNT; ++i)); do
         WALLPAPER="${WALLPAPER}`realpath "${ELEMENTS[$i]}"`:"
