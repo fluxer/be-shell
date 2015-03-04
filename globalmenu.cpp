@@ -123,6 +123,7 @@ BE::GMenu::GMenu(QWidget *parent) : QWidget(parent), BE::Plugged(parent)
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     new GMenuAdaptor(this);
 
+    connect( shell(), SIGNAL(styleSheetChanged()), SLOT(themeUpdated()) );
     connect (parent, SIGNAL(orientationChanged( Qt::Orientation )),
              this, SLOT(orientationChanged(Qt::Orientation)));
 }
@@ -339,33 +340,40 @@ bool
 BE::GMenu::dbusAction(const QObject *o, int idx, const QString &cmd)
 {
     QAction *act = 0; qlonglong key = 0; QString service; QPoint pt;
-    if (const BE::HMenuBar *bar = qobject_cast<const BE::HMenuBar*>(o))
-    {
+    if (const BE::HMenuBar *bar = qobject_cast<const BE::HMenuBar*>(o)) {
         act = bar->action(idx); service = bar->service(); key = bar->key();
-        pt = bar->actionGeometry(act).bottomLeft(); // needs to be smarter..., i.e. panel dependend
-    }
-    else if (const BE::VMenuBar *bar = qobject_cast<const BE::VMenuBar*>(o))
-    {
+        pt = bar->actionGeometry(act).bottomLeft() + QPoint(0,1) + myToplevelPopupOffset; // TODO: wrong for bottom panel
+    } else if (const BE::VMenuBar *bar = qobject_cast<const BE::VMenuBar*>(o)) {
         act = bar->action(idx); service = bar->service(); key = bar->key();
-        pt = bar->actionGeometry(act).topRight();
-    }
-    else
+        pt = bar->actionGeometry(act).topRight() + QPoint(1,0) + myToplevelPopupOffset; // TODO: wrong for right panel
+
+    } else {
         return false; // that's not our business!
+    }
+
     const QWidget *w = static_cast<const QWidget*>(o);
     if (!act || act->menu())
         return false; // that's not our business!
-    
+
     pt = w->mapToGlobal(pt);
 
     QDBusInterface interface( service, "/XBarClient", "org.kde.XBarClient" );
-    if (interface.isValid())
-    {
+    if (interface.isValid()) {
         if (idx < 0)
             interface.call(cmd, key);
         else
             interface.call(cmd, key, idx, pt.x(), pt.y());
     }
     return true;
+}
+
+bool
+BE::GMenu::eventFilter(QObject *o, QEvent *e)
+{
+    if (e->type() == QEvent::Show)
+    if (QMenu *menu = qobject_cast<QMenu*>(o))
+        menu->move(menu->pos() + myToplevelPopupOffset);
+    return false;
 }
 
 void
@@ -486,11 +494,15 @@ BE::GMenu::repopulateMainMenu()
         myMainMenu = new QMenuBar(this);
     else
         myMainMenu = new QMenu(this);
-    
+
     delete myMainMenuDefWatcher;
 
     BE::Shell::buildMenu("MainMenu", myMainMenu, "menubar");
-    
+    foreach (const QAction *act, myMainMenu->actions()) {
+        if (act->menu())
+            act->menu()->installEventFilter(this);
+    }
+
     myMainMenuDefWatcher = new QFileSystemWatcher(this);
     myMainMenuDefWatcher->addPath(KGlobal::dirs()->locate("data", "be.shell/MainMenu.xml"));
     connect( myMainMenuDefWatcher, SIGNAL(fileChanged(const QString &)), this, SLOT(repopulateMainMenu()) );
@@ -634,6 +646,14 @@ BE::GMenu::title(QWidget *w)
     if (VMenuBar *bar = qobject_cast<VMenuBar*>(w))
         return bar->title;
     return nullString;
+}
+
+void
+BE::GMenu::themeUpdated()
+{
+    int l,t,r,b;
+    BE::Shell::getContentsMargins(myMainMenu, &l,&t,&r,&b);
+    myToplevelPopupOffset = QPoint(l,b); // TODO: what about right and bottom panels?
 }
 
 void
@@ -886,10 +906,8 @@ BE::GMenu::ggmCreate( WId id )
     char **list;
     XTextProperty string;
     
-    if ( XGetTextProperty(QX11Info::display(), id, &string, ggmContext) && XTextPropertyToStringList(&string, &list, &nItems) )
-    {
-        if (nItems)
-        {
+    if ( XGetTextProperty(QX11Info::display(), id, &string, ggmContext) && XTextPropertyToStringList(&string, &list, &nItems) ) {
+        if (nItems) {
             QString xml = QString::fromUtf8( list[0] );
             if (myOrientation == Qt::Horizontal)
                 bar = new QMenuBar(this);
@@ -899,14 +917,17 @@ BE::GMenu::ggmCreate( WId id )
             doc.setContent( xml, false );
             QDomElement root = doc.firstChildElement();
             ggmRecursive( root, bar, QString::number(id) );
-            if ( !bar->actions().isEmpty() )
-            {
+            if (!bar->actions().isEmpty()) {
                 QAction *action = bar->actions().at(0);
                 QFont fnt = action->font();
                 fnt.setBold(true);
                 action->setFont(fnt);
                 KWindowInfo info(id, 0, NET::WM2WindowClass);
-                action->setText( info.windowClassClass() );
+                action->setText(info.windowClassClass());
+                foreach (const QAction *act, bar->actions()) {
+                    if (act->menu())
+                        act->menu()->installEventFilter(this);
+                }
             }
             layout()->addWidget(bar);
             bar->hide();

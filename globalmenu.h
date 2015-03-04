@@ -49,6 +49,7 @@ public:
     void requestFocus(qlonglong key);
     void releaseFocus(qlonglong key);
 protected:
+    bool eventFilter(QObject *o, QEvent *e);
     void focusOutEvent(QFocusEvent *ev);
     void mousePressEvent( QMouseEvent *ev );
     void wheelEvent( QWheelEvent *ev );
@@ -73,6 +74,7 @@ private slots:
     void orientationChanged( Qt::Orientation o );
     void raiseCurrentWindow();
     void repopulateMainMenu();
+    void themeUpdated();
     void trigger(int);
     void unlockUpdates();
     void unregisterCurrentMenu();
@@ -93,6 +95,8 @@ private:
     QWidget *myMainMenu;
     QFileSystemWatcher *myMainMenuDefWatcher;
     static QTimer ourBodyCleaner;
+
+    QPoint myToplevelPopupOffset;
 
     bool iAmGnome2;
 };
