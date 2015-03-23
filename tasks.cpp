@@ -906,7 +906,7 @@ BE::Tasks::configure( KConfigGroup *grp )
                 task->configure(&config);
                 task->setObjectName("NoTask");
                 task->setFixedIconSize(myFixedIconSize);
-//                 task->setToolButtonStyle(Qt::ToolButtonIconOnly);
+                task->setToolButtonStyle(myButtonMode);
                 myTasks << task;
                 static_cast<QBoxLayout*>(layout())->insertWidget(n++, task, 1);
             }
