@@ -796,6 +796,7 @@ BE::Task::updateStates()
 
 BE::Tasks::Tasks(QWidget *parent) : QFrame(parent), BE::Plugged(parent)
 {
+    myFixedIconSize = 0;
     iStackNow = iStack = true;
     myOrientation = Plugged::orientation();
 
@@ -866,6 +867,7 @@ BE::Tasks::addWindow( WId id )
 
     Task *newTask = new Task(this, id);
     newTask->setToolButtonStyle(myButtonMode);
+    newTask->setFixedIconSize(myFixedIconSize);
     layout()->addWidget(newTask);
     myTasks << newTask;
     newTask->hide();
@@ -887,6 +889,7 @@ BE::Tasks::configure( KConfigGroup *grp )
 
     KConfigGroup siblings = grp->parent();
     hasStickies = false;
+    myFixedIconSize = grp->readEntry("IconSize", 0);
     if (siblings.isValid())
     {
         QStringList sticks = grp->readEntry("Buttons", QStringList());
@@ -902,6 +905,7 @@ BE::Tasks::configure( KConfigGroup *grp )
                 Task *task = new Task(this, 0, true, sticky);
                 task->configure(&config);
                 task->setObjectName("NoTask");
+                task->setFixedIconSize(myFixedIconSize);
 //                 task->setToolButtonStyle(Qt::ToolButtonIconOnly);
                 myTasks << task;
                 static_cast<QBoxLayout*>(layout())->insertWidget(n++, task, 1);

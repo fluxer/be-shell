@@ -57,6 +57,7 @@ BE::Button::Button( QWidget *parent, const QString &plugName ) : QToolButton(par
 , myRenderTarget(0)
 , myMenuWatcher(0)
 , myLastIconSize(-1)
+, myFixedIconSize(0)
 {
     window()->setAttribute(Qt::WA_AlwaysShowToolTips);
     myBuffer[0] = myBuffer[1] = 0;
@@ -166,6 +167,16 @@ BE::Button::configure( KConfigGroup *grp )
     if (!myIcon.isEmpty())
         setIcon(themeIcon(myIcon));
     setShortcut(QKeySequence()); // getrid of mnemonics
+
+    setFixedIconSize(grp->readEntry("IconSize", 0));
+}
+
+void
+BE::Button::setFixedIconSize(int size)
+{
+    myFixedIconSize = size;
+    if (myFixedIconSize)
+        setIconSize(QSize(myFixedIconSize, myFixedIconSize));
 }
 
 void
@@ -284,6 +295,9 @@ static const int iconSizes[10] = {16, 22, 32, 48, 64, 72, 96, 128, 256, 512};
 void
 BE::Button::resizeEvent(QResizeEvent */*re*/)
 {
+    if (myFixedIconSize)
+        return;
+
     QStyleOptionToolButton opt;
     initStyleOption(&opt);
 

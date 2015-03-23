@@ -39,6 +39,7 @@ public:
     inline const QString &exe() const { return myExe; }
     void fade(bool in);
     void requestAttention(int count = 12);
+    void setFixedIconSize(int size);
 protected:
     bool eventFilter(QObject *o, QEvent *e);
     inline const QString &iconName() const { return myIcon; }
@@ -72,7 +73,7 @@ private:
     QPixmap *myBuffer[2], *myRenderTarget;
     QFileSystemWatcher *myMenuWatcher;
     QElapsedTimer myRecursionGuard;
-    int myLastIconSize;
+    int myLastIconSize, myFixedIconSize;
 };
 
 }

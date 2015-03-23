@@ -130,6 +130,7 @@ private:
     bool iStack, iStackNow, iSeparateDesktops, iSeparateScreens, iIgnoreVisible, hasStickies;
     bool iHighlightWindows, iShowTooltips;
     Qt::ToolButtonStyle myButtonMode;
+    int myFixedIconSize;
 };
 }
 
