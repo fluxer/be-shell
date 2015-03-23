@@ -125,15 +125,14 @@ BE::Task::add(WId id) {
         return;
     bool wereFew = count() < 2;
     myWindows << id;
-    if (count() > 1 && !menu())
-    {
+    if (count() > 1 && !menu()) {
         setMenu(new QMenu(this));
         connect( menu(), SIGNAL(hovered(QAction*)), SLOT(highlightWindow(QAction*)) );
         connect( menu(), SIGNAL(aboutToHide()), SLOT(highlightAllOrNone()) );
     }
-    myText = myGroup;
+
     setObjectName( count() > 1 ? "ManyTasks" : "OneTask" );
-    const unsigned long props[2] = {NET::WMState|NET::XAWMState, 0};
+    const unsigned long props[2] = {NET::WMState|NET::XAWMState|(wereFew && count() ? NET::WMIconName : 0), NET::WM2WindowClass};
     update(props, id);
     if (wereFew) {
         mySizeHintIsDirty = true;
@@ -455,6 +454,7 @@ BE::Task::remove(WId id)
         setProperty("needsAttention", false);
         repolish();
     }
+    setText(myText);
     return change;
 }
 
@@ -480,8 +480,9 @@ BE::Task::resizeEvent(QResizeEvent *re)
     if (toolButtonStyle() != Qt::ToolButtonTextOnly)
         mySizeHintIsDirty = true;
     BE::Button::resizeEvent(re);
-    if (toolButtonStyle() != Qt::ToolButtonIconOnly)
+    if (toolButtonStyle() != Qt::ToolButtonIconOnly) {
         setText(squeezedText(myText));
+    }
     publishGeometry(QRect(mapToGlobal(QPoint(0,0)), size()));
 }
 
@@ -731,14 +732,32 @@ BE::Task::update(const unsigned long *properties, WId id)
         }
 
         if (props[0] & s_nameProps) { // NOTICE info.visibleIconName() is an empty bytearray!
-            myText = count() > 1 ? myGroup :
-                            resortedText(KWindowInfo(id, NET::WMVisibleIconName).visibleIconName());
+            QString newText;
+            if (count() > 1) {
+                if (iStick && !myLabel.isEmpty()) {
+                    newText = myLabel;
+                } else {
+                    const int i = text().indexOf(myGroup, 0, Qt::CaseInsensitive);
+                    if (i > -1)
+                        newText = text().mid(i, myGroup.length());
+                    else
+                        newText = myGroup;
+                }
+            } else {
+                newText = resortedText(KWindowInfo(id, NET::WMVisibleIconName).visibleIconName());
+            }
+
+            if (!newText.isEmpty())
+                myText = newText;
+
             mySizeHintIsDirty = true;
             const int oldWidth = width();
-            setText(myText);
-            if (oldWidth == width() && width() < myRequiredSize.width()) {
-                // didn't trigger resize cause we're capped
-                setText(squeezedText(myText));
+            if (!myText.isEmpty()) {
+                setText(myText);
+                if (oldWidth == width() && width() < myRequiredSize.width()) {
+                    // didn't trigger resize cause we're capped
+                    setText(squeezedText(myText));
+                }
             }
         }
 
@@ -770,8 +789,9 @@ BE::Task::update(const unsigned long *properties, WId id)
             }
         }
     }
-    else
+    else {
         setText(myLabel);
+    }
 
     if (props[0] & NET::WMIcon && iconName().isEmpty()) // if an icon was set, this is a sticky one
     {
@@ -982,6 +1002,7 @@ BE::Tasks::setStyle()
 void
 BE::Tasks::updateWindowProperties(WId id, const unsigned long *properties)
 {
+    XSync(QX11Info::display(), false);
     if (properties[0] & NET::WMState) {
         KWindowInfo info( id, NET::WMState );
         if (info.state() & NET::SkipTaskbar)
