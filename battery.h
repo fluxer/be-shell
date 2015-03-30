@@ -39,14 +39,16 @@ private slots:
     void collectDevices();
     void addDevice( const QString &udi );
     void removeDevice( const QString &udi );
+    void _repolish();
     void setCharge(int value, const QString &udi);
     void setState(int newState, const QString &udi);
     void setAcPlugged(bool newState, const QString &udi);
     void setBatteryPlugged(bool newState, const QString &udi);
 private:
     void countCharge();
+    void repolish();
 private:
-    bool myACisPlugged, iAmCharging;
+    bool myACisPlugged, iAmCharging, iAmDirty;
     int myCharge;
     QSize myPadding;
     QMap<QString, int> myBatteries;

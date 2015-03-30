@@ -34,6 +34,7 @@ static QPainterPath gs_icon;
 BE::Battery::Battery( QWidget *parent ) : Button(parent)
 , myACisPlugged(false)
 , iAmCharging(false)
+, iAmDirty(false)
 {
     if (gs_icon.isEmpty())
     {
@@ -48,6 +49,7 @@ BE::Battery::Battery( QWidget *parent ) : Button(parent)
         gs_icon.closeSubpath();
     }
 
+    setProperty("charging", false);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(Solid::DeviceNotifier::instance(), SIGNAL(deviceAdded(const QString&)), this, SLOT(addDevice(const QString&)));
     connect(Solid::DeviceNotifier::instance(), SIGNAL(deviceRemoved(const QString&)), this, SLOT(removeDevice(const QString&)));
@@ -97,8 +99,26 @@ void BE::Battery::collectDevices()
 }
 
 void
+BE::Battery::repolish()
+{
+    if (!iAmDirty)
+        QMetaObject::invokeMethod(this, "_repolish", Qt::QueuedConnection);
+    iAmDirty = true;
+}
+
+void
+BE::Battery::_repolish()
+{
+    iAmDirty = false;
+    style()->unpolish(this);
+    style()->polish(this);
+}
+
+void
 BE::Battery::countCharge()
 {
+    const int lastCharge = myCharge;
+    const bool wasCharging = iAmCharging;
     myCharge = 0;
     iAmCharging = false;
     for (QMap<QString, int>::const_iterator it = myBatteries.constBegin(),
@@ -114,6 +134,26 @@ BE::Battery::countCharge()
     }
     if (myBatteries.count())
         myCharge /= myBatteries.count();
+
+    if (wasCharging != iAmCharging) {
+        setProperty("charging", iAmCharging);
+        repolish();
+    }
+
+    if (myCharge >= 67) {
+        if (lastCharge < 67) {
+            setProperty("charge", "high");
+            repolish();
+        }
+    } else if (myCharge >= 34) {
+        if (lastCharge < 34 || lastCharge >= 67) {
+            setProperty("charge", "mid");
+            repolish();
+        }
+    } else if (lastCharge > 33) {
+        setProperty("charge", "low");
+        repolish();
+    }
     setToolTip(QString::number(myCharge) + '%');
 }
 
