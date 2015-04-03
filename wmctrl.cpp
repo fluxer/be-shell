@@ -52,7 +52,7 @@ public:
 };
 }
 
-BE::WmCtrl::WmCtrl(QWidget *parent) : QFrame(parent), BE::Plugged(parent), iOnlyManageMaximized(false)
+BE::WmCtrl::WmCtrl(QWidget *parent) : QFrame(parent), BE::Plugged(parent), iOnlyManageMaximized(false), iHideDisabled(false)
 {
     setObjectName("WmCtrl");
     FlowLayout *l = new FlowLayout(this);
@@ -123,9 +123,11 @@ static QString defaultIcon(char c)
 void
 BE::WmCtrl::configure(KConfigGroup *grp)
 {
+    const bool didHide = iHideDisabled;
+    iHideDisabled = grp->readEntry("HideDisabled", false);
     const bool didOnlyMaximized = iOnlyManageMaximized;
     iOnlyManageMaximized = grp->readEntry("OnlyMaximized", false);
-    if (iOnlyManageMaximized != didOnlyMaximized)
+    if (iOnlyManageMaximized != didOnlyMaximized || didHide != iHideDisabled)
         setManagedWindow(myManagedWindow);
 
     QString oldButtons = myButtons;
@@ -203,7 +205,7 @@ BE::WmCtrl::enableButtons(bool e)
     QList<BE::WmButton*> btns = findChildren<BE::WmButton*>();
     foreach (BE::WmButton *btn, btns) {
         if (!(btn->type == 'E' || btn->type == '+'))
-            btn->setEnabled(e);
+            iHideDisabled ?  btn->setVisible(e) : btn->setEnabled(e);
     }
 }
 
@@ -321,6 +323,8 @@ BE::WmCtrl::themeChanged()
 void
 BE::WmCtrl::windowChanged(WId win, const unsigned long *props)
 {
+    if (win != myManagedWindow)
+        return; // we don't care
     if (props[0] & NET::WMState)
         enableButtons(!iOnlyManageMaximized || KWindowInfo(win, NET::WMState).state() & NET::Max/*Vert*/);
 }

@@ -47,7 +47,7 @@ private slots:
     void windowChanged(WId, const unsigned long *props);
 private:
     WId myManagedWindow;
-    bool iOnlyManageMaximized;
+    bool iOnlyManageMaximized, iHideDisabled;
     QString myButtons;
 };
 
