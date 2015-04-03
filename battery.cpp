@@ -272,6 +272,7 @@ BE::Battery::setState(int state, const QString &udi)
         ((state != Solid::Battery::Charging) && *charge > -1))
     {
         *charge = -(*charge);
+        const bool wasCharging = iAmCharging;
         iAmCharging = false;
         for (QMap<QString, int>::const_iterator it = myBatteries.constBegin(), end = myBatteries.constEnd(); it != end; ++it)
         {
@@ -280,6 +281,10 @@ BE::Battery::setState(int state, const QString &udi)
                 iAmCharging = true;
                 break;
             }
+        }
+        if (wasCharging != iAmCharging) {
+            setProperty("charging", iAmCharging);
+            repolish();
         }
         update();
     }
