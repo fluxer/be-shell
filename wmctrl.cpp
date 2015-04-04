@@ -204,8 +204,11 @@ BE::WmCtrl::enableButtons(bool e)
 {
     QList<BE::WmButton*> btns = findChildren<BE::WmButton*>();
     foreach (BE::WmButton *btn, btns) {
-        if (!(btn->type == 'E' || btn->type == '+'))
-            iHideDisabled ?  btn->setVisible(e) : btn->setEnabled(e);
+        if (!(btn->type == 'E' || btn->type == '+')) {
+            btn->setEnabled(e);
+            if (iHideDisabled)
+                btn->setVisible(e);
+        }
     }
 }
 
