@@ -177,11 +177,9 @@ BE::Battery::paintEvent(QPaintEvent *pe)
     p.setPen(Qt::NoPen);
     p.setRenderHint(QPainter::Antialiasing);
     p.translate(r.topLeft());
-    if (!iAmCharging)
-    {
-        p.translate(w/2,h/2);
-        p.rotate(180);
-        p.translate(-w/2,-h/2);
+    if (!iAmCharging) {
+        p.translate(w,0);
+        p.scale(-1,1);
     }
     p.scale(w/100.0, h/100.0);
 
@@ -193,19 +191,12 @@ BE::Battery::paintEvent(QPaintEvent *pe)
     p.translate(r.topLeft());
     p.setClipRect(0, 0, w*myCharge/100, height());
 
-    if (!iAmCharging)
-    {
-        p.translate(w/2,h/2);
-        p.rotate(180);
-        p.translate(-w/2,-h/2);
-        p.scale(w/120.0, h/120.0);
-        p.translate(10,10);
+    if (!iAmCharging) {
+        p.translate(w,0);
+        p.scale(-1, 1);
     }
-    else
-    {
-        p.scale(w/120.0, h/120.0);
-        p.translate(10,10);
-    }
+    p.scale(w/120.0, h/120.0);
+    p.translate(10,10);
 
     p.setBrush(palette().brush(QPalette::Highlight));
     p.drawPath(gs_icon);
