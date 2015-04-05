@@ -18,7 +18,10 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-#include <battery.h>
+#include "battery.h"
+
+#include <KDE/KConfigGroup>
+
 #include <QEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -35,6 +38,7 @@ BE::Battery::Battery( QWidget *parent ) : Button(parent)
 , myACisPlugged(false)
 , iAmCharging(false)
 , iAmDirty(false)
+, myFillIsCharge(true)
 {
     if (gs_icon.isEmpty())
     {
@@ -54,6 +58,13 @@ BE::Battery::Battery( QWidget *parent ) : Button(parent)
     connect(Solid::DeviceNotifier::instance(), SIGNAL(deviceAdded(const QString&)), this, SLOT(addDevice(const QString&)));
     connect(Solid::DeviceNotifier::instance(), SIGNAL(deviceRemoved(const QString&)), this, SLOT(removeDevice(const QString&)));
     QMetaObject::invokeMethod(this, "collectDevices", Qt::QueuedConnection);
+}
+
+void
+BE::Battery::configure(KConfigGroup *grp)
+{
+    Button::configure(grp);
+    myFillIsCharge = grp->readEntry("FillIsCharge", true);
 }
 
 void
@@ -189,7 +200,12 @@ BE::Battery::paintEvent(QPaintEvent *pe)
     p.resetTransform();
 
     p.translate(r.topLeft());
-    p.setClipRect(0, 0, w*myCharge/100, height());
+    if (myFillIsCharge)
+        p.setClipRect(0, 0, w*myCharge/100, height());
+    else if (iAmCharging)
+        p.setClipRect(w*myCharge/100, 0, width(), height());
+    else
+        p.setClipRect(0, 0, w*(100-myCharge)/100, height());
 
     if (!iAmCharging) {
         p.translate(w,0);

@@ -28,7 +28,7 @@ class Battery : public Button {
     Q_OBJECT
 public:
     Battery(QWidget *parent = 0);
-//     virtual void configure( KConfigGroup *grp );
+    virtual void configure(KConfigGroup *grp);
     QSize sizeHint() const;
 protected:
 //     void mousePressEvent(QMouseEvent *me);
@@ -48,7 +48,7 @@ private:
     void countCharge();
     void repolish();
 private:
-    bool myACisPlugged, iAmCharging, iAmDirty;
+    bool myACisPlugged, iAmCharging, iAmDirty, myFillIsCharge;
     int myCharge;
     QSize myPadding;
     QMap<QString, int> myBatteries;
