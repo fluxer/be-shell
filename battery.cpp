@@ -39,6 +39,7 @@ BE::Battery::Battery( QWidget *parent ) : Button(parent)
 , iAmCharging(false)
 , iAmDirty(false)
 , myFillIsCharge(true)
+, myCharge(0)
 {
     if (gs_icon.isEmpty())
     {
@@ -54,6 +55,7 @@ BE::Battery::Battery( QWidget *parent ) : Button(parent)
     }
 
     setProperty("charging", false);
+    setProperty("charge", "low");
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(Solid::DeviceNotifier::instance(), SIGNAL(deviceAdded(const QString&)), this, SLOT(addDevice(const QString&)));
     connect(Solid::DeviceNotifier::instance(), SIGNAL(deviceRemoved(const QString&)), this, SLOT(removeDevice(const QString&)));
