@@ -1,0 +1,168 @@
+#!/bin/bash
+
+
+#Set the base directory of MPD here to find cover artist
+MPDBASE="/home/music"
+BACKEND="MPD"
+SHOWCOVER=true
+COVERSIZE=72
+DECOCOLOR="#18A3F0"
+
+######## HANDS OFF FROM HERE ON ###################
+
+FIFO=nowplaying
+
+######## HTML OUTPUT CODE GENERATION ###################
+
+print_info() { # artist, album, title, cover
+    ARTIST="$1"
+    ALBUM="$2"
+    TITLE="$3"
+    COVER="$4"
+
+    if [ -z "$TITLE" ]; then
+        TITLE="$ALBUM"
+        ALBUM=""
+        if [ -z "$TITLE" ]; then
+            TITLE="$ARTIST"
+            ARTIST=""
+            if [ -z "$TITLE" ]; then
+                TITLE="Playing"
+            fi
+        fi
+    fi
+
+    if [ -z "$COVER" ]; then
+        STRING='<font style="font-size:12pt;color:'$DECOCOLOR'">. : : </font>'
+        STRING="${STRING}${TITLE}"
+        if [ ! -z "$ARTIST" ]; then
+            STRING="${STRING}"'<font style="font-size:10pt;color:'$DECOCOLOR'"> &nbsp; by &nbsp; </font>'"$ARTIST"
+        fi
+        if [ ! -z "$ALBUM" ]; then
+            STRING="${STRING}"'<font style="font-size:10pt;color:'$DECOCOLOR'"> &nbsp; on &nbsp; </font>'"$ALBUM"
+        fi
+        STRING="${STRING}"'<font style="font-size:12pt;color:'$DECOCOLOR'"> : : .</font>'
+    else
+        STRING='<table><tr><td><div><img src="'$COVER'" height="'$COVERSIZE'"/></div></td><td><div align="right" style="padding-left:20pt;"><font style="font-size:18pt;font-weight:bold;">'$TITLE'</font>'
+        if [ ! -z "$ARTIST" ]; then
+            STRING="${STRING}"'<font style="font-size:14pt;"><br>'$ARTIST'</font>'
+        fi
+        if [ ! -z "$ALBUM" ]; then
+            STRING="${STRING}"'<font style="font-size:12pt;font-weight:bold;"><br>'$ALBUM'</font>'
+        fi
+        STRING="${STRING}</td></tr></table>"
+    fi
+    echo "$STRING" > /tmp/`whoami`/be.shell/$FIFO
+    qdbus org.kde.be.shell /BE__MPC setToolTip "$STRING"
+}
+
+print_status() {
+    STRING='<font style="font-size:12pt;color:'$DECOCOLOR'">:&nbsp;:&nbsp;.</font>'
+    if $1; then
+        STRING="${STRING}&nbsp;<font style=\"font-size:18pt\">Playback&nbsp;Paused</font>"
+    else
+        STRING="${STRING}&nbsp;<font style=\"font-size:18pt\">Playback&nbsp;Stopped</font>"
+    fi
+    STRING="$STRING"'<font style="font-size:12pt;color:'$DECOCOLOR'">&nbsp;.&nbsp;:&nbsp;:</font>'
+    echo "$STRING"  > /tmp/`whoami`/be.shell/$FIFO
+    qdbus org.kde.be.shell /BE__MPC setToolTip "$STRING"
+}
+
+######## OK, FROM HERE ON REALLY STAY AWAY ###################
+
+print_mpd_status() {
+
+    IFS=$'\n'
+    STATUS=(`mpc status -f '%artist%§\n%album%§\n%title%%name%§\n%file%§'`)
+    ARTIST="${STATUS[0]}"
+    ALBUM="${STATUS[1]}"
+    TITLE="${STATUS[2]}"
+    FILE="${STATUS[3]}"
+    STATUS="${STATUS[4]}"
+    unset IFS
+
+    case "${STATUS%]*}" in
+    "[playing")
+        ARTIST="${ARTIST%§}"
+        ALBUM="${ALBUM%§}"
+        TITLE="${TITLE%§}"
+        FILE="${FILE%§}"
+
+        if $SHOWCOVER; then
+            SUBPATH="`dirname "$FILE"`"
+            while : ; do
+                COVERPATH="$MPDBASE/$SUBPATH"
+                COVER="`find "$COVERPATH" -maxdepth 1 -type f -iname "cover*" -o -iname "folder*" -o -iname "front.*" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -quit | grep -Eim1 '(.png|.jpg|.jpeg)'`"
+                [ ! -z "$COVER" ] && break
+                SUBPATH=${SUBPATH%/*}
+                [[ $SUBPATH == */* ]] || break
+            done
+        else
+            COVER=""
+        fi
+        print_info "$ARTIST" "$ALBUM" "$TITLE" "$COVER"
+        ;;
+    "[paused")
+        print_status true
+        ;;
+    *)
+        print_status false
+    esac
+}
+
+daemon_func() {
+
+if [ "$BACKEND" = "MPD" ]; then
+    print_mpd_status
+    while read line; do
+        print_mpd_status
+    done < <(mpc idleloop player)
+elif [ "$1" = "MPRIS" ]; then
+    # Let's see what's out there in DBUS land
+    ISPLAYING=$(qdbus|grep -m1 org.mpris.MediaPlayer2)
+    PLAYER=${ISPLAYING:24}
+
+    # Nothing of interest. Move along.
+    if [ -z "$ISPLAYING" ]; then
+        sleep 30
+        exit 0
+    fi
+
+    # What's our player up to? If not playing, just dump our state
+    STATE=$(qdbus $ISPLAYING /org/mpris/MediaPlayer2  org.mpris.MediaPlayer2.Player.PlaybackStatus)
+
+    if [ "$STATE" == "Stopped" ]; then
+        echo « $PLAYER" is stopped" »
+        exit 0
+    elif [ "$STATE" == "Paused" ]; then
+        echo « $PLAYER" is paused" »
+        exit 0
+    fi
+
+    # Query our player and spread some sed so we can easily parse it
+    RAWMETA=$(qdbus $ISPLAYING /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Metadata)
+    META=$(echo $RAWMETA | sed 's/mpris:/\n/g;s/xesam:/\n/g')
+
+    TITLE=$(echo -e "$META" | grep title)
+    if [ "$PLAYER" != "audacious" ]; then
+        TITLE=${TITLE:6:-1}
+    else
+        TITLE=${TITLE:6}
+    fi
+
+    ARTIST=$(echo -e "$META" | grep artist)
+    ARTIST=${ARTIST:7:-1}
+
+    #If called with the 'i' option
+    if [ "$1" == "i" ]; then
+        COVER=$(echo -e "$META" | grep artUrl)
+        COVER=${COVER:15:-1}
+        echo '<table><tr><td><div><img src="'$COVER'" height="150"/></div></td><td><div align="right"><span style="font-size:18pt; font-weight:bold;"><br> &nbsp;&nbsp;&nbsp;'$TITLE'</span></div><div align="right" padding-bottom="12pt"><span style="font-size:14pt;">&nbsp;&nbsp;&nbsp;'$ARTIST'<br></span></div><div align="center" style="font-size:12px">'$PLAYER'</div></td></tr></table>'
+    else
+        echo "<font style=\"font-size: 12px; color: #A9FF0A\">« $PLAYER » &nbsp;  . : : </font>"$TITLE"<font style=\"font-size: 10px; color: #A9FF0A\"> &nbsp;« by »&nbsp;</font>"$ARTIST"<font style=\"font-size: 12px; color: #A9FF0A\"> : : .</font>"
+    fi
+fi
+
+}
+
+source `dirname "$0"`/be.fifo.daemon
