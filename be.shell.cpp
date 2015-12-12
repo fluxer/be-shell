@@ -1694,7 +1694,7 @@ int main (int argc, char *argv[])
     options.add("restart", ki18n("Send all your private data to the empire!"));
     options.add("setWallpaper <file>", ki18n("Set current wallpaper via dbus"), "none");
     KCmdLineArgs::addCmdLineOptions(options);
-    KUniqueApplication::addCmdLineOptions();
+//     KUniqueApplication::addCmdLineOptions();
 
     KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
     if (args->isSet("setWallpaper")) {
