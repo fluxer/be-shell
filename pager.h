@@ -22,11 +22,11 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 
-class QButtonGroup;
-class QHBoxLayout;
-class QAbstractButton;
-class QMenu;
-class QAction;
+#include <QButtonGroup>
+#include <QHBoxLayout>
+#include <QAbstractButton>
+#include <QMenu>
+#include <QAction>
 
 #include <QFrame>
 #include "be.plugged.h"

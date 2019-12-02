@@ -38,20 +38,20 @@ public:
     GMenuAdaptor(BE::GMenu *menu) : QDBusAbstractAdaptor(menu), myGlobalMenu(menu) { }
 
 public slots:
-    Q_NOREPLY void registerMenu(const QString &service, qlonglong key, const QString &title, const QStringList &entries)
+    void registerMenu(const QString &service, qlonglong key, const QString &title, const QStringList &entries)
     { myGlobalMenu->registerMenu(service, key, title, entries); }
-    Q_NOREPLY void unregisterMenu(qlonglong key) { myGlobalMenu->unregisterMenu(key); }
+    void unregisterMenu(qlonglong key) { myGlobalMenu->unregisterMenu(key); }
 
-    Q_NOREPLY void setOpenPopup(int idx) { myGlobalMenu->setOpenPopup(idx); }
-    Q_NOREPLY void requestFocus(qlonglong key) { myGlobalMenu->requestFocus(key); }
-    Q_NOREPLY void releaseFocus(qlonglong key) { myGlobalMenu->releaseFocus(key); }
-    Q_NOREPLY void reparent(qlonglong oldKey, qlonglong newKey)
+    void setOpenPopup(int idx) { myGlobalMenu->setOpenPopup(idx); }
+    void requestFocus(qlonglong key) { myGlobalMenu->requestFocus(key); }
+    void releaseFocus(qlonglong key) { myGlobalMenu->releaseFocus(key); }
+    void reparent(qlonglong oldKey, qlonglong newKey)
     { myGlobalMenu->reparent(oldKey, newKey); }
-    Q_NOREPLY void addEntry(qlonglong key, int idx, const QString &entry)
+    void addEntry(qlonglong key, int idx, const QString &entry)
     { myGlobalMenu->changeEntry(key, idx, entry, true); }
-    Q_NOREPLY void changeEntry(qlonglong key, int idx, const QString &entry)
+    void changeEntry(qlonglong key, int idx, const QString &entry)
     { myGlobalMenu->changeEntry(key, idx, entry, false); }
-    Q_NOREPLY void removeEntry(qlonglong key, int idx) { myGlobalMenu->changeEntry(key, idx); }
+    void removeEntry(qlonglong key, int idx) { myGlobalMenu->changeEntry(key, idx); }
 
 };
 }

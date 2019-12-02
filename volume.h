@@ -21,8 +21,10 @@
 #ifndef VOLUME_H
 #define VOLUME_H
 
+#include <QProcess>
+#include <QTimer>
+
 class KConfigGroup;
-class QProcess;
 
 #include "pixlabel.h"
 #include "be.plugged.h"

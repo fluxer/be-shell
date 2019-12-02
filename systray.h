@@ -24,12 +24,13 @@
 #include <QFrame>
 #include <QPointer>
 #include <QList>
+#include <QMenu>
+#include <QTreeWidgetItem>
+#include <QTimer>
+#include <QX11EmbedWidget>
 
 #include "be.plugged.h"
 
-class QMenu;
-class QTreeWidgetItem;
-class QX11EmbedWidget;
 class KConfigGroup;
 
 namespace BE {

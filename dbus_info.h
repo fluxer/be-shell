@@ -76,7 +76,7 @@ public slots:
         return "BE::Shell";
     }
 
-    Q_NOREPLY void CloseNotification( uint id ) { myInfoCenter->closeNotification(id); }
+    void CloseNotification( uint id ) { myInfoCenter->closeNotification(id); }
 
 signals:
     void NotificationClosed( uint id, uint reason );
@@ -102,24 +102,24 @@ public:
 public slots:
     
     
-    Q_NOREPLY void clearDescriptionField(uint number) { myJob->clearDescriptionField(number); }
+    void clearDescriptionField(uint number) { myJob->clearDescriptionField(number); }
     bool setDescriptionField(uint number, const QString &name, const QString &value)
     {
         return myJob->setDescriptionField(number, name, value);
     }
     
-    Q_NOREPLY void setInfoMessage(const QString &infoMessage) { myJob->setInfoMessage(infoMessage); }
+    void setInfoMessage(const QString &infoMessage) { myJob->setInfoMessage(infoMessage); }
     
-    Q_NOREPLY void setProcessedAmount(qlonglong amount, const QString &unit) { myJob->setProcessedAmount(amount, unit); }
+    void setProcessedAmount(qlonglong amount, const QString &unit) { myJob->setProcessedAmount(amount, unit); }
     
-    Q_NOREPLY void setPercent(uint percent) { myJob->setPercent(percent); }
+    void setPercent(uint percent) { myJob->setPercent(percent); }
     
-    Q_NOREPLY void setSpeed(qlonglong bytesPerSecond) { myJob->setSpeed(bytesPerSecond); }
+    void setSpeed(qlonglong bytesPerSecond) { myJob->setSpeed(bytesPerSecond); }
     
-    Q_NOREPLY void setSuspended(bool suspended) { myJob->setSuspended(suspended); }
-    Q_NOREPLY void setTotalAmount(qlonglong amount, const QString &unit) { myJob->setTotalAmount(amount, unit); }
+    void setSuspended(bool suspended) { myJob->setSuspended(suspended); }
+    void setTotalAmount(qlonglong amount, const QString &unit) { myJob->setTotalAmount(amount, unit); }
     
-    Q_NOREPLY void terminate(const QString &errorMessage) { myJob->terminate(errorMessage); }
+    void terminate(const QString &errorMessage) { myJob->terminate(errorMessage); }
 
     void setDestUrl(const QDBusVariant& destUrl) {} // TODO
     

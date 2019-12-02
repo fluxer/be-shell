@@ -30,10 +30,10 @@
 #include <QProgressBar>
 #include <QVariantMap>
 
-class QProgressBar;
-class QTextBrowser;
-class QToolBox;
-class QToolButton;
+#include <QProgressBar>
+#include <QTextBrowser>
+#include <QToolBox>
+#include <QToolButton>
 
 namespace BE {
 

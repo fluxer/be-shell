@@ -34,7 +34,7 @@
 #include <KDE/KLocale>
 #include <KDE/KRun>
 #include <KDE/KStandardDirs>
-#include <KDE/KUrlPixmapProvider>
+#include <KDE/KMimeType>
 #include <KDE/KWindowSystem>
 #include <kio/netaccess.h>
 #include <netwm.h>
@@ -237,8 +237,8 @@ void BE::DeskIcon::updateIcon()
 //             }
 //             myButton->setIcon(QPixmap::fromImage(imgRdr.read()));
 //         } else {
-            KUrlPixmapProvider imgLoader;
-            myButton->setIcon(imgLoader.pixmapFor(myUrl, 512));
+            QString iconName = KMimeType::iconNameForUrl(myUrl);
+            myButton->setIcon(DesktopIcon(iconName, 512));
 //         }
         QFileInfo fileInfo(myUrl);
         myLabel->setText(fileInfo.fileName());
@@ -926,7 +926,7 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
 , iAmRedirected(false)
 , myWpDialog(NULL)
 {
-    for (int i = 0; i < Qt::MidButton; ++i)
+    for (int i = 0; i < Qt::MiddleButton; ++i)
         myMouseActionMenu[i] = NULL;
     setObjectName("Desktop");
     setFocusPolicy( Qt::ClickFocus );
@@ -1074,7 +1074,7 @@ BE::Desk::Desk( QWidget *parent ) : QWidget(parent)
 void
 BE::Desk::configure( KConfigGroup *grp )
 {
-    for (int i = 0; i < Qt::MidButton; ++i) {
+    for (int i = 0; i < Qt::MiddleButton; ++i) {
         delete myMouseActionMenu[i];
         myMouseActionMenu[i] = NULL;
     }
@@ -1087,7 +1087,7 @@ BE::Desk::configure( KConfigGroup *grp )
     iWheelOnClickOnly = grp->readEntry("WheelOnLMB", false);
     myMouseAction[Qt::LeftButton-1] = grp->readEntry("LMBAction", QString());
     myMouseAction[Qt::RightButton-1] = grp->readEntry("RMBAction", "menu:BE::Config");
-    myMouseAction[Qt::MidButton-1] = grp->readEntry("MMBAction", "menu:windowlist");
+    myMouseAction[Qt::MiddleButton-1] = grp->readEntry("MMBAction", "menu:windowlist");
 
     myIcons.margin = grp->readEntry("IconMargin", 8);
     QAction act(this);
@@ -2052,7 +2052,7 @@ BE::Desk::eventFilter(QObject *o, QEvent *e)
 void
 BE::Desk::triggerMouseAction(QMouseEvent *me)
 {
-    if (me->button() > Qt::MidButton || me->modifiers())
+    if (me->button() > Qt::MiddleButton || me->modifiers())
         return;
     const QString &mouseAction = myMouseAction[me->button()-1];
     if (mouseAction.isEmpty())

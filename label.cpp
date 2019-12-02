@@ -34,6 +34,8 @@
 #include <QTimerEvent>
 #include <QUrl>
 #include <QWheelEvent>
+#include <QSocketNotifier>
+#include <QDebug>
 
 #include <sys/stat.h>
 #include <fcntl.h>

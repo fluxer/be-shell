@@ -43,8 +43,8 @@ public:
     }
 
 public slots:
-    Q_NOREPLY void Lock() { myShell->lockScreen(); }
-    Q_NOREPLY void configure() { myShell->configureScreenLocker(); }
+    void Lock() { myShell->lockScreen(); }
+    void configure() { myShell->configureScreenLocker(); }
 signals:
     void ActiveChanged();
 };
@@ -62,13 +62,13 @@ public:
 
 public slots:
     QString debug(const QString &pluginName, const QString &parameter = QString()) { return myShell->debug(pluginName, parameter); }
-    Q_NOREPLY void hidePanel(const QString &name) { myShell->setPanelVisible(name, 0); }
-    Q_NOREPLY void reconfigure() { myShell->configure(); }
-    Q_NOREPLY void showWindowList(int x, int y) { myShell->myWindowList->popup(QPoint(x,y)); }
-    Q_NOREPLY void showPanel(const QString &name) { myShell->setPanelVisible(name, 1); }
-    Q_NOREPLY void setTheme(const QString &theme) { myShell->setTheme(theme); }
-    Q_NOREPLY void togglePanel(const QString &name) { myShell->setPanelVisible(name, -1); }
-    Q_NOREPLY void blockGlobalShortcuts(bool yesNo) { KGlobalSettings::self()->emitChange(KGlobalSettings::BlockShortcuts, yesNo); }
+    void hidePanel(const QString &name) { myShell->setPanelVisible(name, 0); }
+    void reconfigure() { myShell->configure(); }
+    void showWindowList(int x, int y) { myShell->myWindowList->popup(QPoint(x,y)); }
+    void showPanel(const QString &name) { myShell->setPanelVisible(name, 1); }
+    void setTheme(const QString &theme) { myShell->setTheme(theme); }
+    void togglePanel(const QString &name) { myShell->setPanelVisible(name, -1); }
+    void blockGlobalShortcuts(bool yesNo) { KGlobalSettings::self()->emitChange(KGlobalSettings::BlockShortcuts, yesNo); }
 };
 }
 #endif //BLAZER_ADAPTOR_H

@@ -28,7 +28,7 @@
 #include <QLabel>
 #include "be.plugged.h"
 
-class QMenu;
+#include <QMenu>
 
 namespace BE {
 

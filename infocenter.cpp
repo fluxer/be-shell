@@ -581,10 +581,7 @@ BE::InfoCenter::paintEvent( QPaintEvent *pe )
         QPixmap buffer(size());
         buffer.fill(Qt::transparent);
 
-        QPainter::setRedirected( this, &buffer );
-        QLabel::paintEvent( pe );
-        QPainter::restoreRedirected( this );
-
+        QLabel::render( &buffer );
 
         QPainter p( &buffer );
         p.setCompositionMode( QPainter::CompositionMode_DestinationIn );

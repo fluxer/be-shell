@@ -21,10 +21,10 @@
 #ifndef LABEL_H
 #define LABEL_H
 
-class QDBusInterface;
-class QFile;
-class QProcess;
-class QTimer;
+#include <QDBusInterface>
+#include <QFile>
+#include <QProcess>
+#include <QTimer>
 
 #include "be.plugged.h"
 

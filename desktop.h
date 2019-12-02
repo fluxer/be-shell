@@ -33,12 +33,12 @@
 #include "be.plugged.h"
 
 class Config;
-class QCheckBox;
-class QGridLayout;
-class QGroupBox;
-class QLabel;
-class QToolButton;
-class QRadioButton;
+#include <QCheckBox>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QToolButton>
+#include <QRadioButton>
 class KDirWatch;
 class KConfigGroup;
 
@@ -241,8 +241,8 @@ private:
     bool ignoreSaveRequest, iRootTheWallpaper, iWheelOnClickOnly;
     uint myCorners;
     int myCurrentDesktop;
-    QString myMouseAction[Qt::MidButton];
-    QMenu *myMouseActionMenu[Qt::MidButton];
+    QString myMouseAction[Qt::MiddleButton];
+    QMenu *myMouseActionMenu[Qt::MiddleButton];
 
     Wallpaper myWallpaper;
     typedef QHash<int,Wallpaper> Wallpapers;

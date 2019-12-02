@@ -76,7 +76,7 @@ BE::Trash::Trash( QWidget *parent ) : QLabel(parent), BE::Plugged(parent)
     }
     connect( ourTrashcan, SIGNAL( clear() ), this, SLOT( updateStatus() ) );
     connect( ourTrashcan, SIGNAL( completed() ), this, SLOT( updateStatus() ) );
-    connect( ourTrashcan, SIGNAL( deleteItem( const KFileItem & ) ), this, SLOT( updateStatus() ) );
+    connect( ourTrashcan, SIGNAL( itemsDeleted( const KFileItemList & ) ), this, SLOT( updateStatus() ) );
     
     updateStatus();
     show();

@@ -38,15 +38,15 @@ public:
     DeskAdaptor(BE::Desk *desk) : QDBusAbstractAdaptor(desk), myDesk(desk) { }
 
 public slots:
-    Q_NOREPLY void setWallpaper( const QString &file, int mode ) { myDesk->setWallpaper(file, mode); }
-    Q_NOREPLY void setWallpaper( const QString &file ) { myDesk->setWallpaper(file, -1); }
-    Q_NOREPLY void toggleDesktopShown() { myDesk->toggleDesktopShown(); }
-    Q_NOREPLY void toggleDesktopHighlighted() { myDesk->toggleDesktopHighlighted(); }
-    Q_NOREPLY void reArrangeIcons() { myDesk->reArrangeIcons(); }
-    Q_NOREPLY void refresh() { myDesk->update(); }
-    Q_NOREPLY void tint( const QString &color ) { myDesk->tint(QColor(color)); }
-    Q_NOREPLY void merryXmas() { myDesk->merryXmas(); }
-    Q_NOREPLY void merryXmas(uint flakes, uint fps) { myDesk->merryXmas(flakes, fps); }
+    void setWallpaper( const QString &file, int mode ) { myDesk->setWallpaper(file, mode); }
+    void setWallpaper( const QString &file ) { myDesk->setWallpaper(file, -1); }
+    void toggleDesktopShown() { myDesk->toggleDesktopShown(); }
+    void toggleDesktopHighlighted() { myDesk->toggleDesktopHighlighted(); }
+    void reArrangeIcons() { myDesk->reArrangeIcons(); }
+    void refresh() { myDesk->update(); }
+    void tint( const QString &color ) { myDesk->tint(QColor(color)); }
+    void merryXmas() { myDesk->merryXmas(); }
+    void merryXmas(uint flakes, uint fps) { myDesk->merryXmas(flakes, fps); }
     int winId() { return myDesk->winId(); }
 };
 }

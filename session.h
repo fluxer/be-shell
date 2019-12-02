@@ -21,9 +21,9 @@
 #ifndef SESSION_H
 #define SESSION_H
 
-class QAction;
+#include <QAction>
 class KConfigGroup;
-class QMenu;
+#include <QMenu>
 
 #include "button.h"
 

@@ -2,6 +2,7 @@
 PROJECT( be.shell )
 cmake_minimum_required(VERSION 2.4)
 FIND_PACKAGE(KDE4 REQUIRED)
+INCLUDE(KDE4Defaults)
 
 INCLUDE_DIRECTORIES(
 	${CMAKE_SOURCE_DIR}
@@ -10,6 +11,11 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_BINARY_DIR}
 	${KDE4_INCLUDES} )
+
+add_definitions(
+    ${QT_DEFINITIONS}
+    ${KDE4_DEFINITIONS}
+)
 
 set(be.shell_SRCS
     be.shell.cpp
@@ -39,10 +45,17 @@ set(be.shell_SRCS
     pixlabel.cpp
  )
 
-set(be.shell_MOC_HDRS be.shell.h dbus_shell.h dbus_desktop.h dbus_runner.h dbus_gmenu.h dbus_info.h dbus_button.h)
-qt4_wrap_cpp(be.shell_MOC_SRCS ${be.shell_MOC_HDRS})
+set(be.shell_HDRS
+    be.shell.h
+    dbus_shell.h
+    dbus_desktop.h
+    dbus_runner.h
+    dbus_gmenu.h
+    dbus_info.h
+    dbus_button.h
+)
 
-kde4_add_executable(be.shell ${be.shell_SRCS} ${be.shell_MOC_SRCS})
+add_executable(be.shell ${be.shell_SRCS} ${be.shell_HDRS})
 
 target_link_libraries(be.shell ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS} ${KDE4_KFILE_LIBS} solid ${X11_LIBRARIES} ${X11_Xcomposite_LIB} ${X11_Xdamage_LIB} ${X11_Xrender_LIB} ${X11_Xext_LIB} ${X11_Xfixes_LIB} kcmutils)
 

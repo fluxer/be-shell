@@ -26,14 +26,15 @@
 #include <QPoint>
 #include <QPointer>
 #include <QPen>
+#include <QAction>
+#include <QDomElement>
+#include <QFileSystemWatcher>
+#include <QImage>
+#include <QMenu>
+#include <QTimer>
 #include <qwindowdefs.h>
 
 class KSharedConfig;
-class QAction;
-class QDomElement;
-class QFileSystemWatcher;
-class QImage;
-class QMenu;
 
 namespace BE {
 

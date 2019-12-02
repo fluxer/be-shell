@@ -41,6 +41,8 @@
 #include <QStyleOptionToolButton>
 #include <QTimerEvent>
 #include <QWheelEvent>
+#include <QProcess>
+#include <QDebug>
 
 
 BE::Button::Button( QWidget *parent, const QString &plugName ) : QToolButton(parent)
@@ -76,7 +78,7 @@ BE::Button::configure( KConfigGroup *grp )
 {
     disconnect( SIGNAL(clicked()) );
     if (!name().isEmpty()) {
-        QString opath("/" % name());
+        QString opath("/" + name());
         opath.replace( QRegExp("[^A-Za-z0-9_/]"), "_" );
         opath.replace( QRegExp("/+"), "/" );
         QObject *clash = QDBusConnection::sessionBus().objectRegisteredAt(opath);
@@ -244,9 +246,7 @@ BE::Button::paintEvent(QPaintEvent *pe)
 {
     if (myRenderTarget)
     {   // QStyleSheet redirects itself, so to render our own buffer, we got to do that here
-        QPainter::setRedirected( this, myRenderTarget );
-        QToolButton::paintEvent(pe);
-        QPainter::restoreRedirected( this );
+        QToolButton::render( myRenderTarget );
     }
     else if (myAnimationTimer)
     {

@@ -21,8 +21,8 @@
 #ifndef BE_WATCHED
 #define BE_WATCHED
 
-class QFileSystemWatcher;
-class QSettings;
+#include <QFileSystemWatcher>
+#include <QSettings>
 
 #include <QtDBus/QDBusContext>
 #include <QHash>

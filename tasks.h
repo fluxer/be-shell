@@ -21,8 +21,8 @@
 #ifndef TASKS_H
 #define TASKS_H
 
-class QDBusError;
-class QLabel;
+#include <QDBusError>
+#include <QLabel>
 #include "be.plugged.h"
 #include "button.h"
 

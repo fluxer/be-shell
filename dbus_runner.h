@@ -38,9 +38,9 @@ public:
     RunnerAdaptor(BE::Run *runner) : QDBusAbstractAdaptor(runner), myRunner(runner) { }
 
 public slots:
-    Q_NOREPLY void showAsDialog() { myRunner->showAsDialog(); }
-    Q_NOREPLY void toggleDialog() { myRunner->isVisible() ? myRunner->hide() : myRunner->showAsDialog(); }
-    Q_NOREPLY void togglePopup(int x, int y) { myRunner->togglePopup(x,y); }
+    void showAsDialog() { myRunner->showAsDialog(); }
+    void toggleDialog() { myRunner->isVisible() ? myRunner->hide() : myRunner->showAsDialog(); }
+    void togglePopup(int x, int y) { myRunner->togglePopup(x,y); }
 };
 }
 #endif //BLAZER_ADAPTOR_H

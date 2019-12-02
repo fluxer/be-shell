@@ -21,7 +21,7 @@
 #ifndef TOUCHWHEEL_H
 #define TOUCHWHEEL_H
 
-class QToolButton;
+#include <QToolButton>
 
 #include <QFrame>
 

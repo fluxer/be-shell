@@ -29,13 +29,13 @@
 
 #include "be.plugged.h"
 
-class QCompleter;
-class QLineEdit;
-class QProcess;
-class QTimer;
-class QTextBrowser;
-class QTreeWidget;
-class QTreeWidgetItem;
+#include <QCompleter>
+#include <QLineEdit>
+#include <QProcess>
+#include <QTimer>
+#include <QTextBrowser>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 
 class KConfigGroup;
 

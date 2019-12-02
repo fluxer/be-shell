@@ -24,10 +24,11 @@
 #include <QElapsedTimer>
 #include <QFrame>
 #include <QPen>
-#include "be.plugged.h"
+#include <QAction>
+#include <QMenu>
+#include <QTimer>
 
-class QAction;
-class QMenu;
+#include "be.plugged.h"
 
 namespace BE {
 

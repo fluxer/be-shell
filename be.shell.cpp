@@ -1184,7 +1184,7 @@ BE::Shell::populateWindowList(const QList<WId> &windows, QMenu *popup, bool allD
     else
     {
         static const unsigned long
-        supported_types = NET::Unknown | NET::NormalMask | NET::DialogMask | NET::OverrideMask | NET::UtilityMask;
+        supported_types = NET::Unknown | NET::NormalMask | NET::DialogMask | NET::UtilityMask;
         foreach (WId id, windows)
         {
             foreach ( QWidget *w, QApplication::topLevelWidgets() )

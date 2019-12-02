@@ -22,9 +22,9 @@
 #define BE_PLUGGED_H
 
 class KConfigGroup;
-class QMenu;
-class QDomElement;
-class QWidget;
+#include <QMenu>
+#include <QDomElement>
+#include <QWidget>
 
 #include <QIcon>
 #include <QString>

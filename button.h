@@ -21,7 +21,7 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-class QFileSystemWatcher;
+#include <QFileSystemWatcher>
 
 #include "be.plugged.h"
 

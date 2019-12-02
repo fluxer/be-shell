@@ -38,11 +38,11 @@ public:
     ButtonAdaptor(BE::Button *button) : QDBusAbstractAdaptor(button), myButton(button) { }
 
 public slots:
-    Q_NOREPLY void check(bool on) { myButton->setCheckable(true); myButton->setChecked(on); }
-    Q_NOREPLY void requestAttention() { myButton->requestAttention(); }
-    Q_NOREPLY void setIcon(QString icon) { myButton->setIcon(BE::Plugged::themeIcon(icon, myButton)); }
-    Q_NOREPLY void setToolTip(QString tip) { myButton->setToolTip(tip); }
-    Q_NOREPLY void setText(QString text) { myButton->setText(text); }
+    void check(bool on) { myButton->setCheckable(true); myButton->setChecked(on); }
+    void requestAttention() { myButton->requestAttention(); }
+    void setIcon(QString icon) { myButton->setIcon(BE::Plugged::themeIcon(icon, myButton)); }
+    void setToolTip(QString tip) { myButton->setToolTip(tip); }
+    void setText(QString text) { myButton->setText(text); }
 };
 }
 #endif //BUTTON_ADAPTOR_H

@@ -21,14 +21,15 @@
 #ifndef GMENU_H
 #define GMENU_H
 
-class QMenu;
-class QMenuBar;
-class QFileSystemWatcher;
-
-#include "be.plugged.h"
+#include <QMenu>
+#include <QMenuBar>
+#include <QFileSystemWatcher>
 #include <QMap>
 #include <QPointer>
 #include <QWidget>
+#include <QTimer>
+
+#include "be.plugged.h"
 
 namespace BE {
 class HMenuBar;

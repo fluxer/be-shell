@@ -24,8 +24,8 @@
 #include "be.plugged.h"
 
 class KDirLister;
-class QMenu;
-class QProcess;
+#include <QMenu>
+#include <QProcess>
 
 
 #include <QLabel>

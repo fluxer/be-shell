@@ -985,7 +985,7 @@ BE::GMenu::ggmUpdate( WId id )
         requestFocus( id );
 }
 
-static const unsigned long supported_types = NET::NormalMask | NET::DialogMask | NET::OverrideMask | NET::UtilityMask;
+static const unsigned long supported_types = NET::NormalMask | NET::DialogMask | NET::UtilityMask;
 
 void 
 BE::GMenu::ggmWindowAdded( WId id )

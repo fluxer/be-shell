@@ -568,7 +568,7 @@ BE::Run::showAsDialog()
 
     KWindowSystem::setOnDesktop(winId(), KWindowSystem::currentDesktop());
     setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-    KWindowSystem::setState(winId(), NET::Sticky | NET::SkipTaskbar | NET::SkipPager | NET::StaysOnTop );
+    KWindowSystem::setState(winId(), NET::Sticky | NET::SkipTaskbar | NET::SkipPager | NET::KeepAbove );
     show();
     m_shell->setFocus(Qt::OtherFocusReason);
     KWindowSystem::forceActiveWindow(winId());

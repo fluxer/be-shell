@@ -76,8 +76,8 @@ static bool isOccluded(WId id)
         // isn't, this will never change - same holds for the KeepBelow state
         // rest is weird logics
         bool occluded = true;
-        if (j.hasState(NET::StaysOnTop))
-            occluded = i.hasState(NET::StaysOnTop);
+        if (j.hasState(NET::KeepAbove))
+            occluded = i.hasState(NET::KeepAbove);
         if (i.hasState(NET::KeepBelow))
             occluded = j.hasState(NET::KeepBelow);
         if (occluded)
